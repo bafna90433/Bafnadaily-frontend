@@ -23,6 +23,7 @@ interface SiteSettings {
   siteName: string
   siteTagline: string
   siteLogo: string
+  favicon: string
   whatsappNumber: string
   whatsappEnabled: boolean
   supportEmail: string
@@ -32,12 +33,15 @@ interface SiteSettings {
   codAdvancePercent: number
   codFlatCharge: number
   upiEnabled: boolean
+  upiId: string
   freeShippingAbove: number
   standardShippingCharge: number
   giftWrapCharge: number
+  promoText: string
   b2bEnabled: boolean
   moqPolicy: MOQPolicy
   maintenanceMode: boolean
+  maintenanceMessage: string
   razorpayEnabled: boolean
   razorpayKeyId: string
   shiprocketEnabled: boolean
@@ -47,6 +51,7 @@ const DEFAULT: SiteSettings = {
   siteName: 'Reteiler',
   siteTagline: 'Gifts & Accessories',
   siteLogo: '',
+  favicon: '',
   whatsappNumber: '7550350036',
   whatsappEnabled: true,
   supportEmail: 'support@reteiler.in',
@@ -60,12 +65,15 @@ const DEFAULT: SiteSettings = {
   codAdvancePercent: 30,
   codFlatCharge: 0,
   upiEnabled: true,
+  upiId: '',
   freeShippingAbove: 499,
   standardShippingCharge: 49,
   giftWrapCharge: 29,
+  promoText: '🚚 Free Delivery on orders above ₹499 | COD Available 🎁',
   b2bEnabled: true,
   moqPolicy: { belowPrice: 60, belowPriceQty: 3, abovePriceQty: 2 },
   maintenanceMode: false,
+  maintenanceMessage: '',
   razorpayEnabled: false,
   razorpayKeyId: '',
   shiprocketEnabled: false,

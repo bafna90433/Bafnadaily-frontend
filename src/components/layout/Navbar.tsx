@@ -4,20 +4,13 @@ import { Search, ShoppingCart, Heart, User, Menu, X, Package, LogOut, ChevronDow
 import useAuthStore from '../../store/authStore'
 import useCartStore from '../../store/cartStore'
 import useSettingsStore from '../../store/settingsStore'
-
-const CATEGORIES = [
-  { name: '🔑 Keychains', slug: 'keychains' },
-  { name: '👗 Women', slug: 'women-accessories' },
-  { name: '👜 Fashion', slug: 'fashion' },
-  { name: '💄 Beauty', slug: 'beauty' },
-  { name: '🎁 Gifts', slug: 'gifts' },
-  { name: '💕 Cute Items', slug: 'cute-items' },
-]
+import api from '../../utils/api'
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuthStore()
   const { count } = useCartStore()
   const { settings } = useSettingsStore()
+  const [categories, setCategories] = useState<{ name: string; slug: string }[]>([])
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQ, setSearchQ] = useState('')
@@ -32,6 +25,9 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', handler)
+    api.get('/categories').then(res => {
+      if (res.data.success) setCategories(res.data.categories)
+    }).catch(() => {})
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
@@ -44,11 +40,13 @@ const Navbar: React.FC = () => {
     }
   }
 
+  const promoText = settings.promoText || `🚚 Free Delivery on orders above ₹${settings.freeShippingAbove || 499} | COD Available 🎁`
+
   return (
     <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-lg' : 'bg-white border-b border-gray-100'}`}>
       {/* Promo bar */}
       <div className="bg-primary text-white text-center text-xs py-1.5 font-medium tracking-wide">
-        🚚 Free Delivery on orders above ₹{settings.freeShippingAbove || 499} &nbsp;|&nbsp; COD Available 🎁
+        {promoText}
       </div>
 
       <div className="max-w-7xl mx-auto px-4">
@@ -63,7 +61,7 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-1">
-            {CATEGORIES.map((c) => (
+            {categories.slice(0, 7).map((c) => (
               <Link key={c.slug} to={`/category/${c.slug}`}
                 className="text-sm font-medium text-gray-600 hover:text-primary hover:bg-primary/5 px-3 py-2 rounded-lg transition-colors">
                 {c.name}
@@ -135,7 +133,7 @@ const Navbar: React.FC = () => {
       {mobileOpen && (
         <div className="lg:hidden bg-white border-t border-gray-100 px-4 py-4 shadow-lg">
           <div className="grid grid-cols-3 gap-2 mb-4">
-            {CATEGORIES.map((c) => (
+            {categories.map((c) => (
               <Link key={c.slug} to={`/category/${c.slug}`}
                 className="p-3 bg-gray-50 rounded-xl text-xs font-semibold text-center hover:bg-primary/10 hover:text-primary transition-colors">
                 {c.name}
