@@ -23,6 +23,7 @@ export interface Product {
   color: string[]
   material?: string
   sold: number
+  minQty: number
 }
 
 export interface Category {
