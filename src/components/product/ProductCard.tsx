@@ -10,11 +10,14 @@ import toast from 'react-hot-toast'
 interface Props { product: Product }
 
 const ProductCard: React.FC<Props> = ({ product }) => {
-  const { addToCart } = useCartStore()
+  const { cart, addToCart, updateItem } = useCartStore()
   const { user } = useAuthStore()
   const navigate = useNavigate()
   const [wishlisted, setWishlisted] = useState(false)
   const [adding, setAdding] = useState(false)
+
+  const cartItem = cart?.items?.find(i => i.product?._id === product._id)
+  const qtyInCart = cartItem?.quantity || 0
 
   const img = product.images?.[0]?.url || `https://placehold.co/400x400/FCE4EC/E91E63?text=${encodeURIComponent(product.name)}`
 
@@ -22,8 +25,16 @@ const ProductCard: React.FC<Props> = ({ product }) => {
     e.preventDefault()
     if (!user) { navigate('/login'); return }
     setAdding(true)
-    await addToCart(product._id)
+    await addToCart(product._id, product.minQty || 1)
     setAdding(false)
+  }
+
+  const handleUpdateQty = async (e: React.MouseEvent, delta: number) => {
+    e.preventDefault()
+    if (!cartItem) return
+    const newQty = cartItem.quantity + delta
+    if (newQty < (product.minQty || 1)) return
+    await updateItem(cartItem._id, newQty)
   }
 
   const handleWishlist = async (e: React.MouseEvent) => {
@@ -51,23 +62,47 @@ const ProductCard: React.FC<Props> = ({ product }) => {
             {product.isTrending && <span className="badge bg-orange-500 text-white">🔥 Hot</span>}
             {product.isNewArrival && <span className="badge bg-green-500 text-white">New ✨</span>}
             {product.isBestSeller && <span className="badge bg-purple-500 text-white">⭐ Best</span>}
+            {(product.minQty || 1) > 1 && <span className="badge bg-orange-100 text-orange-700">Min {product.minQty} pcs</span>}
           </div>
           {/* Wishlist */}
           <button onClick={handleWishlist}
             className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm hover:scale-110 transition-transform">
             <Heart size={15} className={wishlisted ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
           </button>
-          {/* Quick add */}
-          {product.stock > 0 && (
-            <button onClick={handleCart} disabled={adding}
-              className="absolute bottom-0 inset-x-0 bg-primary text-white py-2.5 text-xs font-bold translate-y-full group-hover:translate-y-0 transition-transform duration-200 flex items-center justify-center gap-1.5">
-              <ShoppingCart size={14} />
-              {adding ? 'Adding…' : 'Add to Cart'}
-            </button>
-          )}
-          {product.stock === 0 && (
-            <div className="absolute bottom-0 inset-x-0 bg-gray-800/80 text-white py-2 text-xs font-semibold text-center">Out of Stock</div>
-          )}
+          
+          {/* Quantity Controls or Add Button */}
+          <div className="absolute bottom-0 inset-x-0 translate-y-full group-hover:translate-y-0 transition-transform duration-200">
+            {product.stock > 0 ? (
+              qtyInCart > 0 ? (
+                <div className="flex items-center bg-white border-t border-primary overflow-hidden h-10">
+                  <button 
+                    onClick={(e) => handleUpdateQty(e, -1)}
+                    disabled={qtyInCart <= (product.minQty || 1)}
+                    className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <span className="text-lg font-bold text-primary">−</span>
+                  </button>
+                  <div className="flex-[1.5] h-full flex items-center justify-center bg-primary text-white font-black text-sm">
+                    {qtyInCart}
+                  </div>
+                  <button 
+                    onClick={(e) => handleUpdateQty(e, 1)}
+                    className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100"
+                  >
+                    <span className="text-lg font-bold text-primary">+</span>
+                  </button>
+                </div>
+              ) : (
+                <button onClick={handleCart} disabled={adding}
+                  className="w-full bg-primary text-white py-2.5 text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-primary/90">
+                  <ShoppingCart size={14} />
+                  {adding ? 'Adding…' : 'Add to Cart'}
+                </button>
+              )
+            ) : (
+              <div className="bg-gray-800/80 text-white py-2 text-xs font-semibold text-center">Out of Stock</div>
+            )}
+          </div>
         </div>
 
         {/* Info */}

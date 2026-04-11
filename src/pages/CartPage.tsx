@@ -62,9 +62,9 @@ const CartPage: React.FC = () => {
                   {item.variant && <p className="text-xs text-gray-400 mt-0.5">{item.variant}</p>}
                   <div className="flex items-center justify-between mt-3">
                     <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                      <button onClick={() => updateItem(item._id, item.quantity-1)} className="px-3 py-1.5 hover:bg-gray-50"><Minus size={13}/></button>
+                      <button onClick={() => updateItem(item._id, Math.max(p.minQty||1, item.quantity - 1))} className="px-3 py-1.5 hover:bg-gray-50"><Minus size={13}/></button>
                       <span className="px-3 py-1.5 text-sm font-bold">{item.quantity}</span>
-                      <button onClick={() => updateItem(item._id, item.quantity+1)} className="px-3 py-1.5 hover:bg-gray-50"><Plus size={13}/></button>
+                      <button onClick={() => updateItem(item._id, item.quantity + 1)} className="px-3 py-1.5 hover:bg-gray-50"><Plus size={13}/></button>
                     </div>
                     <div className="text-right"><p className="font-bold text-gray-900">₹{(item.price||p.price)*item.quantity}</p><p className="text-xs text-gray-400">₹{item.price||p.price} each</p></div>
                   </div>

@@ -118,9 +118,9 @@ const ProductDetailPage: React.FC = () => {
           <div className="mt-5 flex items-center gap-4">
             <span className="font-semibold text-sm">Qty:</span>
             <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
-              <button onClick={() => setQty(q => Math.max(product.minQty||1, q-1))} className="px-3 py-2 hover:bg-gray-50"><Minus size={16}/></button>
+              <button onClick={() => setQty(q => Math.max(product.minQty||1, q - 1))} className="px-3 py-2 hover:bg-gray-50"><Minus size={16}/></button>
               <span className="px-4 py-2 font-bold">{qty}</span>
-              <button onClick={() => setQty(q => Math.min(product.stock,q+1))} className="px-3 py-2 hover:bg-gray-50"><Plus size={16}/></button>
+              <button onClick={() => setQty(q => Math.min(product.stock, q + 1))} className="px-3 py-2 hover:bg-gray-50"><Plus size={16}/></button>
             </div>
             <span className="text-xs text-gray-400">{product.stock} available</span>
             {(product.minQty||1) > 1 && (
