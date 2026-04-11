@@ -44,13 +44,28 @@ const useCartStore = create<CartState>((set, get) => ({
   },
 
   updateItem: async (itemId, quantity) => {
+    const previousCart = get().cart
+    const previousCount = get().count
+
+    // Optimistic Update
+    if (get().cart) {
+      const newItems = get().cart!.items.map(item => 
+        item._id === itemId ? { ...item, quantity } : item
+      )
+      const newCart = { ...get().cart!, items: newItems }
+      const newCount = newItems.reduce((a, b) => a + b.quantity, 0)
+      set({ cart: newCart, count: newCount })
+    }
+
     try {
       const res = await api.put('/cart/update', { itemId, quantity })
       const cart = res.data.cart as Cart
       const count = cart.items?.reduce((a, b) => a + b.quantity, 0) || 0
       set({ cart, count })
     } catch {
-      toast.error('Failed to update')
+      // Rollback on failure
+      set({ cart: previousCart, count: previousCount })
+       toast.error('Failed to update. Syncing...')
     }
   },
 
