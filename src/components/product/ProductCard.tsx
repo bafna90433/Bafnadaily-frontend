@@ -24,6 +24,7 @@ const ProductCard: React.FC<Props> = ({ product }) => {
   const handleCart = async (e: React.MouseEvent) => {
     e.preventDefault()
     if (!user) { navigate('/login'); return }
+    if (navigator.vibrate) navigator.vibrate(30);
     setAdding(true)
     await addToCart(product._id, product.minQty || 1)
     setAdding(false)
@@ -32,6 +33,7 @@ const ProductCard: React.FC<Props> = ({ product }) => {
   const handleUpdateQty = async (e: React.MouseEvent, delta: number) => {
     e.preventDefault()
     if (!cartItem) return
+    if (navigator.vibrate) navigator.vibrate(30);
     const newQty = cartItem.quantity + delta
     if (newQty < (product.minQty || 1)) return
     await updateItem(cartItem._id, newQty)
