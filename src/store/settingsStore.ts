@@ -45,6 +45,8 @@ interface SiteSettings {
   razorpayEnabled: boolean
   razorpayKeyId: string
   shiprocketEnabled: boolean
+  homeLayout: number
+  hapticFeedback: boolean
 }
 
 const DEFAULT: SiteSettings = {
@@ -77,6 +79,8 @@ const DEFAULT: SiteSettings = {
   razorpayEnabled: false,
   razorpayKeyId: '',
   shiprocketEnabled: false,
+  homeLayout: 1,
+  hapticFeedback: true,
 }
 
 interface SettingsState {

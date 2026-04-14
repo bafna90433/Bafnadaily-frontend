@@ -72,44 +72,16 @@ const ProductCard: React.FC<Props> = ({ product }) => {
             <Heart size={15} className={wishlisted ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
           </button>
           
-          {/* Quantity Controls or Add Button */}
-          <div className="absolute bottom-0 inset-x-0 translate-y-full group-hover:translate-y-0 transition-transform duration-200">
-            {product.stock > 0 ? (
-              qtyInCart > 0 ? (
-                <div className="flex items-center bg-white border-t border-primary overflow-hidden h-10">
-                  <button 
-                    onClick={(e) => handleUpdateQty(e, -1)}
-                    disabled={qtyInCart <= (product.minQty || 1)}
-                    className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <span className="text-lg font-bold text-primary">−</span>
-                  </button>
-                  <div className="flex-[1.5] h-full flex items-center justify-center bg-primary text-white font-black text-sm">
-                    {qtyInCart}
-                  </div>
-                  <button 
-                    onClick={(e) => handleUpdateQty(e, 1)}
-                    className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100"
-                  >
-                    <span className="text-lg font-bold text-primary">+</span>
-                  </button>
-                </div>
-              ) : (
-                <button onClick={handleCart} disabled={adding}
-                  className="w-full bg-primary text-white py-2.5 text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-primary/90">
-                  <ShoppingCart size={14} />
-                  {adding ? 'Adding…' : 'Add to Cart'}
-                </button>
-              )
-            ) : (
-              <div className="bg-gray-800/80 text-white py-2 text-xs font-semibold text-center">Out of Stock</div>
-            )}
-          </div>
         </div>
 
         {/* Info */}
         <div className="p-3">
-          <p className="text-[11px] text-gray-400 font-medium mb-0.5">{product.category?.name}</p>
+          <div className="flex items-center justify-between gap-1 mb-0.5">
+            <p className="text-[11px] text-gray-400 font-medium truncate">{product.category?.name}</p>
+            {(product.sku || product.barcode) && (
+              <span className="text-[9px] bg-gray-100 text-gray-500 font-bold px-1.5 py-0.5 rounded flex-shrink-0">#{product.sku || product.barcode}</span>
+            )}
+          </div>
           <h3 className="font-semibold text-sm text-gray-800 line-clamp-2 leading-snug mb-1.5">{product.name}</h3>
           {product.averageRating > 0 && (
             <div className="flex items-center gap-1 mb-1.5">
@@ -117,12 +89,51 @@ const ProductCard: React.FC<Props> = ({ product }) => {
               <span className="text-[11px] text-gray-400">({product.numReviews})</span>
             </div>
           )}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-1">
             <span className="font-bold text-gray-900 text-sm">₹{product.price}</span>
             {product.mrp > product.price && <span className="text-xs text-gray-400 line-through">₹{product.mrp}</span>}
           </div>
+          {(product.minQty || 1) > 1 && (
+            <div className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-lg mb-1.5">
+              📦 Min {product.minQty} pcs
+            </div>
+          )}
           {product.stock > 0 && product.stock < 5 && (
-            <p className="text-[11px] text-orange-500 font-semibold mt-1">Only {product.stock} left!</p>
+            <p className="text-[11px] text-orange-500 font-semibold mb-1.5">Only {product.stock} left!</p>
+          )}
+
+          {/* ── Cart Controls ── always visible ── */}
+          {product.stock > 0 ? (
+            qtyInCart > 0 ? (
+              <div className="flex items-center rounded-xl overflow-hidden border border-primary h-9">
+                <button
+                  onClick={(e) => handleUpdateQty(e, -1)}
+                  disabled={qtyInCart <= (product.minQty || 1)}
+                  className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="text-base font-black text-primary leading-none">−</span>
+                </button>
+                <div className="flex-[1.5] h-full flex items-center justify-center bg-primary text-white font-black text-sm">
+                  {qtyInCart}
+                </div>
+                <button
+                  onClick={(e) => handleUpdateQty(e, 1)}
+                  className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <span className="text-base font-black text-primary leading-none">+</span>
+                </button>
+              </div>
+            ) : (
+              <button onClick={handleCart} disabled={adding}
+                className="w-full bg-primary text-white py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-primary/90 active:scale-95 transition-all shadow-sm shadow-primary/20">
+                <ShoppingCart size={13} />
+                {adding ? 'Adding…' : 'Add to Cart'}
+              </button>
+            )
+          ) : (
+            <div className="w-full py-2 rounded-xl bg-gray-100 text-gray-400 text-xs font-semibold text-center">
+              Out of Stock
+            </div>
           )}
         </div>
       </div>

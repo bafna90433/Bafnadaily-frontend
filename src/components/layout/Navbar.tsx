@@ -1,10 +1,28 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Search, ShoppingCart, Heart, User, Menu, X, Package, LogOut, ChevronDown, ShoppingBag } from 'lucide-react'
+import { Search, ShoppingCart, Heart, User, Menu, X, Package, LogOut, ChevronDown, ShoppingBag, TrendingUp, ChevronRight } from 'lucide-react'
 import useAuthStore from '../../store/authStore'
 import useCartStore from '../../store/cartStore'
 import useSettingsStore from '../../store/settingsStore'
 import api from '../../utils/api'
+
+// ── Highlight matching text ───────────────────────────────────────────────────
+function HighlightText({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <span>{text}</span>
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+  const parts = text.split(regex)
+  return (
+    <span>
+      {parts.map((part, i) =>
+        part.toLowerCase() === query.toLowerCase()
+          ? <mark key={i} className="bg-transparent text-primary font-black not-italic">{part}</mark>
+          : <span key={i}>{part}</span>
+      )}
+    </span>
+  )
+}
+
+const FIXED_TAGS = ['ALL TOYS', 'UNDER ₹99', 'UNDER ₹49', 'DEALS OF THE DAY']
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuthStore()
@@ -15,12 +33,15 @@ const Navbar: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchQ, setSearchQ] = useState('')
   const [scrolled, setScrolled] = useState(false)
+  const [focused, setFocused] = useState(false)
+  const [suggestions, setSuggestions] = useState<any[]>([])
+  const [loadingSugg, setLoadingSugg] = useState(false)
+  const searchRef = useRef<HTMLDivElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navigate = useNavigate()
   const { pathname } = useLocation()
 
-  useEffect(() => {
-    setMobileOpen(false)
-  }, [pathname])
+  useEffect(() => { setMobileOpen(false); setFocused(false) }, [pathname])
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20)
@@ -31,14 +52,75 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setFocused(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const fetchSuggestions = useCallback(async (q: string) => {
+    if (!q.trim()) { setSuggestions([]); return }
+    setLoadingSugg(true)
+    try {
+      const res = await api.get(`/products?search=${encodeURIComponent(q)}&limit=7`)
+      setSuggestions(res.data.products || [])
+    } catch {
+      setSuggestions([])
+    } finally {
+      setLoadingSugg(false)
+    }
+  }, [])
+
+  const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setSearchQ(val)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => fetchSuggestions(val), 280)
+  }
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQ.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQ.trim())}`)
       setSearchQ('')
+      setFocused(false)
+      setSuggestions([])
     }
   }
 
+  const goToProduct = (slug: string) => {
+    navigate(`/products/${slug}`)
+    setSearchQ('')
+    setFocused(false)
+    setSuggestions([])
+  }
+
+  const handleTagClick = (tag: string) => {
+    if (tag === 'ALL TOYS') { navigate('/products'); }
+    else if (tag === 'UNDER ₹99') { navigate('/products?maxPrice=99'); }
+    else if (tag === 'UNDER ₹49') { navigate('/products?maxPrice=49'); }
+    else if (tag === 'DEALS OF THE DAY') { navigate('/products?featured=true'); }
+    else {
+      const cat = categories.find(c => c.name.toUpperCase() === tag)
+      if (cat) navigate(`/category/${cat.slug}`)
+      else navigate(`/search?q=${encodeURIComponent(tag)}`)
+    }
+    setFocused(false)
+    setSearchQ('')
+  }
+
+  const trendingTags = [
+    FIXED_TAGS[0],
+    ...categories.slice(0, 5).map(c => c.name.toUpperCase()),
+    ...FIXED_TAGS.slice(1),
+  ]
+
+  const showDropdown = focused
   const promoText = settings.promoText || `🚚 Free Delivery on orders above ₹${settings.freeShippingAbove || 499} | COD Available 🎁`
 
   return (
@@ -50,7 +132,7 @@ const Navbar: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between py-3 lg:h-20 gap-4">
-          
+
           {/* ── Logo & Mobile Toggle ── */}
           <div className="flex items-center justify-between gap-4">
             <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
@@ -74,24 +156,118 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* ── Long Search Bar ── */}
-          <form onSubmit={handleSearch} className="flex-1 max-w-2xl mx-auto w-full lg:px-8">
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Search size={18} className="text-gray-400 group-focus-within:text-primary transition-colors" />
+          {/* ── Search Bar with Autocomplete ── */}
+          <div ref={searchRef} className="flex-1 max-w-2xl mx-auto w-full lg:px-8 relative">
+            <form onSubmit={handleSearch}>
+              <div className={`relative transition-all duration-200 ${focused ? 'ring-2 ring-primary/30 rounded-2xl' : ''}`}>
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Search size={18} className={`transition-colors ${focused ? 'text-primary' : 'text-gray-400'}`} />
+                </div>
+                <input
+                  type="text"
+                  value={searchQ}
+                  onChange={onSearchChange}
+                  onFocus={() => setFocused(true)}
+                  placeholder="Search for toys, gift, premium collection..."
+                  className="w-full bg-gray-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl py-3 pl-12 pr-28 text-sm font-medium text-gray-900 transition-all shadow-sm focus:shadow-md outline-none"
+                />
+                {searchQ && (
+                  <button type="button" onClick={() => { setSearchQ(''); setSuggestions([]) }}
+                    className="absolute right-[88px] top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600">
+                    <X size={16} />
+                  </button>
+                )}
+                <button type="submit" className="absolute right-2 top-1.5 bottom-1.5 bg-primary text-white px-5 rounded-xl text-xs font-black shadow-sm hover:shadow-md active:scale-95 transition-all">
+                  SEARCH
+                </button>
               </div>
-              <input 
-                type="text"
-                value={searchQ}
-                onChange={e => setSearchQ(e.target.value)}
-                placeholder="Search for toys, gift, premium collection..."
-                className="w-full bg-gray-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl py-3 pl-12 pr-4 text-sm font-medium text-gray-900 transition-all shadow-sm focus:shadow-md outline-none"
-              />
-              <button type="submit" className="absolute right-2 top-1.5 bottom-1.5 bg-primary text-white px-5 rounded-xl text-xs font-black shadow-sm hover:shadow-md active:scale-95 transition-all hidden md:block">
-                SEARCH
-              </button>
-            </div>
-          </form>
+            </form>
+
+            {/* ── Dropdown ── */}
+            {showDropdown && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50">
+
+                {searchQ.length === 0 ? (
+                  /* Trending tags */
+                  <div className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <TrendingUp size={15} className="text-primary" />
+                      <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest">Trending Now</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {trendingTags.map((tag, i) => (
+                        <button key={i} onMouseDown={() => handleTagClick(tag)}
+                          className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs font-bold text-gray-700 hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all">
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  /* Suggestions */
+                  <div>
+                    {loadingSugg && (
+                      <div className="flex items-center gap-3 px-5 py-4 text-sm text-gray-400">
+                        <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                        Searching...
+                      </div>
+                    )}
+
+                    {!loadingSugg && suggestions.length === 0 && (
+                      <div className="px-5 py-6 text-center text-sm text-gray-400">
+                        <p className="text-2xl mb-2">🔍</p>
+                        No results for "{searchQ}"
+                      </div>
+                    )}
+
+                    {suggestions.map(product => (
+                      <button
+                        key={product._id}
+                        onMouseDown={() => goToProduct(product.slug)}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left border-b border-gray-50 last:border-0"
+                      >
+                        {/* Image */}
+                        <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0 bg-gray-50">
+                          {product.images?.[0]?.url ? (
+                            <img src={product.images[0].url} alt={product.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-lg">📦</div>
+                          )}
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-800 truncate">
+                            <HighlightText text={product.name} query={searchQ} />
+                          </p>
+                          {product.sku && (
+                            <p className="text-xs text-gray-400 font-medium mt-0.5">SKU: {product.sku}</p>
+                          )}
+                        </div>
+
+                        {/* Price + arrow */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="text-sm font-black text-primary">₹{product.price}</span>
+                          <ChevronRight size={14} className="text-gray-300" />
+                        </div>
+                      </button>
+                    ))}
+
+                    {suggestions.length > 0 && (
+                      <button
+                        onMouseDown={() => { navigate(`/search?q=${encodeURIComponent(searchQ)}`); setFocused(false); setSearchQ(''); setSuggestions([]) }}
+                        className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-primary/5 hover:bg-primary/10 text-primary text-sm font-black transition-colors border-t border-primary/10"
+                      >
+                        <Search size={14} />
+                        View all results for "{searchQ}"
+                        <ChevronRight size={14} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* ── Actions (Desktop) ── */}
           <div className="hidden lg:flex items-center gap-6">

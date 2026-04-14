@@ -10,6 +10,8 @@ export interface Product {
   mrp: number
   discount: number
   stock: number
+  sku?: string
+  barcode?: string
   variants: { name: string; value: string; additionalPrice: number }[]
   reviews: Review[]
   averageRating: number

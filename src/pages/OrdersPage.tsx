@@ -1,10 +1,87 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Package, ChevronRight, FileText, Truck } from 'lucide-react'
+import { Package, ChevronRight, FileText, Truck, Star } from 'lucide-react'
 import api from '../utils/api'
 import { Order } from '../types'
 import useAuthStore from '../store/authStore'
 import useSettingsStore from '../store/settingsStore'
+import toast from 'react-hot-toast'
+
+// ── Rate Products Banner ───────────────────────────────────────────────────────
+function RateProductsBanner() {
+  const [pending, setPending] = useState<any[]>([])
+  const [ratings, setRatings] = useState<Record<string, number>>({})
+  const [submitting, setSubmitting] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    api.get('/orders/pending-reviews').then(r => {
+      if (r.data.success) setPending(r.data.pendingReviews)
+    }).catch(() => {})
+  }, [])
+
+  const submitRating = async (productId: string) => {
+    const rating = ratings[productId]
+    if (!rating) return
+    setSubmitting(s => ({ ...s, [productId]: true }))
+    try {
+      await api.post(`/products/${productId}/review`, { rating, comment: '' })
+      toast.success('Thank you for your rating! ⭐')
+      setPending(p => p.filter(x => x.productId !== productId))
+    } catch {
+      toast.error('Could not submit rating')
+    } finally {
+      setSubmitting(s => ({ ...s, [productId]: false }))
+    }
+  }
+
+  if (!pending.length) return null
+
+  return (
+    <div className="mb-6 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-2xl p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-xl">⭐</span>
+        <div>
+          <h3 className="font-black text-gray-800">Rate Your Recent Purchases</h3>
+          <p className="text-xs text-gray-500">{pending.length} product{pending.length !== 1 ? 's' : ''} awaiting your review</p>
+        </div>
+      </div>
+      <div className="space-y-3">
+        {pending.map(item => (
+          <div key={item.productId} className="flex items-center gap-3 bg-white rounded-xl p-3 shadow-sm">
+            <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0 bg-gray-50">
+              {item.image
+                ? <img src={item.image} alt={item.name} className="w-full h-full object-cover"/>
+                : <div className="w-full h-full flex items-center justify-center text-lg">📦</div>
+              }
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-800 truncate">{item.name}</p>
+              <div className="flex items-center gap-1 mt-1">
+                {[1,2,3,4,5].map(s => (
+                  <button key={s} onClick={() => setRatings(r => ({ ...r, [item.productId]: s }))}
+                    className="transition-transform hover:scale-125 active:scale-110">
+                    <Star size={20}
+                      className={s <= (ratings[item.productId] || 0)
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-gray-300 fill-gray-100'}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button
+              onClick={() => submitRating(item.productId)}
+              disabled={!ratings[item.productId] || submitting[item.productId]}
+              className="flex-shrink-0 px-4 py-2 bg-primary text-white text-xs font-black rounded-xl disabled:opacity-30 disabled:cursor-not-allowed hover:bg-primary/90 active:scale-95 transition-all"
+            >
+              {submitting[item.productId] ? '...' : 'Submit'}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 const SC: Record<string, string> = {
   placed: 'bg-blue-100 text-blue-700',
@@ -194,6 +271,7 @@ const OrdersPage: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
       <h1 className="text-2xl font-heading font-bold mb-6">My Orders</h1>
+      <RateProductsBanner />
       <div className="space-y-4">
         {orders.map(order => (
           <div key={order._id} className="card p-4 hover:shadow-md transition-shadow">
