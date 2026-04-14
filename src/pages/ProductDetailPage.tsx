@@ -139,8 +139,41 @@ const ProductDetailPage: React.FC = () => {
             ))}
           </div>
           {product.giftWrapping && <div className="mt-3 p-3 bg-pink-50 border border-pink-200 rounded-xl text-sm text-pink-700">🎁 Gift wrapping available at checkout (+₹29)</div>}
-          {product.material && <p className="text-sm text-gray-500 mt-3"><strong>Material:</strong> {product.material}</p>}
-          {product.color?.length > 0 && <p className="text-sm text-gray-500 mt-1"><strong>Colors:</strong> {product.color.join(', ')}</p>}
+          {product.colors?.length > 0 && (
+            <div className="mt-5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-sm text-gray-900">Choose Color</span>
+                {product.images?.[imgIdx]?.colorName && (
+                  <span className="text-xs font-medium text-primary bg-primary/5 px-2 py-0.5 rounded-full">
+                    {product.images[imgIdx].colorName}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {product.colors.map((c, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      const idx = images.findIndex(img => img.colorName === c.name);
+                      if (idx !== -1) setImgIdx(idx);
+                    }}
+                    className={`group relative flex flex-col items-center gap-1.5 p-1 rounded-full transition-all ${
+                      images[imgIdx]?.colorName === c.name ? 'ring-2 ring-primary ring-offset-2' : 'hover:scale-110'
+                    }`}
+                    title={c.name}
+                  >
+                    <div 
+                      className="w-8 h-8 rounded-full border border-gray-200 shadow-sm"
+                      style={{ backgroundColor: c.hex }}
+                    />
+                    <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-gray-500 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                      {c.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

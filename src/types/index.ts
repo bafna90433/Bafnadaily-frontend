@@ -4,7 +4,7 @@ export interface Product {
   slug: string
   description: string
   shortDescription?: string
-  images: { url: string; fileId?: string }[]
+  images: { url: string; fileId?: string; colorName?: string }[]
   category: { _id: string; name: string; slug: string }
   price: number
   mrp: number
@@ -20,7 +20,7 @@ export interface Product {
   isBestSeller: boolean
   giftWrapping: boolean
   tags: string[]
-  color: string[]
+  colors: { name: string; hex: string }[]
   material?: string
   sold: number
   minQty: number
