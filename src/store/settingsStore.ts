@@ -79,7 +79,7 @@ const DEFAULT: SiteSettings = {
   razorpayEnabled: false,
   razorpayKeyId: '',
   shiprocketEnabled: false,
-  homeLayout: 1,
+  homeLayout: 4,
   hapticFeedback: true,
 }
 

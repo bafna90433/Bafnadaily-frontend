@@ -51,11 +51,11 @@ const ProductCard: React.FC<Props> = ({ product }) => {
 
   return (
     <Link to={`/product/${product.slug}`} className="group block">
-      <div className="card overflow-hidden">
+      <div className="card overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1" style={{ borderRadius: '1rem' }}>
         {/* Image */}
         <div className="relative overflow-hidden bg-gray-50" style={{ aspectRatio: '1/1' }}>
           <img src={img} alt={product.name} loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
             onError={(e) => { (e.target as HTMLImageElement).src = `https://placehold.co/400x400/FCE4EC/E91E63?text=Product` }}
           />
           {/* Badges */}
@@ -125,7 +125,8 @@ const ProductCard: React.FC<Props> = ({ product }) => {
               </div>
             ) : (
               <button onClick={handleCart} disabled={adding}
-                className="w-full bg-primary text-white py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-primary/90 active:scale-95 transition-all shadow-sm shadow-primary/20">
+                className="w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                style={{ background: 'linear-gradient(135deg, #E91E63, #C2185B)', color: '#fff', boxShadow: '0 4px 14px rgba(233,30,99,0.25)' }}>
                 <ShoppingCart size={13} />
                 {adding ? 'Adding…' : 'Add to Cart'}
               </button>
