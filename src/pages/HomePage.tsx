@@ -297,7 +297,7 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
   )
 }
 
-const HeroLayout4: React.FC<{ heroBanners: Banner[] }> = ({ heroBanners }) => (
+const HeroLayout4: React.FC<{ heroBanners: Banner[]; hangingImages: string[] }> = ({ heroBanners, hangingImages }) => (
   <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fff0f6 0%, #fdf2ff 40%, #fff8f0 70%, #fefffe 100%)' }}>
     {/* Soft decorative blobs */}
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -320,7 +320,7 @@ const HeroLayout4: React.FC<{ heroBanners: Banner[] }> = ({ heroBanners }) => (
 
         {/* Left Column — Hanging Keychains */}
         <div className="flex-1 flex flex-row items-start justify-center gap-6 pt-0 overflow-hidden">
-          {HANG_IMAGES.map((src, i) => (
+          {hangingImages.map((src, i) => (
             <div key={i} className="hang-item flex flex-col items-center" style={{ paddingTop: '0px' }}>
               {/* String from top */}
               <div style={{ width: '2px', height: '60px', background: 'linear-gradient(180deg,rgba(233,30,99,0.3),rgba(199,125,255,0.5))', borderRadius: '1px' }}/>
@@ -456,16 +456,9 @@ const FullWidthPromoBanners: React.FC<{ sec: any }> = ({ sec }) => (
 )
 
 // ── Hanging Keychain Strip ────────────────────────────────────────────────────
-const HANG_IMAGES = [
-  'https://ik.imagekit.io/rishii/bafnatoys/Keychain/Photoroom%20(2)/WhatsApp%20Image%202026-04-15%20at%209.45.59%20AM.jpg',
-  'https://ik.imagekit.io/rishii/bafnatoys/Keychain/Photoroom%20(2)/WhatsApp%20Image%202026-04-15%20at%2010.50.41%20AM.jpg',
-  'https://ik.imagekit.io/rishii/bafnatoys/Keychain/Photoroom%20(2)/WhatsApp%20Image%202026-04-15%20at%209.49.36%20AM.jpg',
-  'https://ik.imagekit.io/rishii/bafnatoys/Keychain/Photoroom%20(2)/WhatsApp%20Image%202026-04-15%20at%2010.08.02%20AM.jpg',
-  'https://ik.imagekit.io/rishii/bafnatoys/Keychain/WhatsApp%20Image%202026-04-15%20at%202.43.05%20PM.png',
-]
-
-const HangingStrip: React.FC = () => {
-  const items = [...HANG_IMAGES, ...HANG_IMAGES, ...HANG_IMAGES, ...HANG_IMAGES]
+const HangingStrip: React.FC<{ hangingImages: string[] }> = ({ hangingImages }) => {
+  if (!hangingImages.length) return null
+  const items = [...hangingImages, ...hangingImages, ...hangingImages, ...hangingImages]
   return (
     <div className="w-full overflow-hidden border-y border-pink-100"
       style={{ background: 'linear-gradient(180deg,#fff0f6 0%,#ffffff 100%)', height: '130px' }}>
@@ -602,6 +595,7 @@ const HomePage: React.FC = () => {
   const [newArrivals, setNewArrivals] = useState<Product[]>([])
   const [featured, setFeatured] = useState<Product[]>([])
   const [heroBanners, setHeroBanners] = useState<Banner[]>([])
+  const [hangingImages, setHangingImages] = useState<string[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -610,6 +604,7 @@ const HomePage: React.FC = () => {
     api.get('/banners?isActive=true').then(res => {
       const all: Banner[] = res.data.banners || []
       setHeroBanners(all.filter(b => b.type === 'hero' && b.isActive))
+      setHangingImages(all.filter(b => b.type === 'hanging' && b.isActive).map(b => b.image))
     }).catch(() => {})
 
     // Fetch categories
@@ -673,7 +668,7 @@ const HomePage: React.FC = () => {
   // ── Layout 4: Full-Width Professional (default fallback) ───────────────
   return (
     <div>
-      {sec.heroBanner !== false && <HeroLayout4 heroBanners={heroBanners}/>}
+      {sec.heroBanner !== false && <HeroLayout4 heroBanners={heroBanners} hangingImages={hangingImages}/>}
       {sec.featuresBar !== false && <FullWidthFeaturesBar />}
       {sec.categories !== false && <HorizontalCategoryScroll categories={categories} />}
       {sec.newArrivals !== false && <FullWidthProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true"/>}
