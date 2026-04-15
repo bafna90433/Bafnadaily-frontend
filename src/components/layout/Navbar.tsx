@@ -52,7 +52,7 @@ const Navbar: React.FC = () => {
     window.addEventListener('scroll', handler)
     api.get('/categories').then(res => {
       if (res.data.success) setCategories(res.data.categories)
-    }).catch(() => {})
+    }).catch(() => { })
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
@@ -125,11 +125,10 @@ const Navbar: React.FC = () => {
       </div>
 
       {/* ── Main Header ── */}
-      <div className={`transition-all duration-300 ${
-        scrolled
+      <div className={`transition-all duration-300 ${scrolled
           ? 'bg-white/95 backdrop-blur-xl shadow-lg shadow-black/5 border-b border-gray-100'
           : 'bg-white border-b border-gray-100'
-      }`}>
+        }`}>
         <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
           <div className="flex items-center gap-4 lg:gap-8 h-16 lg:h-18">
 
@@ -150,11 +149,10 @@ const Navbar: React.FC = () => {
             {/* ── Search Bar ── */}
             <div ref={searchRef} className="flex-1 relative min-w-0">
               <form onSubmit={handleSearch}>
-                <div className={`relative flex items-center rounded-xl border transition-all duration-200 ${
-                  focused
+                <div className={`relative flex items-center rounded-xl border transition-all duration-200 ${focused
                     ? 'border-primary/40 shadow-md shadow-primary/10 bg-white'
                     : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                }`}>
+                  }`}>
                   <Search size={16} className={`ml-3 flex-shrink-0 transition-colors ${focused ? 'text-primary' : 'text-gray-400'}`} />
                   <input
                     type="text"
@@ -336,14 +334,8 @@ const Navbar: React.FC = () => {
 
       {/* ── Mobile Menu Overlay ── */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 bg-white z-50 overflow-y-auto" style={{ top: '103px' }}>
+        <div className="lg:hidden fixed inset-0 bg-white z-50 overflow-y-auto" style={{ top: '72px' }}>
           <div className="px-4 py-5 pb-24">
-
-            {/* Promo pill */}
-            <div className="rounded-2xl p-4 mb-5 text-white text-center text-xs font-semibold"
-              style={{ background: 'linear-gradient(135deg, #0a0613, #1a0a2e)' }}>
-              {promoText}
-            </div>
 
             {/* Quick Links */}
             <div className="grid grid-cols-2 gap-2 mb-5">

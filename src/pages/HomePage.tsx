@@ -297,7 +297,7 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
   )
 }
 
-const HeroLayout4: React.FC<{ heroBanners: Banner[]; hangingImages: string[] }> = ({ heroBanners, hangingImages }) => (
+const HeroLayout4: React.FC<{ heroBanners: Banner[]; hangingBanners: Banner[] }> = ({ heroBanners, hangingBanners }) => (
   <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fff0f6 0%, #fdf2ff 40%, #fff8f0 70%, #fefffe 100%)' }}>
     {/* Soft decorative blobs */}
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -318,18 +318,31 @@ const HeroLayout4: React.FC<{ heroBanners: Banner[]; hangingImages: string[] }> 
     <div className="hidden lg:flex w-full px-14 xl:px-24 py-12 relative z-10 items-stretch" style={{ minHeight: '60vh' }}>
       <div className="w-full flex flex-row items-stretch gap-16">
 
-        {/* Left Column — Hanging Keychains */}
-        <div className="flex-1 flex flex-row items-start justify-center gap-6 pt-0 overflow-hidden">
-          {hangingImages.map((src, i) => (
-            <div key={i} className="hang-item flex flex-col items-center" style={{ paddingTop: '0px' }}>
-              {/* String from top */}
-              <div style={{ width: '2px', height: '60px', background: 'linear-gradient(180deg,rgba(233,30,99,0.3),rgba(199,125,255,0.5))', borderRadius: '1px' }}/>
-              {/* Image */}
-              <div className="rounded-3xl overflow-hidden shadow-xl"
-                style={{ width: '110px', height: '196px', border: '2.5px solid rgba(233,30,99,0.18)', background: '#fff' }}>
-                <img src={src} alt="keychain" className="w-full h-full object-cover"/>
+        {/* Left Column — Hanging Keychains (up to 6) */}
+        <div className="flex-1 flex flex-row items-start justify-center gap-4 overflow-hidden" style={{ alignSelf: 'stretch', marginTop: '-45px' }}>
+          <style>{`
+            @keyframes sway-hero { 0%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} 100%{transform:rotate(-6deg)} }
+            .hero-kc { transform-origin: top center; }
+            .hero-kc:nth-child(odd)  { animation: sway-hero 3.2s ease-in-out infinite; }
+            .hero-kc:nth-child(even) { animation: sway-hero 3.2s ease-in-out infinite 0.7s; }
+            .hero-kc:nth-child(3n)   { animation: sway-hero 3.2s ease-in-out infinite 1.4s; }
+          `}</style>
+          {hangingBanners.slice(0, 6).map((b, i) => (
+            <a key={i} href={b.link || '/products'} className="hero-kc flex flex-col items-center" style={{ textDecoration: 'none', flexShrink: 0 }}>
+              {/* Rope string (Fine-tuned length) */}
+              <div style={{ width: '2px', height: '45px', background: 'linear-gradient(180deg,#f43f8e,#e879a0)', borderRadius: '1px' }} />
+              {/* Metal ring */}
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '2px solid #9ca3af', background: 'transparent', marginBottom: '-3px', zIndex: 2 }} />
+              {/* Image card */}
+              <div style={{ background: 'white', padding: '5px', borderRadius: '20px', boxShadow: '0 8px 24px rgba(244,63,142,0.18)', border: '2px solid rgba(244,63,142,0.12)' }}>
+                <img src={b.image} alt={b.title || 'keychain'} style={{ width: '100px', height: '150px', borderRadius: '15px', objectFit: 'cover', display: 'block' }} />
+                {b.title && (
+                  <div style={{ marginTop: '6px', background: 'linear-gradient(135deg,#f43f8e,#ec4899)', borderRadius: '12px', padding: '4px 10px', textAlign: 'center', boxShadow: '0 2px 8px rgba(244,63,142,0.3)' }}>
+                    <span style={{ color: 'white', fontSize: '11px', fontWeight: 900, letterSpacing: '0.4px', whiteSpace: 'nowrap' }}>{b.title}</span>
+                  </div>
+                )}
               </div>
-            </div>
+            </a>
           ))}
         </div>
 
@@ -456,22 +469,28 @@ const FullWidthPromoBanners: React.FC<{ sec: any }> = ({ sec }) => (
 )
 
 // ── Hanging Keychain Strip ────────────────────────────────────────────────────
-const HangingStrip: React.FC<{ hangingImages: string[] }> = ({ hangingImages }) => {
-  if (!hangingImages.length) return null
-  const items = [...hangingImages, ...hangingImages, ...hangingImages, ...hangingImages]
+const HangingStrip: React.FC<{ hangingBanners: Banner[] }> = ({ hangingBanners }) => {
+  if (!hangingBanners.length) return null
+  const items = [...hangingBanners, ...hangingBanners, ...hangingBanners, ...hangingBanners]
   return (
     <div className="w-full overflow-hidden border-y border-pink-100"
-      style={{ background: 'linear-gradient(180deg,#fff0f6 0%,#ffffff 100%)', height: '130px' }}>
+      style={{ background: 'linear-gradient(180deg,#fff0f6 0%,#ffffff 100%)', height: '150px' }}>
       <div className="marquee-track h-full items-end pb-3">
-        {items.map((src, i) => (
+        {items.map((b, i) => (
           <div key={i} className="hang-item flex flex-col items-center mx-5" style={{ paddingTop: '6px' }}>
             {/* String */}
-            <div style={{ width: '2px', height: '22px', background: 'linear-gradient(180deg,#f48fb1,#ce93d8)', borderRadius: '1px' }}/>
+            <div style={{ width: '2px', height: '22px', background: 'linear-gradient(180deg,#f43f8e,#c084fc)', borderRadius: '1px' }}/>
             {/* Image */}
             <div className="rounded-2xl overflow-hidden shadow-lg"
               style={{ width: '80px', height: '80px', border: '2px solid rgba(233,30,99,0.18)' }}>
-              <img src={src} alt="keychain" className="w-full h-full object-cover"/>
+              <img src={b.image} alt={b.title || 'keychain'} className="w-full h-full object-cover"/>
             </div>
+            {/* Label */}
+            {b.title && (
+              <div style={{ marginTop: '4px', backgroundColor: '#f43f8e', borderRadius: '10px', padding: '2px 8px' }}>
+                <span style={{ color: 'white', fontSize: '10px', fontWeight: 900, letterSpacing: '0.3px' }}>{b.title}</span>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -590,12 +609,12 @@ const BottomCTA = () => (
 const HomePage: React.FC = () => {
   const { settings } = useSettingsStore()
   const sec = settings.homepageSections
-  const layout = settings.homeLayout || 4
+  const layout = settings.websiteLayout || settings.homeLayout || 4
   const [trending, setTrending] = useState<Product[]>([])
   const [newArrivals, setNewArrivals] = useState<Product[]>([])
   const [featured, setFeatured] = useState<Product[]>([])
   const [heroBanners, setHeroBanners] = useState<Banner[]>([])
-  const [hangingImages, setHangingImages] = useState<string[]>([])
+  const [hangingBanners, setHangingBanners] = useState<Banner[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -603,8 +622,8 @@ const HomePage: React.FC = () => {
     // Fetch banners
     api.get('/banners?isActive=true').then(res => {
       const all: Banner[] = res.data.banners || []
-      setHeroBanners(all.filter(b => b.type === 'hero' && b.isActive))
-      setHangingImages(all.filter(b => b.type === 'hanging' && b.isActive).map(b => b.image))
+      setHeroBanners(all.filter(b => b.type !== 'hanging' && b.isActive))
+      setHangingBanners(all.filter(b => b.type === 'hanging' && b.showOnWebsite !== false))
     }).catch(() => {})
 
     // Fetch categories
@@ -668,11 +687,12 @@ const HomePage: React.FC = () => {
   // ── Layout 4: Full-Width Professional (default fallback) ───────────────
   return (
     <div>
-      {sec.heroBanner !== false && <HeroLayout4 heroBanners={heroBanners} hangingImages={hangingImages}/>}
+      {sec.heroBanner !== false && <HeroLayout4 heroBanners={heroBanners} hangingBanners={hangingBanners}/>}
       {sec.featuresBar !== false && <FullWidthFeaturesBar />}
       {sec.categories !== false && <HorizontalCategoryScroll categories={categories} />}
       {sec.newArrivals !== false && <FullWidthProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true"/>}
       {sec.trendingProducts !== false && <FullWidthProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true"/>}
+      {hangingBanners.length > 0 && <HangingStrip hangingBanners={hangingBanners}/>}
       {sec.promoBanners !== false && <FullWidthPromoBanners sec={sec} />}
       {sec.featuredProducts !== false && <FullWidthProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true"/>}
       <FullWidthBottomCTA />
