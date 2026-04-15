@@ -155,7 +155,7 @@ const ProductDetailPage: React.FC = () => {
 
       <div className="grid md:grid-cols-2 gap-8 mb-12">
         {/* ── Images ── */}
-        <div>
+        <div className="max-w-md mx-auto w-full">
           <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-50 mb-3">
             <img src={images[imgIdx]?.url} alt={product.name} className="w-full h-full object-cover"/>
             {images.length > 1 && <>

@@ -4,6 +4,7 @@ import { SlidersHorizontal, X } from 'lucide-react'
 import api from '../utils/api'
 import { Product, Category } from '../types'
 import ProductCard from '../components/product/ProductCard'
+import useSettingsStore from '../store/settingsStore'
 
 const SORT_OPTIONS = [
   { label: 'Newest First', value: '' },
@@ -14,6 +15,8 @@ const SORT_OPTIONS = [
 ]
 
 const ProductsPage: React.FC = () => {
+  const { settings } = useSettingsStore()
+  const isLayout4 = (settings.homeLayout || 4) === 4
   const [searchParams] = useSearchParams()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -92,9 +95,12 @@ const ProductsPage: React.FC = () => {
   )
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className={isLayout4 ? 'px-4 md:px-10 lg:px-16 xl:px-24 py-8' : 'max-w-7xl mx-auto px-4 py-6'}>
       <div className="flex items-center justify-between mb-6">
-        <div><h1 className="text-2xl font-heading font-bold">All Products</h1><p className="text-gray-400 text-sm">{total} products</p></div>
+        <div>
+          <h1 className="text-2xl font-heading font-bold">All Products</h1>
+          <p className="text-gray-400 text-sm">{total} products</p>
+        </div>
         <div className="flex items-center gap-3">
           <select value={filters.sort} onChange={e => setF('sort',e.target.value)} className="input py-2 text-sm w-44">
             {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -106,12 +112,18 @@ const ProductsPage: React.FC = () => {
         <aside className="hidden lg:block w-60 flex-shrink-0"><div className="card p-5 sticky top-24"><FilterContent /></div></aside>
         <div className="flex-1">
           {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">{Array(12).fill(0).map((_,i) => <div key={i} className="card overflow-hidden"><div className="aspect-square skeleton"/><div className="p-3 space-y-2"><div className="h-3 skeleton rounded"/><div className="h-4 skeleton rounded"/><div className="h-5 skeleton rounded w-1/2"/></div></div>)}</div>
+            <div className={`grid gap-4 ${isLayout4 ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5' : 'grid-cols-2 sm:grid-cols-3'}`}>
+              {Array(isLayout4 ? 15 : 12).fill(0).map((_,i) => (
+                <div key={i} className="card overflow-hidden"><div className="aspect-square skeleton"/><div className="p-3 space-y-2"><div className="h-3 skeleton rounded"/><div className="h-4 skeleton rounded"/><div className="h-5 skeleton rounded w-1/2"/></div></div>
+              ))}
+            </div>
           ) : products.length === 0 ? (
             <div className="text-center py-24"><div className="text-5xl mb-4">🔍</div><h3 className="text-xl font-bold mb-2">No products found</h3><button onClick={clear} className="btn-primary mt-3">Clear Filters</button></div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">{products.map(p => <ProductCard key={p._id} product={p}/>)}</div>
+              <div className={`grid gap-4 ${isLayout4 ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5' : 'grid-cols-2 sm:grid-cols-3'}`}>
+                {products.map(p => <ProductCard key={p._id} product={p}/>)}
+              </div>
               {total > 20 && <div className="flex justify-center gap-2 mt-8">{Array(Math.min(Math.ceil(total/20),7)).fill(0).map((_,i) => <button key={i} onClick={() => setPage(i+1)} className={`w-10 h-10 rounded-full text-sm font-medium ${page===i+1?'bg-primary text-white':'border border-gray-200 hover:border-primary'}`}>{i+1}</button>)}</div>}
             </>
           )}

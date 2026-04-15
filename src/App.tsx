@@ -26,10 +26,17 @@ import { useVisitorTracking } from './utils/useVisitorTracking'
 const App: React.FC = () => {
   const { user } = useAuthStore()
   const { fetchCart } = useCartStore()
-  const { fetchSettings } = useSettingsStore()
+  const { fetchSettings, settings } = useSettingsStore()
 
   useEffect(() => { fetchSettings() }, [])
   useEffect(() => { if (user) fetchCart() }, [user])
+
+  // Apply layout class to body for global full-width override
+  useEffect(() => {
+    const layout = settings.homeLayout || 4
+    document.body.setAttribute('data-layout', String(layout))
+    return () => document.body.removeAttribute('data-layout')
+  }, [settings.homeLayout])
 
   return (
     <BrowserRouter>
@@ -62,5 +69,6 @@ const App: React.FC = () => {
 
 // Small wrapper component to call tracking hook inside BrowserRouter context
 const TrackerInit = () => { useVisitorTracking(); return null }
+
 
 export default App

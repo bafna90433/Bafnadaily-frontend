@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Zap, Gift, Truck, Shield, Tag, Sparkles, Crown, Star, ShoppingBag, TrendingUp, Diamond, Watch, Award, HeartHandshake, Package, RotateCcw, ChevronRight, ChevronLeft } from 'lucide-react'
-import { Product, Banner } from '../types'
+import { ArrowRight, Zap, Gift, Truck, Shield, Tag, Sparkles, Crown, Star, ShoppingBag, TrendingUp, Diamond, Watch, Award, HeartHandshake, Package, RotateCcw, ChevronRight } from 'lucide-react'
+import { Product, Banner, Category } from '../types'
 import api from '../utils/api'
 import ProductCard from '../components/product/ProductCard'
 import useSettingsStore from '../store/settingsStore'
@@ -235,56 +235,64 @@ const PromoBanners: React.FC<{ sec: any }> = ({ sec }) => (
 // HERO LAYOUT 4 — Soft Pastel Boutique (Keychain & Women's Fashion)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// ── Banner Slider ────────────────────────────────────────────────────────────
-const BannerSlider: React.FC<{ banners: Banner[] }> = ({ banners }) => {
+// ── Right-column banner card slider for Layout 4 ─────────────────────────────
+const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ banners, mobile }) => {
   const [active, setActive] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     if (banners.length <= 1) return
-    timerRef.current = setInterval(() => setActive(i => (i + 1) % banners.length), 4000)
+    timerRef.current = setInterval(() => setActive(i => (i + 1) % banners.length), 3500)
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [banners.length])
 
-  if (banners.length === 0) return null
-
   return (
-    <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl" style={{ aspectRatio: '21/8' }}>
+    <div className="relative w-full overflow-hidden"
+      style={{ borderRadius: mobile ? '1rem' : '2rem', aspectRatio: mobile ? '16/7' : '21/9', boxShadow: mobile ? '0 4px 20px rgba(0,0,0,0.10)' : '0 24px 64px rgba(233,30,99,0.18), 0 8px 24px rgba(0,0,0,0.08)' }}>
+      {/* Decorative ring */}
+      {!mobile && (
+        <div className="absolute inset-0 rounded-[2rem] pointer-events-none z-20"
+          style={{ border: '1.5px solid rgba(233,30,99,0.15)' }}/>
+      )}
+
       {banners.map((bn, i) => (
         <Link key={bn._id} to={bn.link || '/products'}
           className={`absolute inset-0 transition-opacity duration-700 ${i === active ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
           {bn.image
-            ? <img src={bn.image} alt={bn.title} className="w-full h-full" style={{ objectFit: 'contain' }}/>
-            : <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#E91E63,#C77DFF)' }}>
-                <p className="text-white font-black text-2xl">{bn.title}</p>
+            ? <img src={bn.image} alt={bn.title} className="w-full h-full" style={{ objectFit: mobile ? 'contain' : 'cover', objectPosition: 'center' }}/>
+            : <div className="w-full h-full flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg,#E91E63,#C77DFF)' }}>
+                <p className="text-white font-black text-xl text-center px-6">{bn.title}</p>
               </div>
           }
+          {/* Gradient overlay at bottom */}
+          <div className="absolute bottom-0 left-0 right-0 h-32"
+            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)' }}/>
           {bn.title && (
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-5">
-              <p className="text-white font-black text-lg leading-tight">{bn.title}</p>
-              {bn.subtitle && <p className="text-white/70 text-sm mt-1">{bn.subtitle}</p>}
+            <div className="absolute bottom-5 left-5 right-5 z-10">
+              <p className="text-white font-black text-base leading-snug drop-shadow-lg">{bn.title}</p>
+              {bn.subtitle && <p className="text-white/75 text-xs mt-1">{bn.subtitle}</p>}
             </div>
           )}
         </Link>
       ))}
+
+      {/* Dot indicators */}
       {banners.length > 1 && (
-        <>
-          <button onClick={() => setActive(i => (i - 1 + banners.length) % banners.length)}
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 flex items-center justify-center shadow hover:bg-white transition-all z-10">
-            <ChevronLeft size={18} className="text-gray-700"/>
-          </button>
-          <button onClick={() => setActive(i => (i + 1) % banners.length)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 flex items-center justify-center shadow hover:bg-white transition-all z-10">
-            <ChevronRight size={18} className="text-gray-700"/>
-          </button>
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-            {banners.map((_, i) => (
-              <button key={i} onClick={() => setActive(i)}
-                className={`h-1.5 rounded-full transition-all duration-300 ${i === active ? 'bg-white w-6' : 'bg-white/50 w-1.5'}`}/>
-            ))}
-          </div>
-        </>
+        <div className="absolute bottom-4 right-5 flex gap-1.5 z-20">
+          {banners.map((_, i) => (
+            <button key={i} onClick={() => setActive(i)}
+              className={`rounded-full transition-all duration-300 ${i === active ? 'bg-white w-5 h-1.5' : 'bg-white/50 w-1.5 h-1.5'}`}/>
+          ))}
+        </div>
       )}
+
+      {/* "Shop Now" pill */}
+      <Link to={banners[active]?.link || '/products'}
+        className="absolute top-4 right-4 z-20 flex items-center gap-1.5 text-xs font-black px-4 py-2 rounded-full backdrop-blur-sm"
+        style={{ background: 'rgba(255,255,255,0.92)', color: '#E91E63', boxShadow: '0 2px 12px rgba(233,30,99,0.2)' }}>
+        Shop <ArrowRight size={11}/>
+      </Link>
     </div>
   )
 }
@@ -299,91 +307,41 @@ const HeroLayout4: React.FC<{ heroBanners: Banner[] }> = ({ heroBanners }) => (
     </div>
     <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: 'linear-gradient(90deg, transparent, rgba(233,30,99,0.25), rgba(199,125,255,0.25), transparent)' }}/>
 
-    {heroBanners.length > 0 ? (
-      /* ── Full-width 21:9 banner mode ── */
-      <div className="w-full px-4 md:px-8 lg:px-12 py-6 relative z-10">
-        <BannerSlider banners={heroBanners}/>
-      </div>
-    ) : (
-      /* ── Fallback: split layout with text + category cards ── */
-      <div className="w-full px-6 md:px-14 lg:px-24 py-12 relative z-10 flex items-center" style={{ minHeight: '60vh' }}>
-        <div className="w-full flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
-
-          {/* Left Column */}
-          <div className="flex-1 text-center lg:text-left max-w-2xl mx-auto lg:mx-0">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 text-xs font-bold" style={{ background: 'rgba(233,30,99,0.08)', border: '1px solid rgba(233,30,99,0.2)', color: '#E91E63' }}>
-              <Sparkles size={13}/> New Collection — Handpicked with Love 💕
-            </div>
-            <h1 className="font-heading font-black leading-tight mb-4" style={{ fontSize: 'clamp(2rem, 5vw, 4rem)', color: '#1a1a2e', letterSpacing: '-0.02em' }}>
-              <span className="block font-sans font-normal tracking-[0.3em] uppercase mb-2 text-gray-400" style={{ fontSize: 'clamp(0.7rem, 1.2vw, 0.9rem)' }}>Bafna Daily</span>
-              Cute Keychains &
-              <span className="block" style={{ background: 'linear-gradient(135deg, #E91E63 0%, #FF6B9D 50%, #C77DFF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Women's Fashion</span>
-            </h1>
-            <p className="text-gray-500 text-sm md:text-base mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0">
-              Trendy keychains, women's accessories &amp; gift sets — curated with love, delivered to your door. ✨
-            </p>
-            <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
-              <Link to="/products"
-                className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-2xl font-bold text-sm text-white transition-all duration-300 hover:scale-105 active:scale-95"
-                style={{ background: 'linear-gradient(135deg, #E91E63, #C2185B)', boxShadow: '0 6px 24px rgba(233,30,99,0.3)' }}>
-                <ShoppingBag size={16}/> Shop Now
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform"/>
-              </Link>
-              <Link to="/category/keychains"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm"
-                style={{ background: 'rgba(233,30,99,0.07)', border: '1.5px solid rgba(233,30,99,0.2)', color: '#E91E63' }}>
-                🔑 Keychains
-              </Link>
-              <Link to="/category/women-accessories"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm"
-                style={{ background: 'rgba(199,125,255,0.08)', border: '1.5px solid rgba(199,125,255,0.25)', color: '#9C27B0' }}>
-                👗 Women's
-              </Link>
-            </div>
-            <div className="mt-8 flex flex-wrap items-center gap-5 justify-center lg:justify-start">
-              {[{Icon: Truck, label:'Free Delivery ₹499+'},{Icon: Shield, label:'100% Secure'},{Icon: Gift, label:'Free Gift Wrap'}].map(({Icon, label}) => (
-                <div key={label} className="flex items-center gap-1.5">
-                  <Icon size={13} className="text-primary"/>
-                  <span className="text-gray-400 text-xs font-medium">{label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right Column — Category Cards */}
-          <div className="flex-1 w-full max-w-sm">
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { emoji: '🔑', label: 'Keychains', subLabel: 'Cute & Trendy', to: '/category/keychains', bg: 'linear-gradient(135deg,#fff0f6,#fce4ec)', border: 'rgba(233,30,99,0.18)', shadow: 'rgba(233,30,99,0.1)' },
-                { emoji: '👗', label: 'Women', subLabel: 'Style & Elegance', to: '/category/women-accessories', bg: 'linear-gradient(135deg,#fdf2ff,#f3e5f5)', border: 'rgba(156,39,176,0.18)', shadow: 'rgba(156,39,176,0.08)' },
-                { emoji: '🎁', label: 'Gift Sets', subLabel: 'Perfect Combos', to: '/category/gifts', bg: 'linear-gradient(135deg,#fff8f0,#fff3e0)', border: 'rgba(255,152,0,0.18)', shadow: 'rgba(255,152,0,0.08)' },
-                { emoji: '💄', label: 'Beauty', subLabel: 'Glow Up Daily', to: '/category/beauty', bg: 'linear-gradient(135deg,#fff0f6,#fce4ec)', border: 'rgba(233,30,99,0.15)', shadow: 'rgba(233,30,99,0.06)' },
-              ].map(({ emoji, label, subLabel, to, bg, border, shadow }) => (
-                <Link key={label} to={to}
-                  className="group relative rounded-2xl p-5 overflow-hidden transition-all duration-300 hover:scale-[1.04] hover:-translate-y-1"
-                  style={{ background: bg, border: `1.5px solid ${border}`, boxShadow: `0 4px 18px ${shadow}` }}>
-                  <div className="text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">{emoji}</div>
-                  <p className="text-gray-800 font-bold text-sm leading-tight mb-0.5">{label}</p>
-                  <p className="text-gray-400 text-xs">{subLabel}</p>
-                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ChevronRight size={13} className="text-gray-400"/>
-                  </div>
-                </Link>
-              ))}
-            </div>
-            <div className="mt-4 grid grid-cols-3 rounded-2xl overflow-hidden" style={{ background: 'rgba(233,30,99,0.04)', border: '1.5px solid rgba(233,30,99,0.12)' }}>
-              {[{val:'1200+',lbl:'Products'},{val:'5K+',lbl:'Customers'},{val:'4.9★',lbl:'Rating'}].map(({val,lbl},i) => (
-                <div key={lbl} className={`py-3 text-center ${i < 2 ? 'border-r border-pink-100' : ''}`}>
-                  <p className="font-black text-gray-900 text-base">{val}</p>
-                  <p className="text-gray-400 text-[10px] font-semibold mt-0.5">{lbl}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </div>
+    {/* Mobile only: full-width landscape banner */}
+    {heroBanners.length > 0 && (
+      <div className="block lg:hidden w-full relative z-10 px-3 pt-3 pb-1">
+        <HeroBannerCard banners={heroBanners} mobile/>
       </div>
     )}
+
+    {/* Desktop: split layout — text left, banner right */}
+    <div className="hidden lg:flex w-full px-14 xl:px-24 py-12 relative z-10 items-stretch" style={{ minHeight: '60vh' }}>
+      <div className="w-full flex flex-row items-stretch gap-16">
+
+        {/* Left Column — Hanging Keychains */}
+        <div className="flex-1 flex flex-row items-start justify-center gap-6 pt-0 overflow-hidden">
+          {HANG_IMAGES.map((src, i) => (
+            <div key={i} className="hang-item flex flex-col items-center" style={{ paddingTop: '0px' }}>
+              {/* String from top */}
+              <div style={{ width: '2px', height: '60px', background: 'linear-gradient(180deg,rgba(233,30,99,0.3),rgba(199,125,255,0.5))', borderRadius: '1px' }}/>
+              {/* Image */}
+              <div className="rounded-3xl overflow-hidden shadow-xl"
+                style={{ width: '110px', height: '196px', border: '2.5px solid rgba(233,30,99,0.18)', background: '#fff' }}>
+                <img src={src} alt="keychain" className="w-full h-full object-cover"/>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Right Column — Banner */}
+        {heroBanners.length > 0 && (
+          <div className="flex-[1.5] flex flex-col justify-center">
+            <HeroBannerCard banners={heroBanners}/>
+          </div>
+        )}
+
+      </div>
+    </div>
   </section>
 )
 
@@ -497,6 +455,91 @@ const FullWidthPromoBanners: React.FC<{ sec: any }> = ({ sec }) => (
   </section>
 )
 
+// ── Hanging Keychain Strip ────────────────────────────────────────────────────
+const HANG_IMAGES = [
+  'https://ik.imagekit.io/rishii/bafnatoys/Keychain/Photoroom%20(2)/WhatsApp%20Image%202026-04-15%20at%209.45.59%20AM.jpg',
+  'https://ik.imagekit.io/rishii/bafnatoys/Keychain/Photoroom%20(2)/WhatsApp%20Image%202026-04-15%20at%2010.50.41%20AM.jpg',
+  'https://ik.imagekit.io/rishii/bafnatoys/Keychain/Photoroom%20(2)/WhatsApp%20Image%202026-04-15%20at%209.49.36%20AM.jpg',
+  'https://ik.imagekit.io/rishii/bafnatoys/Keychain/Photoroom%20(2)/WhatsApp%20Image%202026-04-15%20at%2010.08.02%20AM.jpg',
+  'https://ik.imagekit.io/rishii/bafnatoys/Keychain/WhatsApp%20Image%202026-04-15%20at%202.43.05%20PM.png',
+]
+
+const HangingStrip: React.FC = () => {
+  const items = [...HANG_IMAGES, ...HANG_IMAGES, ...HANG_IMAGES, ...HANG_IMAGES]
+  return (
+    <div className="w-full overflow-hidden border-y border-pink-100"
+      style={{ background: 'linear-gradient(180deg,#fff0f6 0%,#ffffff 100%)', height: '130px' }}>
+      <div className="marquee-track h-full items-end pb-3">
+        {items.map((src, i) => (
+          <div key={i} className="hang-item flex flex-col items-center mx-5" style={{ paddingTop: '6px' }}>
+            {/* String */}
+            <div style={{ width: '2px', height: '22px', background: 'linear-gradient(180deg,#f48fb1,#ce93d8)', borderRadius: '1px' }}/>
+            {/* Image */}
+            <div className="rounded-2xl overflow-hidden shadow-lg"
+              style={{ width: '80px', height: '80px', border: '2px solid rgba(233,30,99,0.18)' }}>
+              <img src={src} alt="keychain" className="w-full h-full object-cover"/>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Pastel palette cycle for circles ─────────────────────────────────────────
+const CIRCLE_PALETTES = [
+  { bg: '#fce4ec', border: '#f48fb1' },
+  { bg: '#f3e5f5', border: '#ce93d8' },
+  { bg: '#fff3e0', border: '#ffcc80' },
+  { bg: '#e8f5e9', border: '#a5d6a7' },
+  { bg: '#e3f2fd', border: '#90caf9' },
+  { bg: '#fff8e1', border: '#ffe082' },
+  { bg: '#fce4ec', border: '#f48fb1' },
+  { bg: '#f3e5f5', border: '#ce93d8' },
+  { bg: '#fff3e0', border: '#ffcc80' },
+  { bg: '#e8f5e9', border: '#a5d6a7' },
+  { bg: '#e3f2fd', border: '#90caf9' },
+  { bg: '#fff8e1', border: '#ffe082' },
+]
+
+// ── Horizontal Circle Categories (Layout 4) ──────────────────────────────────
+const HorizontalCategoryScroll: React.FC<{ categories: Category[] }> = ({ categories }) => (
+  <section className="px-6 md:px-14 lg:px-24 py-8">
+    <div className="flex items-center justify-between mb-5">
+      <div>
+        <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: '#E91E63' }}>Browse</p>
+        <h2 className="text-xl md:text-2xl font-heading font-black text-gray-900">Shop by Category</h2>
+      </div>
+      <Link to="/products"
+        className="inline-flex items-center gap-1.5 text-xs font-black px-4 py-2 rounded-full transition-all"
+        style={{ background: 'rgba(233,30,99,0.07)', border: '1.5px solid rgba(233,30,99,0.2)', color: '#E91E63' }}>
+        View All <ArrowRight size={12}/>
+      </Link>
+    </div>
+    {/* Horizontal scroll row */}
+    <div className="flex gap-7 overflow-x-auto pb-3" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      {categories.slice(0, 12).map((cat, i) => {
+        const p = CIRCLE_PALETTES[i % CIRCLE_PALETTES.length]
+        return (
+          <Link key={cat._id} to={`/category/${cat.slug}`}
+            className="flex flex-col items-center gap-2.5 flex-shrink-0 group">
+            {/* Circle */}
+            <div className="w-16 h-16 md:w-28 md:h-28 rounded-full overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl"
+              style={{ background: p.bg, border: `2.5px solid ${p.border}` }}>
+              {cat.image
+                ? <img src={cat.image} alt={cat.name} className="w-full h-full object-cover"/>
+                : <span className="text-2xl md:text-5xl">{cat.icon || '🛍️'}</span>
+              }
+            </div>
+            {/* Label */}
+            <p className="text-xs md:text-sm font-bold text-gray-600 group-hover:text-primary transition-colors text-center" style={{ maxWidth: '70px' }}>{cat.name}</p>
+          </Link>
+        )
+      })}
+    </div>
+  </section>
+)
+
 // ── Full-Width Bottom CTA (Layout 4) ─────────────────────────────────────────
 const FullWidthBottomCTA = () => (
   <section className="px-6 md:px-14 lg:px-24 py-12">
@@ -559,6 +602,7 @@ const HomePage: React.FC = () => {
   const [newArrivals, setNewArrivals] = useState<Product[]>([])
   const [featured, setFeatured] = useState<Product[]>([])
   const [heroBanners, setHeroBanners] = useState<Banner[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -566,6 +610,11 @@ const HomePage: React.FC = () => {
     api.get('/banners?isActive=true').then(res => {
       const all: Banner[] = res.data.banners || []
       setHeroBanners(all.filter(b => b.type === 'hero' && b.isActive))
+    }).catch(() => {})
+
+    // Fetch categories
+    api.get('/categories?isActive=true&limit=12').then(res => {
+      setCategories(res.data.categories || [])
     }).catch(() => {})
 
     Promise.all([
@@ -626,10 +675,10 @@ const HomePage: React.FC = () => {
     <div>
       {sec.heroBanner !== false && <HeroLayout4 heroBanners={heroBanners}/>}
       {sec.featuresBar !== false && <FullWidthFeaturesBar />}
+      {sec.categories !== false && <HorizontalCategoryScroll categories={categories} />}
       {sec.newArrivals !== false && <FullWidthProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true"/>}
       {sec.trendingProducts !== false && <FullWidthProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true"/>}
       {sec.promoBanners !== false && <FullWidthPromoBanners sec={sec} />}
-      {sec.categories !== false && <FullWidthCategories />}
       {sec.featuredProducts !== false && <FullWidthProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true"/>}
       <FullWidthBottomCTA />
     </div>
