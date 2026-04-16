@@ -46,6 +46,8 @@ interface SiteSettings {
   razorpayKeyId: string
   shiprocketEnabled: boolean
   homeLayout: number
+  websiteLayout: number
+  mobileLayout: number
   hapticFeedback: boolean
 }
 
@@ -80,6 +82,8 @@ const DEFAULT: SiteSettings = {
   razorpayKeyId: '',
   shiprocketEnabled: false,
   homeLayout: 4,
+  websiteLayout: 4,
+  mobileLayout: 1,
   hapticFeedback: true,
 }
 
