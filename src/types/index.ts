@@ -43,6 +43,7 @@ export interface Category {
   layoutType?: 'standard' | 'hanging'
   banner?: string
   isDashboardMain?: boolean
+  parent?: any
 }
 
 export interface User {
