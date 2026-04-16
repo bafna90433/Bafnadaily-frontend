@@ -34,12 +34,12 @@ const SkeletonCard = () => (
 
 interface SectionProps { title: string; products: Product[]; loading: boolean; viewAll: string }
 const ProductSection: React.FC<SectionProps> = ({ title, products, loading, viewAll }) => (
-  <section className="max-w-7xl mx-auto px-4 py-8">
+  <section className="max-w-full mx-auto px-4 py-8">
     <div className="flex items-center justify-between mb-5">
       <h2 className="text-2xl md:text-3xl font-heading font-bold">{title}</h2>
       <Link to={viewAll} className="text-primary text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">View All <ArrowRight size={15} /></Link>
     </div>
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
       {loading ? Array(8).fill(0).map((_, i) => <SkeletonCard key={i} />) : products.map(p => <ProductCard key={p._id} product={p} />)}
     </div>
     {!loading && products.length === 0 && (
@@ -53,7 +53,7 @@ const ProductSection: React.FC<SectionProps> = ({ title, products, loading, view
 // ═══════════════════════════════════════════════════════════════════════════════
 const HeroLayout1 = () => (
   <section className="relative overflow-hidden bg-gradient-to-br from-pink-50 via-white to-purple-50">
-    <div className="max-w-7xl mx-auto px-4 py-14 md:py-24 flex flex-col md:flex-row items-center gap-10">
+    <div className="max-w-full mx-auto px-4 py-14 md:py-24 flex flex-col md:flex-row items-center gap-10">
       <div className="flex-1 text-center md:text-left">
         <span className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-bold px-4 py-2 rounded-full mb-5">
           <Zap size={14} className="fill-primary" /> New Collection 2024
@@ -88,7 +88,7 @@ const HeroLayout1 = () => (
 // ═══════════════════════════════════════════════════════════════════════════════
 const HeroLayout2 = () => (
   <section className="relative overflow-hidden bg-gradient-to-r from-gray-900 via-slate-800 to-gray-900">
-    <div className="max-w-7xl mx-auto px-4 py-16 md:py-28 text-center relative z-10">
+    <div className="max-w-full mx-auto px-4 py-16 md:py-28 text-center relative z-10">
       <div className="flex items-center justify-center gap-2 mb-6">
         <Crown size={18} className="text-amber-400" />
         <span className="text-amber-400 text-sm font-black uppercase tracking-[0.2em]">Premium Collection</span>
@@ -144,7 +144,7 @@ const MainDashboard = ({ categories }: { categories: any[] }) => {
   // Fill focus ones first if they exist in DB, otherwise use placeholder labels
   const focusMap: Record<string, string> = {
     'belt': 'BELT',
-    'keychains': 'KEYCHAIN',
+    'keychains': 'ALL KEYCHAIN',
     'hand-bags': 'HAND BAG',
     'women-kit': 'WOMEN KIT',
     'men': 'MEN'
@@ -161,15 +161,15 @@ const MainDashboard = ({ categories }: { categories: any[] }) => {
   })
 
   return (
-    <section className="max-w-7xl mx-auto px-4 py-8">
+    <section className="max-w-full mx-auto px-4 py-8">
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
         {items.map((cat, i) => (
           <Link
             key={i}
             to={cat.soon ? '#' : `/category/${cat.slug}`}
             className={`aspect-square rounded-3xl border-2 flex flex-col items-center justify-center p-6 transition-all duration-300 ${cat.soon
-                ? 'bg-gray-50 border-gray-100 opacity-40 grayscale cursor-not-allowed'
-                : 'bg-white border-primary/20 hover:border-primary hover:shadow-xl hover:-translate-y-1'
+              ? 'bg-gray-50 border-gray-100 opacity-40 grayscale cursor-not-allowed'
+              : 'bg-white border-primary/20 hover:border-primary hover:shadow-xl hover:-translate-y-1'
               }`}
           >
             <div className="text-4xl mb-3">{cat.emoji || (cat.soon ? '📦' : '✨')}</div>
@@ -183,7 +183,7 @@ const MainDashboard = ({ categories }: { categories: any[] }) => {
 }
 const HeroLayout3 = () => (
   <section className="relative overflow-hidden bg-white">
-    <div className="max-w-7xl mx-auto px-4 py-12 md:py-20">
+    <div className="max-w-full mx-auto px-4 py-12 md:py-20">
       <div className="text-center mb-10">
         <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/10 to-purple-100 text-primary text-xs font-black px-5 py-2 rounded-full mb-6 uppercase tracking-wider">
           <Sparkles size={14} /> Curated with Love
@@ -219,7 +219,7 @@ const HeroLayout3 = () => (
 // ═══════════════════════════════════════════════════════════════════════════════
 const FeaturesBar = () => (
   <section className="bg-white border-y border-gray-100">
-    <div className="max-w-7xl mx-auto px-4 py-5">
+    <div className="max-w-full mx-auto px-4 py-5">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {FEATURES.map(({ icon: Icon, title, desc }) => (
           <div key={title} className="flex items-center gap-3">
@@ -236,7 +236,7 @@ const FeaturesBar = () => (
 // CATEGORIES SECTION component (shared)
 // ═══════════════════════════════════════════════════════════════════════════════
 const CategoriesSection = () => (
-  <section className="max-w-7xl mx-auto px-4 py-10">
+  <section className="max-w-full mx-auto px-4 py-10">
     <h2 className="text-2xl md:text-3xl font-heading font-bold mb-5">Shop by Category</h2>
     <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
       {CATEGORIES.map(cat => (
@@ -297,7 +297,7 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
 
   return (
     <div className="relative w-full overflow-hidden bg-white"
-      style={{ borderRadius: mobile ? '1rem' : '2rem', aspectRatio: mobile ? '16/7' : '21/9', boxShadow: mobile ? '0 4px 20px rgba(0,0,0,0.10)' : '0 24px 64px rgba(233,30,99,0.18), 0 8px 24px rgba(0,0,0,0.08)' }}>
+      style={{ borderRadius: mobile ? '1rem' : '2rem', aspectRatio: mobile ? '16/7' : '5/2', boxShadow: mobile ? '0 4px 20px rgba(0,0,0,0.10)' : '0 24px 64px rgba(233,30,99,0.18), 0 8px 24px rgba(0,0,0,0.08)' }}>
       {/* Decorative ring */}
       {!mobile && (
         <div className="absolute inset-0 rounded-[2rem] pointer-events-none z-20"
@@ -308,7 +308,7 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
         <Link key={bn._id} to={bn.link || '/products'}
           className={`absolute inset-0 transition-opacity duration-700 ${i === active ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
           {bn.image
-            ? <img src={bn.image} alt={bn.title} className="w-full h-full" style={{ objectFit: mobile ? 'contain' : 'cover', objectPosition: 'center' }} />
+            ? <img src={bn.image} alt={bn.title} className="w-full h-full" style={{ objectFit: mobile ? 'cover' : 'contain', objectPosition: 'center' }} />
             : <div className="w-full h-full flex items-center justify-center"
               style={{ background: 'linear-gradient(135deg,#E91E63,#C77DFF)' }}>
               <p className="text-white font-black text-xl text-center px-6">{bn.title}</p>
@@ -421,7 +421,7 @@ const FullWidthProductSection: React.FC<SectionProps> = ({ title, products, load
         View All <ArrowRight size={13} />
       </Link>
     </div>
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
       {loading ? Array(10).fill(0).map((_, i) => <SkeletonCard key={i} />) : products.map(p => <ProductCard key={p._id} product={p} />)}
     </div>
     {!loading && products.length === 0 && (
@@ -577,23 +577,23 @@ const HorizontalCategoryScroll: React.FC<{ categories: Category[] }> = ({ catego
         View All <ArrowRight size={12} />
       </Link>
     </div>
-    {/* Horizontal scroll row */}
-    <div className="flex gap-7 overflow-x-auto pb-3" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-      {categories.slice(0, 12).map((cat, i) => {
+    {/* Category Grid (instead of horizontal scroll) */}
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 md:gap-12">
+      {categories.slice(0, 15).map((cat, i) => {
         const p = CIRCLE_PALETTES[i % CIRCLE_PALETTES.length]
         return (
           <Link key={cat._id} to={`/category/${cat.slug}`}
-            className="flex flex-col items-center gap-2.5 flex-shrink-0 group">
-            {/* Circle */}
-            <div className="w-16 h-16 md:w-28 md:h-28 rounded-full overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl"
-              style={{ background: p.bg, border: `2.5px solid ${p.border}` }}>
+            className="flex flex-col items-center gap-4 group">
+            {/* Square Category Box */}
+            <div className="w-full aspect-square rounded-[3rem] md:rounded-[4rem] overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl"
+              style={{ background: p.bg, border: `3px solid ${p.border}` }}>
               {cat.image
                 ? <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
-                : <span className="text-2xl md:text-5xl">{cat.icon || '🛍️'}</span>
+                : <span className="text-4xl md:text-8xl">{cat.icon || '🛍️'}</span>
               }
             </div>
             {/* Label */}
-            <p className="text-xs md:text-sm font-bold text-gray-600 group-hover:text-primary transition-colors text-center" style={{ maxWidth: '70px' }}>{cat.name}</p>
+            <p className="text-sm md:text-lg font-black text-gray-800 group-hover:text-primary transition-colors text-center">{cat.name}</p>
           </Link>
         )
       })}
@@ -636,7 +636,7 @@ const FullWidthBottomCTA = () => (
 // BOTTOM CTA (shared)
 // ═══════════════════════════════════════════════════════════════════════════════
 const BottomCTA = () => (
-  <section className="max-w-7xl mx-auto px-4 py-10">
+  <section className="max-w-full mx-auto px-4 py-10">
     <div className="bg-gradient-to-r from-gray-900 to-slate-800 rounded-3xl p-10 text-center text-white relative overflow-hidden">
       <div className="relative z-10">
         <p className="text-sm font-semibold text-gray-400 mb-2">Youth Collection</p>
@@ -754,11 +754,6 @@ const HomePage: React.FC = () => {
       {sec.heroBanner !== false && <HeroLayout4 heroBanners={heroBanners} hangingBanners={hangingBanners} />}
       {sec.featuresBar !== false && <FullWidthFeaturesBar />}
       {sec.categories !== false && <HorizontalCategoryScroll categories={categories} />}
-      {sec.newArrivals !== false && <FullWidthProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
-      {sec.trendingProducts !== false && <FullWidthProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true" />}
-      {sec.promoBanners !== false && <FullWidthPromoBanners sec={sec} />}
-      {sec.featuredProducts !== false && <FullWidthProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true" />}
-      <FullWidthBottomCTA />
     </div>
   )
 }

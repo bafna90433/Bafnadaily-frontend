@@ -129,7 +129,7 @@ const Navbar: React.FC = () => {
           ? 'bg-white/95 backdrop-blur-xl shadow-lg shadow-black/5 border-b border-gray-100'
           : 'bg-white border-b border-gray-100'
         }`}>
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
+        <div className="max-w-full mx-auto px-4 lg:px-8">
           <div className="flex items-center gap-4 lg:gap-8 h-16 lg:h-18">
 
             {/* ── Logo ── */}

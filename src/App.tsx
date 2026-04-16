@@ -6,7 +6,6 @@ import Footer from './components/layout/Footer'
 import BottomNav from './components/layout/BottomNav'
 import WhatsAppButton from './components/common/WhatsAppButton'
 import HomePage from './pages/HomePage'
-import DashboardPage from './pages/DashboardPage'
 import ProductsPage from './pages/ProductsPage'
 import ProductDetailPage from './pages/ProductDetailPage'
 import CategoryPage from './pages/CategoryPage'
@@ -46,8 +45,7 @@ const App: React.FC = () => {
       <Navbar />
       <main className="min-h-screen pb-20 md:pb-0">
         <Routes>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/old-home" element={<HomePage />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/product/:slug" element={<ProductDetailPage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />

@@ -4,8 +4,8 @@
 
 @layer base {
   * { box-sizing: border-box; }
-  body { font-family: 'DM Sans', sans-serif; @apply bg-gray-50 text-gray-900; }
-  h1, h2, h3 { font-family: 'Playfair Display', serif; }
+  body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; @apply bg-gray-50 text-gray-900 antialiased; }
+  h1, h2, h3, h4, h5, h6 { font-family: 'Plus Jakarta Sans', sans-serif; }
 }
 
 @layer components {
@@ -15,7 +15,30 @@
   .card { @apply bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200; }
   .input { @apply w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm; }
   .badge { @apply text-xs font-bold px-2 py-0.5 rounded-full; }
-  .section { @apply max-w-7xl mx-auto px-4; }
+  .section { @apply max-w-full mx-auto px-4; }
+}
+
+/* ── Global Full-Width Overrides ── */
+.max-w-7xl,
+.max-w-[1440px],
+.max-w-6xl,
+.max-w-5xl,
+.max-w-4xl {
+  max-width: 100% !important;
+}
+
+@media (min-width: 768px) {
+  .max-w-7xl, .max-w-[1440px], .max-w-6xl, .max-w-5xl, .max-w-4xl {
+    padding-left: 3rem !important;
+    padding-right: 3rem !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  .max-w-7xl, .max-w-[1440px], .max-w-6xl, .max-w-5xl, .max-w-4xl {
+    padding-left: 5rem !important;
+    padding-right: 5rem !important;
+  }
 }
 
 .skeleton {
@@ -51,28 +74,3 @@
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #E91E63; border-radius: 3px; }
-
-/* ── Layout 4: Full-width override ─────────────────────────────────────────── */
-[data-layout="4"] .max-w-7xl,
-[data-layout="4"] .max-w-6xl,
-[data-layout="4"] .max-w-5xl {
-  max-width: 100% !important;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-}
-@media (min-width: 768px) {
-  [data-layout="4"] .max-w-7xl,
-  [data-layout="4"] .max-w-6xl,
-  [data-layout="4"] .max-w-5xl {
-    padding-left: 3rem;
-    padding-right: 3rem;
-  }
-}
-@media (min-width: 1280px) {
-  [data-layout="4"] .max-w-7xl,
-  [data-layout="4"] .max-w-6xl,
-  [data-layout="4"] .max-w-5xl {
-    padding-left: 5rem;
-    padding-right: 5rem;
-  }
-}
