@@ -304,27 +304,6 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* ── LOWER LEVEL (Desktop Menu Only) ── */}
-          <div className="hidden lg:flex items-center justify-center border-t border-gray-50 py-3 gap-10">
-            {[
-              { to: '/', label: 'Home' },
-              { to: '/products', label: 'Explore Store' },
-              { to: '/products?featured=true', label: 'Best Sellers' },
-              { to: '/products?new=true', label: 'New Arrivals' },
-              { to: '/products?trending=true', label: 'Trending' },
-              { to: '/category/gifts', label: 'Gift Sets' },
-            ].map((link, i) => (
-              <Link
-                key={i}
-                to={link.to}
-                className="text-[11px] font-black uppercase tracking-[0.18em] text-gray-500 hover:text-primary transition-all relative group"
-              >
-                {link.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
-              </Link>
-            ))}
-          </div>
-
         </div>
       </div>
 
