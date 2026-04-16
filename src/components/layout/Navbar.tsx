@@ -125,12 +125,12 @@ const Navbar: React.FC = () => {
       </div>
 
       {/* ── Main Header ── */}
-      <div className={`transition-all duration-300 ${scrolled
-          ? 'bg-white/95 backdrop-blur-xl shadow-lg shadow-black/5 border-b border-gray-100'
+      <div className={`transition-all duration-500 ${scrolled
+          ? 'bg-white/80 backdrop-blur-lg shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-b border-white/20'
           : 'bg-white border-b border-gray-100'
         }`}>
-        <div className="max-w-full mx-auto px-4 lg:px-8 py-2 lg:py-0">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-8">
+        <div className="max-w-[1400px] mx-auto px-4 lg:px-10 py-3 lg:py-0">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-12">
             
             <div className="flex items-center justify-between lg:justify-start h-14 lg:h-18">
 
@@ -178,18 +178,18 @@ const Navbar: React.FC = () => {
             {/* ── Search Bar ── */}
             <div ref={searchRef} className="flex-1 relative min-w-0 pb-2 lg:pb-0">
               <form onSubmit={handleSearch}>
-                <div className={`relative flex items-center rounded-xl border transition-all duration-200 ${focused
-                    ? 'border-primary/40 shadow-md shadow-primary/10 bg-white'
-                    : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                <div className={`relative flex items-center rounded-2xl border transition-all duration-300 ${focused
+                    ? 'border-primary shadow-[0_0_20px_rgba(233,30,99,0.12)] bg-white'
+                    : 'border-gray-200 bg-gray-50/50 hover:border-gray-300 hover:bg-gray-50'
                   }`}>
-                  <Search size={16} className={`ml-3 flex-shrink-0 transition-colors ${focused ? 'text-primary' : 'text-gray-400'}`} />
+                  <Search size={18} className={`ml-4 flex-shrink-0 transition-colors duration-300 ${focused ? 'text-primary' : 'text-gray-400'}`} />
                   <input
                     type="text"
                     value={searchQ}
                     onChange={onSearchChange}
                     onFocus={() => setFocused(true)}
                     placeholder="Search products, gifts, accessories…"
-                    className="flex-1 bg-transparent py-2.5 lg:py-2.5 px-3 text-sm font-medium text-gray-800 placeholder:text-gray-400 outline-none min-w-0"
+                    className="flex-1 bg-transparent py-3 lg:py-3.5 px-4 text-sm font-medium text-gray-800 placeholder:text-gray-400 outline-none min-w-0"
                   />
                   {searchQ && (
                     <button type="button" onClick={() => { setSearchQ(''); setSuggestions([]) }}
@@ -283,19 +283,19 @@ const Navbar: React.FC = () => {
 
               {/* Cart */}
               <Link to="/cart"
-                className="flex items-center gap-2.5 px-4 py-2 rounded-xl transition-all active:scale-95"
-                style={{ background: 'linear-gradient(135deg, #E91E63, #C2185B)', boxShadow: '0 4px 14px rgba(233,30,99,0.25)' }}>
+                className="flex items-center gap-3 px-5 py-2.5 rounded-2xl transition-all duration-300 hover:scale-[1.02] active:scale-95 group"
+                style={{ background: 'linear-gradient(135deg, #E91E63, #C2185B)', boxShadow: '0 8px 20px rgba(233,30,99,0.2)' }}>
                 <div className="relative">
-                  <ShoppingBag size={18} className="text-white" />
+                  <ShoppingBag size={20} className="text-white group-hover:rotate-12 transition-transform" />
                   {count > 0 && (
-                    <span className="absolute -top-2 -right-2.5 w-4 h-4 bg-white text-primary text-[9px] rounded-full flex items-center justify-center font-black border border-primary/20">
+                    <span className="absolute -top-2.5 -right-3 w-5 h-5 bg-white text-primary text-[10px] rounded-full flex items-center justify-center font-black border-2 border-primary/10 shadow-sm animate-in zoom-in">
                       {count}
                     </span>
                   )}
                 </div>
-                <div className="flex flex-col leading-none">
-                  <span className="text-white/70 text-[9px] font-semibold">My Cart</span>
-                  <span className="text-white font-black text-sm">{count > 0 ? `₹${total}` : 'Empty'}</span>
+                <div className="flex flex-col leading-tight">
+                  <span className="text-white/80 text-[10px] font-bold uppercase tracking-wider">Cart</span>
+                  <span className="text-white font-black text-sm tracking-tight">{count > 0 ? `₹${total}` : 'Empty'}</span>
                 </div>
               </Link>
 
