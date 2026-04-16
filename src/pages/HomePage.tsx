@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Zap, Gift, Truck, Shield, Tag, Sparkles, Crown, Star, ShoppingBag, TrendingUp, Diamond, Watch, Award, HeartHandshake, Package, RotateCcw, ChevronRight } from 'lucide-react'
 import { Product, Banner, Category } from '../types'
 import api from '../utils/api'
@@ -656,6 +656,7 @@ const BottomCTA = () => (
 // MAIN HOME PAGE
 // ═══════════════════════════════════════════════════════════════════════════════
 const HomePage: React.FC = () => {
+  const navigate = useNavigate()
   const { settings } = useSettingsStore()
   const sec = settings.homepageSections
   const layout = settings.websiteLayout || settings.homeLayout || 4
