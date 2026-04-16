@@ -140,7 +140,7 @@ const Navbar: React.FC = () => {
                 <img 
                   src={settings.siteLogo} 
                   alt={siteName} 
-                  className="h-11 lg:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
+                  className="h-14 lg:h-18 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
                 />
               ) : (
                 <>
