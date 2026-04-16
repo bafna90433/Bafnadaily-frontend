@@ -37,10 +37,10 @@ const ProductSection: React.FC<SectionProps> = ({ title, products, loading, view
   <section className="max-w-7xl mx-auto px-4 py-8">
     <div className="flex items-center justify-between mb-5">
       <h2 className="text-2xl md:text-3xl font-heading font-bold">{title}</h2>
-      <Link to={viewAll} className="text-primary text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">View All <ArrowRight size={15}/></Link>
+      <Link to={viewAll} className="text-primary text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">View All <ArrowRight size={15} /></Link>
     </div>
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
-      {loading ? Array(8).fill(0).map((_,i) => <SkeletonCard key={i}/>) : products.map(p => <ProductCard key={p._id} product={p}/>)}
+      {loading ? Array(8).fill(0).map((_, i) => <SkeletonCard key={i} />) : products.map(p => <ProductCard key={p._id} product={p} />)}
     </div>
     {!loading && products.length === 0 && (
       <div className="text-center py-14 text-gray-400"><p className="text-4xl mb-3">🛍️</p><p>No products yet — add from admin panel</p></div>
@@ -56,17 +56,17 @@ const HeroLayout1 = () => (
     <div className="max-w-7xl mx-auto px-4 py-14 md:py-24 flex flex-col md:flex-row items-center gap-10">
       <div className="flex-1 text-center md:text-left">
         <span className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-bold px-4 py-2 rounded-full mb-5">
-          <Zap size={14} className="fill-primary"/> New Collection 2024
+          <Zap size={14} className="fill-primary" /> New Collection 2024
         </span>
         <h1 className="text-4xl md:text-6xl font-heading font-bold text-gray-900 leading-tight mb-4">
-          Trendy Gifts &<br/><span className="text-primary">Cute Accessories</span>
+          Trendy Gifts &<br /><span className="text-primary">Cute Accessories</span>
         </h1>
         <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto md:mx-0">
           Keychains, jewelry, fashion & gift items — starting at just <strong className="text-primary">₹99!</strong>
         </p>
         <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-          <Link to="/products" className="btn-primary text-base px-8 py-4">Shop Now <ArrowRight size={18}/></Link>
-          <Link to="/products?maxPrice=299" className="btn-outline text-base px-8 py-4"><Tag size={16}/> Under ₹299</Link>
+          <Link to="/products" className="btn-primary text-base px-8 py-4">Shop Now <ArrowRight size={18} /></Link>
+          <Link to="/products?maxPrice=299" className="btn-outline text-base px-8 py-4"><Tag size={16} /> Under ₹299</Link>
         </div>
       </div>
       <div className="flex-1 grid grid-cols-2 gap-3 max-w-sm w-full">
@@ -78,8 +78,8 @@ const HeroLayout1 = () => (
         ))}
       </div>
     </div>
-    <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full pointer-events-none"/>
-    <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-purple-100/40 rounded-full pointer-events-none"/>
+    <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full pointer-events-none" />
+    <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-purple-100/40 rounded-full pointer-events-none" />
   </section>
 )
 
@@ -90,22 +90,22 @@ const HeroLayout2 = () => (
   <section className="relative overflow-hidden bg-gradient-to-r from-gray-900 via-slate-800 to-gray-900">
     <div className="max-w-7xl mx-auto px-4 py-16 md:py-28 text-center relative z-10">
       <div className="flex items-center justify-center gap-2 mb-6">
-        <Crown size={18} className="text-amber-400"/>
+        <Crown size={18} className="text-amber-400" />
         <span className="text-amber-400 text-sm font-black uppercase tracking-[0.2em]">Premium Collection</span>
-        <Crown size={18} className="text-amber-400"/>
+        <Crown size={18} className="text-amber-400" />
       </div>
       <h1 className="text-4xl md:text-7xl font-heading font-black text-white leading-tight mb-5">
-        Your Style,<br/><span className="bg-gradient-to-r from-primary via-pink-400 to-purple-400 bg-clip-text text-transparent">Your Story</span>
+        Your Style,<br /><span className="bg-gradient-to-r from-primary via-pink-400 to-purple-400 bg-clip-text text-transparent">Your Story</span>
       </h1>
       <p className="text-gray-400 text-lg md:text-xl mb-8 max-w-2xl mx-auto">
         Discover handpicked accessories, unique gifts & trending fashion. Every item tells a story.
       </p>
       <div className="flex flex-wrap gap-4 justify-center mb-12">
         <Link to="/products" className="bg-primary text-white font-bold px-10 py-4 rounded-2xl text-base hover:shadow-xl hover:shadow-primary/30 active:scale-95 transition-all flex items-center gap-2">
-          <ShoppingBag size={18}/> Explore Collection
+          <ShoppingBag size={18} /> Explore Collection
         </Link>
         <Link to="/products?trending=true" className="bg-white/10 backdrop-blur text-white font-bold px-10 py-4 rounded-2xl text-base border border-white/20 hover:bg-white/20 active:scale-95 transition-all flex items-center gap-2">
-          <TrendingUp size={18}/> Trending Now
+          <TrendingUp size={18} /> Trending Now
         </Link>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
@@ -123,21 +123,70 @@ const HeroLayout2 = () => (
         ))}
       </div>
     </div>
-    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl pointer-events-none"/>
-    <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-900/20 rounded-full pointer-events-none"/>
-    <div className="absolute -top-40 -right-40 w-96 h-96 bg-pink-900/20 rounded-full pointer-events-none"/>
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+    <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-900/20 rounded-full pointer-events-none" />
+    <div className="absolute -top-40 -right-40 w-96 h-96 bg-pink-900/20 rounded-full pointer-events-none" />
   </section>
 )
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// HERO LAYOUT 3 — Minimalist Elegant with Icon Grid
+// MAIN DASHBOARD — 2x8 CATEGORY GRID
 // ═══════════════════════════════════════════════════════════════════════════════
+const MainDashboard = ({ categories }: { categories: any[] }) => {
+  const navigate = useNavigate()
+
+  // Specific categories the user asked for
+  const focusSlugs = ['belt', 'keychains', 'hand-bags', 'women-kit', 'men']
+
+  // Create 16 slots
+  const slots = Array(16).fill({ name: 'Coming Soon', emoji: '📦', soon: true })
+
+  // Fill focus ones first if they exist in DB, otherwise use placeholder labels
+  const focusMap: Record<string, string> = {
+    'belt': 'BELT',
+    'keychains': 'KEYCHAIN',
+    'hand-bags': 'HAND BAG',
+    'women-kit': 'WOMEN KIT',
+    'men': 'MEN'
+  }
+
+  const items = slots.map((s, i) => {
+    const slug = focusSlugs[i]
+    if (slug) {
+      const cat = categories.find(c => c.slug === slug || c.name.toLowerCase() === focusMap[slug].toLowerCase())
+      if (cat) return { ...cat, soon: false }
+      return { name: focusMap[slug], slug, emoji: '⚡', soon: false }
+    }
+    return s
+  })
+
+  return (
+    <section className="max-w-7xl mx-auto px-4 py-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+        {items.map((cat, i) => (
+          <Link
+            key={i}
+            to={cat.soon ? '#' : `/category/${cat.slug}`}
+            className={`aspect-square rounded-3xl border-2 flex flex-col items-center justify-center p-6 transition-all duration-300 ${cat.soon
+                ? 'bg-gray-50 border-gray-100 opacity-40 grayscale cursor-not-allowed'
+                : 'bg-white border-primary/20 hover:border-primary hover:shadow-xl hover:-translate-y-1'
+              }`}
+          >
+            <div className="text-4xl mb-3">{cat.emoji || (cat.soon ? '📦' : '✨')}</div>
+            <p className="text-xs font-black text-gray-800 text-center uppercase tracking-wider">{cat.name}</p>
+            {cat.soon && <span className="text-[8px] bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full mt-2 font-bold">SOON</span>}
+          </Link>
+        ))}
+      </div>
+    </section>
+  )
+}
 const HeroLayout3 = () => (
   <section className="relative overflow-hidden bg-white">
     <div className="max-w-7xl mx-auto px-4 py-12 md:py-20">
       <div className="text-center mb-10">
         <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/10 to-purple-100 text-primary text-xs font-black px-5 py-2 rounded-full mb-6 uppercase tracking-wider">
-          <Sparkles size={14}/> Curated with Love
+          <Sparkles size={14} /> Curated with Love
         </div>
         <h1 className="text-3xl md:text-5xl font-heading font-black text-gray-900 leading-tight mb-4">
           Discover <span className="text-primary">Beautiful</span> Things
@@ -147,7 +196,7 @@ const HeroLayout3 = () => (
         </p>
         <div className="flex flex-wrap gap-3 justify-center">
           <Link to="/products" className="btn-primary text-sm px-8 py-3.5">Shop All Products</Link>
-          <Link to="/products?newArrival=true" className="btn-outline text-sm px-8 py-3.5 flex items-center gap-2"><Sparkles size={14}/> New Arrivals</Link>
+          <Link to="/products?newArrival=true" className="btn-outline text-sm px-8 py-3.5 flex items-center gap-2"><Sparkles size={14} /> New Arrivals</Link>
         </div>
       </div>
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hidden -mx-4 px-4 md:justify-center">
@@ -160,8 +209,8 @@ const HeroLayout3 = () => (
         ))}
       </div>
     </div>
-    <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/3 rounded-full pointer-events-none"/>
-    <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-purple-50 rounded-full pointer-events-none"/>
+    <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/3 rounded-full pointer-events-none" />
+    <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-purple-50 rounded-full pointer-events-none" />
   </section>
 )
 
@@ -174,7 +223,7 @@ const FeaturesBar = () => (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {FEATURES.map(({ icon: Icon, title, desc }) => (
           <div key={title} className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0"><Icon size={20} className="text-primary"/></div>
+            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0"><Icon size={20} className="text-primary" /></div>
             <div><p className="font-bold text-sm">{title}</p><p className="text-xs text-gray-500">{desc}</p></div>
           </div>
         ))}
@@ -213,8 +262,8 @@ const PromoBanners: React.FC<{ sec: any }> = ({ sec }) => (
           <p className="text-white/80 text-sm mb-5">Trending items at micro prices</p>
           <span className="bg-white text-primary text-sm font-bold px-5 py-2 rounded-full inline-block">Shop Now →</span>
         </div>
-        <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/10 rounded-full"/>
-        <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full"/>
+        <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/10 rounded-full" />
+        <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full" />
       </Link>
     )}
     {sec.giftComboBanner !== false && (
@@ -225,7 +274,7 @@ const PromoBanners: React.FC<{ sec: any }> = ({ sec }) => (
           <p className="text-white/80 text-sm mb-5">Keychain + Earrings sets & more</p>
           <span className="bg-white text-secondary text-sm font-bold px-5 py-2 rounded-full inline-block">Explore →</span>
         </div>
-        <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/10 rounded-full"/>
+        <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/10 rounded-full" />
       </Link>
     )}
   </section>
@@ -252,22 +301,22 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
       {/* Decorative ring */}
       {!mobile && (
         <div className="absolute inset-0 rounded-[2rem] pointer-events-none z-20"
-          style={{ border: '1.5px solid rgba(233,30,99,0.15)' }}/>
+          style={{ border: '1.5px solid rgba(233,30,99,0.15)' }} />
       )}
 
       {banners.map((bn, i) => (
         <Link key={bn._id} to={bn.link || '/products'}
           className={`absolute inset-0 transition-opacity duration-700 ${i === active ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
           {bn.image
-            ? <img src={bn.image} alt={bn.title} className="w-full h-full" style={{ objectFit: mobile ? 'contain' : 'cover', objectPosition: 'center' }}/>
+            ? <img src={bn.image} alt={bn.title} className="w-full h-full" style={{ objectFit: mobile ? 'contain' : 'cover', objectPosition: 'center' }} />
             : <div className="w-full h-full flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg,#E91E63,#C77DFF)' }}>
-                <p className="text-white font-black text-xl text-center px-6">{bn.title}</p>
-              </div>
+              style={{ background: 'linear-gradient(135deg,#E91E63,#C77DFF)' }}>
+              <p className="text-white font-black text-xl text-center px-6">{bn.title}</p>
+            </div>
           }
           {/* Gradient overlay at bottom */}
           <div className="absolute bottom-0 left-0 right-0 h-32"
-            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)' }}/>
+            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)' }} />
           {bn.title && (
             <div className="absolute bottom-5 left-5 right-5 z-10">
               <p className="text-white font-black text-base leading-snug drop-shadow-lg">{bn.title}</p>
@@ -282,7 +331,7 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
         <div className="absolute bottom-4 right-5 flex gap-1.5 z-20">
           {banners.map((_, i) => (
             <button key={i} onClick={() => setActive(i)}
-              className={`rounded-full transition-all duration-300 ${i === active ? 'bg-white w-5 h-1.5' : 'bg-white/50 w-1.5 h-1.5'}`}/>
+              className={`rounded-full transition-all duration-300 ${i === active ? 'bg-white w-5 h-1.5' : 'bg-white/50 w-1.5 h-1.5'}`} />
           ))}
         </div>
       )}
@@ -291,7 +340,7 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
       <Link to={banners[active]?.link || '/products'}
         className="absolute top-4 right-4 z-20 flex items-center gap-1.5 text-xs font-black px-4 py-2 rounded-full backdrop-blur-sm"
         style={{ background: 'rgba(255,255,255,0.92)', color: '#E91E63', boxShadow: '0 2px 12px rgba(233,30,99,0.2)' }}>
-        Shop <ArrowRight size={11}/>
+        Shop <ArrowRight size={11} />
       </Link>
     </div>
   )
@@ -301,16 +350,16 @@ const HeroLayout4: React.FC<{ heroBanners: Banner[]; hangingBanners: Banner[] }>
   <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fff0f6 0%, #fdf2ff 40%, #fff8f0 70%, #fefffe 100%)' }}>
     {/* Soft decorative blobs */}
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div className="absolute -top-20 -left-20 w-80 h-80 rounded-full" style={{ background: 'radial-gradient(circle, rgba(233,30,99,0.07) 0%, transparent 70%)' }}/>
-      <div className="absolute top-10 right-10 w-64 h-64 rounded-full" style={{ background: 'radial-gradient(circle, rgba(199,125,255,0.08) 0%, transparent 70%)' }}/>
-      <div className="absolute bottom-0 left-1/3 w-72 h-72 rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,139,90,0.06) 0%, transparent 70%)' }}/>
+      <div className="absolute -top-20 -left-20 w-80 h-80 rounded-full" style={{ background: 'radial-gradient(circle, rgba(233,30,99,0.07) 0%, transparent 70%)' }} />
+      <div className="absolute top-10 right-10 w-64 h-64 rounded-full" style={{ background: 'radial-gradient(circle, rgba(199,125,255,0.08) 0%, transparent 70%)' }} />
+      <div className="absolute bottom-0 left-1/3 w-72 h-72 rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,139,90,0.06) 0%, transparent 70%)' }} />
     </div>
-    <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: 'linear-gradient(90deg, transparent, rgba(233,30,99,0.25), rgba(199,125,255,0.25), transparent)' }}/>
+    <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: 'linear-gradient(90deg, transparent, rgba(233,30,99,0.25), rgba(199,125,255,0.25), transparent)' }} />
 
     {/* Mobile only: full-width landscape banner */}
     {heroBanners.length > 0 && (
       <div className="block lg:hidden w-full relative z-10 px-3 pt-3 pb-1">
-        <HeroBannerCard banners={heroBanners} mobile/>
+        <HeroBannerCard banners={heroBanners} mobile />
       </div>
     )}
 
@@ -349,7 +398,7 @@ const HeroLayout4: React.FC<{ heroBanners: Banner[]; hangingBanners: Banner[] }>
         {/* Right Column — Banner */}
         {heroBanners.length > 0 && (
           <div className="flex-[1.5] flex flex-col justify-center">
-            <HeroBannerCard banners={heroBanners}/>
+            <HeroBannerCard banners={heroBanners} />
           </div>
         )}
 
@@ -365,15 +414,15 @@ const FullWidthProductSection: React.FC<SectionProps> = ({ title, products, load
     <div className="flex items-end justify-between mb-8">
       <div>
         <h2 className="text-2xl md:text-3xl font-heading font-black text-gray-900 leading-tight">{title}</h2>
-        <div className="h-1 w-16 mt-2 rounded-full" style={{ background: 'linear-gradient(90deg, #E91E63, #C77DFF)' }}/>
+        <div className="h-1 w-16 mt-2 rounded-full" style={{ background: 'linear-gradient(90deg, #E91E63, #C77DFF)' }} />
       </div>
       <Link to={viewAll}
         className="inline-flex items-center gap-2 text-xs font-bold text-primary border border-primary/20 bg-primary/5 px-4 py-2 rounded-full hover:bg-primary hover:text-white transition-all duration-200">
-        View All <ArrowRight size={13}/>
+        View All <ArrowRight size={13} />
       </Link>
     </div>
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-      {loading ? Array(10).fill(0).map((_,i) => <SkeletonCard key={i}/>) : products.map(p => <ProductCard key={p._id} product={p}/>)}
+      {loading ? Array(10).fill(0).map((_, i) => <SkeletonCard key={i} />) : products.map(p => <ProductCard key={p._id} product={p} />)}
     </div>
     {!loading && products.length === 0 && (
       <div className="text-center py-16 text-gray-400"><p className="text-5xl mb-4">🛍️</p><p className="font-medium">No products yet — add from admin panel</p></div>
@@ -383,7 +432,7 @@ const FullWidthProductSection: React.FC<SectionProps> = ({ title, products, load
 
 // ── Full-Width Features Bar (Layout 4) ───────────────────────────────────────
 const FullWidthFeaturesBar = () => (
-  <div style={{ background: 'linear-gradient(90deg,#fff0f6,#fdf2ff,#fff0f6)', borderTop:'1px solid rgba(233,30,99,0.1)', borderBottom:'1px solid rgba(233,30,99,0.1)' }}>
+  <div style={{ background: 'linear-gradient(90deg,#fff0f6,#fdf2ff,#fff0f6)', borderTop: '1px solid rgba(233,30,99,0.1)', borderBottom: '1px solid rgba(233,30,99,0.1)' }}>
     <div className="px-6 md:px-14 lg:px-24 py-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
@@ -392,9 +441,9 @@ const FullWidthFeaturesBar = () => (
           { Icon: Package, title: 'Gift Wrapping', desc: 'At just ₹29 extra', color: '#FF9800' },
           { Icon: RotateCcw, title: 'Easy Returns', desc: '7-day hassle-free', color: '#E91E63' },
         ].map(({ Icon, title, desc, color }) => (
-          <div key={title} className="flex items-center gap-3 bg-white rounded-xl px-4 py-3" style={{ boxShadow:'0 2px 10px rgba(233,30,99,0.06)', border:'1px solid rgba(233,30,99,0.07)' }}>
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background:`${color}15` }}>
-              <Icon size={16} style={{ color }}/>
+          <div key={title} className="flex items-center gap-3 bg-white rounded-xl px-4 py-3" style={{ boxShadow: '0 2px 10px rgba(233,30,99,0.06)', border: '1px solid rgba(233,30,99,0.07)' }}>
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}15` }}>
+              <Icon size={16} style={{ color }} />
             </div>
             <div>
               <p className="font-bold text-gray-800 text-xs">{title}</p>
@@ -409,12 +458,12 @@ const FullWidthFeaturesBar = () => (
 
 // ── Full-Width Categories (Layout 4) ─────────────────────────────────────────
 const FullWidthCategories = () => (
-  <section className="px-6 md:px-14 lg:px-24 py-12" style={{ background:'linear-gradient(180deg,#fff 0%,#fff5fb 100%)' }}>
+  <section className="px-6 md:px-14 lg:px-24 py-12" style={{ background: 'linear-gradient(180deg,#fff 0%,#fff5fb 100%)' }}>
     <div className="flex items-end justify-between mb-7">
       <div>
-        <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color:'#E91E63' }}>Browse Categories</p>
+        <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#E91E63' }}>Browse Categories</p>
         <h2 className="text-2xl md:text-3xl font-heading font-black text-gray-900">Shop by Category</h2>
-        <div className="h-1 w-14 mt-2 rounded-full" style={{ background:'linear-gradient(90deg,#E91E63,#C77DFF)' }}/>
+        <div className="h-1 w-14 mt-2 rounded-full" style={{ background: 'linear-gradient(90deg,#E91E63,#C77DFF)' }} />
       </div>
     </div>
     <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
@@ -441,12 +490,12 @@ const FullWidthPromoBanners: React.FC<{ sec: any }> = ({ sec }) => (
           <h3 className="text-3xl md:text-4xl font-heading font-black text-white mb-2">Under ₹199</h3>
           <p className="text-white/70 text-sm mb-6">Trending items at micro prices — grab before they sell out!</p>
           <span className="inline-flex items-center gap-2 bg-white text-primary text-sm font-black px-6 py-2.5 rounded-full group-hover:gap-3 transition-all">
-            Shop Now <ArrowRight size={14}/>
+            Shop Now <ArrowRight size={14} />
           </span>
         </div>
-        <div className="absolute -right-12 -top-12 w-52 h-52 bg-white/10 rounded-full transition-transform duration-500 group-hover:scale-110"/>
-        <div className="absolute right-8 -bottom-6 w-28 h-28 bg-white/10 rounded-full"/>
-        <div className="absolute top-6 right-36 w-4 h-4 bg-white/20 rounded-full"/>
+        <div className="absolute -right-12 -top-12 w-52 h-52 bg-white/10 rounded-full transition-transform duration-500 group-hover:scale-110" />
+        <div className="absolute right-8 -bottom-6 w-28 h-28 bg-white/10 rounded-full" />
+        <div className="absolute top-6 right-36 w-4 h-4 bg-white/20 rounded-full" />
       </Link>
     )}
     {sec.giftComboBanner !== false && (
@@ -458,11 +507,11 @@ const FullWidthPromoBanners: React.FC<{ sec: any }> = ({ sec }) => (
           <h3 className="text-3xl md:text-4xl font-heading font-black text-white mb-2">Gift Combos</h3>
           <p className="text-white/70 text-sm mb-6">Keychain + Earrings sets & more — perfect for every occasion.</p>
           <span className="inline-flex items-center gap-2 bg-white text-amber-600 text-sm font-black px-6 py-2.5 rounded-full group-hover:gap-3 transition-all">
-            Explore <ArrowRight size={14}/>
+            Explore <ArrowRight size={14} />
           </span>
         </div>
-        <div className="absolute -right-12 -top-12 w-52 h-52 bg-white/10 rounded-full transition-transform duration-500 group-hover:scale-110"/>
-        <div className="absolute right-8 -bottom-6 w-28 h-28 bg-white/10 rounded-full"/>
+        <div className="absolute -right-12 -top-12 w-52 h-52 bg-white/10 rounded-full transition-transform duration-500 group-hover:scale-110" />
+        <div className="absolute right-8 -bottom-6 w-28 h-28 bg-white/10 rounded-full" />
       </Link>
     )}
   </section>
@@ -479,11 +528,11 @@ const HangingStrip: React.FC<{ hangingBanners: Banner[] }> = ({ hangingBanners }
         {items.map((b, i) => (
           <div key={i} className="hang-item flex flex-col items-center mx-5" style={{ paddingTop: '6px' }}>
             {/* String */}
-            <div style={{ width: '2px', height: '22px', background: 'linear-gradient(180deg,#f43f8e,#c084fc)', borderRadius: '1px' }}/>
+            <div style={{ width: '2px', height: '22px', background: 'linear-gradient(180deg,#f43f8e,#c084fc)', borderRadius: '1px' }} />
             {/* Image */}
             <div className="rounded-2xl overflow-hidden shadow-lg"
               style={{ width: '80px', height: '80px', border: '2px solid rgba(233,30,99,0.18)' }}>
-              <img src={b.image} alt={b.title || 'keychain'} className="w-full h-full object-cover"/>
+              <img src={b.image} alt={b.title || 'keychain'} className="w-full h-full object-cover" />
             </div>
             {/* Label */}
             {b.title && (
@@ -525,7 +574,7 @@ const HorizontalCategoryScroll: React.FC<{ categories: Category[] }> = ({ catego
       <Link to="/products"
         className="inline-flex items-center gap-1.5 text-xs font-black px-4 py-2 rounded-full transition-all"
         style={{ background: 'rgba(233,30,99,0.07)', border: '1.5px solid rgba(233,30,99,0.2)', color: '#E91E63' }}>
-        View All <ArrowRight size={12}/>
+        View All <ArrowRight size={12} />
       </Link>
     </div>
     {/* Horizontal scroll row */}
@@ -539,7 +588,7 @@ const HorizontalCategoryScroll: React.FC<{ categories: Category[] }> = ({ catego
             <div className="w-16 h-16 md:w-28 md:h-28 rounded-full overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl"
               style={{ background: p.bg, border: `2.5px solid ${p.border}` }}>
               {cat.image
-                ? <img src={cat.image} alt={cat.name} className="w-full h-full object-cover"/>
+                ? <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
                 : <span className="text-2xl md:text-5xl">{cat.icon || '🛍️'}</span>
               }
             </div>
@@ -556,18 +605,18 @@ const HorizontalCategoryScroll: React.FC<{ categories: Category[] }> = ({ catego
 const FullWidthBottomCTA = () => (
   <section className="px-6 md:px-14 lg:px-24 py-12">
     <div className="relative rounded-[2.5rem] overflow-hidden text-center px-8 py-14"
-      style={{ background:'linear-gradient(135deg,#FCE4EC 0%,#F3E5F5 40%,#FFF0F6 70%,#FCE4EC 100%)' }}>
+      style={{ background: 'linear-gradient(135deg,#FCE4EC 0%,#F3E5F5 40%,#FFF0F6 70%,#FCE4EC 100%)' }}>
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-14 -left-14 w-56 h-56 rounded-full" style={{ background:'radial-gradient(circle,rgba(233,30,99,0.1) 0%,transparent 70%)' }}/>
-        <div className="absolute -bottom-14 -right-14 w-56 h-56 rounded-full" style={{ background:'radial-gradient(circle,rgba(156,39,176,0.1) 0%,transparent 70%)' }}/>
+        <div className="absolute -top-14 -left-14 w-56 h-56 rounded-full" style={{ background: 'radial-gradient(circle,rgba(233,30,99,0.1) 0%,transparent 70%)' }} />
+        <div className="absolute -bottom-14 -right-14 w-56 h-56 rounded-full" style={{ background: 'radial-gradient(circle,rgba(156,39,176,0.1) 0%,transparent 70%)' }} />
         <div className="absolute top-8 right-16 text-4xl opacity-25 select-none">🔑</div>
         <div className="absolute bottom-8 left-16 text-4xl opacity-20 select-none">👗</div>
         <div className="absolute top-1/2 -translate-y-1/2 left-8 text-3xl opacity-20 select-none">💕</div>
         <div className="absolute top-1/2 -translate-y-1/2 right-8 text-3xl opacity-20 select-none">✨</div>
       </div>
       <div className="relative z-10">
-        <span className="inline-block text-xs font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full mb-5" style={{ background:'rgba(233,30,99,0.1)', color:'#E91E63', border:'1px solid rgba(233,30,99,0.2)' }}>💕 Youth Collection</span>
-        <h2 className="font-heading font-black text-gray-900 mb-3" style={{ fontSize:'clamp(1.8rem,4vw,3.5rem)', letterSpacing:'-0.02em' }}>
+        <span className="inline-block text-xs font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full mb-5" style={{ background: 'rgba(233,30,99,0.1)', color: '#E91E63', border: '1px solid rgba(233,30,99,0.2)' }}>💕 Youth Collection</span>
+        <h2 className="font-heading font-black text-gray-900 mb-3" style={{ fontSize: 'clamp(1.8rem,4vw,3.5rem)', letterSpacing: '-0.02em' }}>
           Under ₹299 Store 🛍️
         </h2>
         <p className="text-gray-500 mb-8 max-w-md mx-auto text-base leading-relaxed">
@@ -575,8 +624,8 @@ const FullWidthBottomCTA = () => (
         </p>
         <Link to="/products?maxPrice=299"
           className="inline-flex items-center gap-3 font-black px-10 py-3.5 rounded-2xl text-sm text-white transition-all duration-300 hover:scale-105 active:scale-95"
-          style={{ background:'linear-gradient(135deg,#E91E63,#C2185B)', boxShadow:'0 8px 28px rgba(233,30,99,0.3)' }}>
-          <ShoppingBag size={17}/> Shop Under ₹299
+          style={{ background: 'linear-gradient(135deg,#E91E63,#C2185B)', boxShadow: '0 8px 28px rgba(233,30,99,0.3)' }}>
+          <ShoppingBag size={17} /> Shop Under ₹299
         </Link>
       </div>
     </div>
@@ -597,8 +646,8 @@ const BottomCTA = () => (
           Shop Under ₹299
         </Link>
       </div>
-      <div className="absolute -top-20 -left-20 w-64 h-64 bg-primary/10 rounded-full"/>
-      <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-purple-900/30 rounded-full"/>
+      <div className="absolute -top-20 -left-20 w-64 h-64 bg-primary/10 rounded-full" />
+      <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-purple-900/30 rounded-full" />
     </div>
   </section>
 )
@@ -624,12 +673,12 @@ const HomePage: React.FC = () => {
       const all: Banner[] = res.data.banners || []
       setHeroBanners(all.filter(b => b.type !== 'hanging' && b.isActive))
       setHangingBanners(all.filter(b => b.type === 'hanging' && b.showOnWebsite !== false))
-    }).catch(() => {})
+    }).catch(() => { })
 
     // Fetch categories
     api.get('/categories?isActive=true&limit=12').then(res => {
       setCategories(res.data.categories || [])
-    }).catch(() => {})
+    }).catch(() => { })
 
     Promise.all([
       api.get('/products?trending=true&limit=8'),
@@ -642,6 +691,20 @@ const HomePage: React.FC = () => {
     }).catch(console.error).finally(() => setLoading(false))
   }, [])
 
+  // ── Layout 5: Category Dashboard (New Default) ───────────────────────
+  if (layout === 5 || !layout) return (
+    <div className="bg-gray-50 min-h-screen">
+      <div className="bg-white py-10 mb-8 border-b">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col items-center text-center">
+          <img src="/logo.png" alt="Bafnadaily" className="h-16 mb-4" onError={e => (e.target as any).src = 'https://placehold.co/200x60?text=Bafnadaily'} />
+          <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">Premium Quality Wholesale Store</p>
+        </div>
+      </div>
+      <MainDashboard categories={categories} />
+      <BottomCTA />
+    </div>
+  )
+
   // ── Layout 1: Classic (default) ─────────────────────────────────────────
   if (layout === 1) return (
     <div>
@@ -649,9 +712,9 @@ const HomePage: React.FC = () => {
       {sec.featuresBar !== false && <FeaturesBar />}
       {sec.categories !== false && <CategoriesSection />}
       {sec.promoBanners !== false && <PromoBanners sec={sec} />}
-      {sec.trendingProducts !== false && <ProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true"/>}
-      {sec.newArrivals !== false && <ProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true"/>}
-      {sec.featuredProducts !== false && <ProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true"/>}
+      {sec.trendingProducts !== false && <ProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true" />}
+      {sec.newArrivals !== false && <ProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
+      {sec.featuredProducts !== false && <ProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true" />}
       <BottomCTA />
     </div>
   )
@@ -661,11 +724,11 @@ const HomePage: React.FC = () => {
     <div>
       {sec.heroBanner !== false && <HeroLayout2 />}
       {sec.featuresBar !== false && <FeaturesBar />}
-      {sec.trendingProducts !== false && <ProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true"/>}
+      {sec.trendingProducts !== false && <ProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true" />}
       {sec.promoBanners !== false && <PromoBanners sec={sec} />}
       {sec.categories !== false && <CategoriesSection />}
-      {sec.newArrivals !== false && <ProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true"/>}
-      {sec.featuredProducts !== false && <ProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true"/>}
+      {sec.newArrivals !== false && <ProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
+      {sec.featuredProducts !== false && <ProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true" />}
       <BottomCTA />
     </div>
   )
@@ -675,11 +738,11 @@ const HomePage: React.FC = () => {
     <div>
       {sec.heroBanner !== false && <HeroLayout3 />}
       {sec.featuresBar !== false && <FeaturesBar />}
-      {sec.newArrivals !== false && <ProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true"/>}
+      {sec.newArrivals !== false && <ProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
       {sec.categories !== false && <CategoriesSection />}
-      {sec.featuredProducts !== false && <ProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true"/>}
+      {sec.featuredProducts !== false && <ProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true" />}
       {sec.promoBanners !== false && <PromoBanners sec={sec} />}
-      {sec.trendingProducts !== false && <ProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true"/>}
+      {sec.trendingProducts !== false && <ProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true" />}
       <BottomCTA />
     </div>
   )
@@ -687,13 +750,13 @@ const HomePage: React.FC = () => {
   // ── Layout 4: Full-Width Professional (default fallback) ───────────────
   return (
     <div>
-      {sec.heroBanner !== false && <HeroLayout4 heroBanners={heroBanners} hangingBanners={hangingBanners}/>}
+      {sec.heroBanner !== false && <HeroLayout4 heroBanners={heroBanners} hangingBanners={hangingBanners} />}
       {sec.featuresBar !== false && <FullWidthFeaturesBar />}
       {sec.categories !== false && <HorizontalCategoryScroll categories={categories} />}
-      {sec.newArrivals !== false && <FullWidthProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true"/>}
-      {sec.trendingProducts !== false && <FullWidthProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true"/>}
+      {sec.newArrivals !== false && <FullWidthProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
+      {sec.trendingProducts !== false && <FullWidthProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true" />}
       {sec.promoBanners !== false && <FullWidthPromoBanners sec={sec} />}
-      {sec.featuredProducts !== false && <FullWidthProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true"/>}
+      {sec.featuredProducts !== false && <FullWidthProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true" />}
       <FullWidthBottomCTA />
     </div>
   )

@@ -40,6 +40,7 @@ export interface Category {
   isActive: boolean
   featured: boolean
   sortOrder: number
+  layoutType?: 'standard' | 'hanging'
 }
 
 export interface User {

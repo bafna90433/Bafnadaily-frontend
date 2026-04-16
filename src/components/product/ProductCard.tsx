@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Heart, ShoppingCart, Star } from 'lucide-react'
+import { Heart, ShoppingCart, Star, Tag, Package } from 'lucide-react'
 import { Product } from '../../types'
 import useCartStore from '../../store/cartStore'
 import useAuthStore from '../../store/authStore'
