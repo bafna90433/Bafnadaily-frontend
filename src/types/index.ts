@@ -118,7 +118,9 @@ export interface Banner {
   subtitle?: string
   image?: string
   link?: string
-  type: 'hero' | 'promo' | 'category'
+  type: 'hero' | 'promo' | 'category' | 'hanging'
+  showOnMobile?: boolean
+  showOnWebsite?: boolean
   isActive: boolean
   sortOrder: number
 }
