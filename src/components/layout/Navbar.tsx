@@ -134,16 +134,26 @@ const Navbar: React.FC = () => {
 
             {/* ── Logo ── */}
             <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-105"
-                style={{ background: 'linear-gradient(135deg, #E91E63, #C2185B)' }}
-              >
-                <span className="text-white font-black text-lg leading-none">{siteName[0].toUpperCase()}</span>
-              </div>
-              <div className="hidden sm:flex flex-col leading-none">
-                <span className="font-heading font-black text-gray-900 text-lg tracking-tight">{siteName}</span>
-                <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-primary/70">Official Store</span>
-              </div>
+              {settings.siteLogo ? (
+                <img 
+                  src={settings.siteLogo} 
+                  alt={siteName} 
+                  className="h-10 lg:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
+                />
+              ) : (
+                <>
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-105"
+                    style={{ background: 'linear-gradient(135deg, #E91E63, #C2185B)' }}
+                  >
+                    <span className="text-white font-black text-lg leading-none">{siteName[0].toUpperCase()}</span>
+                  </div>
+                  <div className="hidden sm:flex flex-col leading-none">
+                    <span className="font-heading font-black text-gray-900 text-lg tracking-tight">{siteName}</span>
+                    <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-primary/70">Official Store</span>
+                  </div>
+                </>
+              )}
             </Link>
 
             {/* ── Search Bar ── */}
