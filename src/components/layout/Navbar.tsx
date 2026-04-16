@@ -129,8 +129,10 @@ const Navbar: React.FC = () => {
           ? 'bg-white/95 backdrop-blur-xl shadow-lg shadow-black/5 border-b border-gray-100'
           : 'bg-white border-b border-gray-100'
         }`}>
-        <div className="max-w-full mx-auto px-4 lg:px-8">
-          <div className="flex items-center gap-4 lg:gap-8 h-16 lg:h-18">
+        <div className="max-w-full mx-auto px-4 lg:px-8 py-2 lg:py-0">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-8">
+            
+            <div className="flex items-center justify-between lg:justify-start h-14 lg:h-18">
 
             {/* ── Logo ── */}
             <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group">
@@ -156,8 +158,25 @@ const Navbar: React.FC = () => {
               )}
             </Link>
 
+            {/* ── Mobile: Cart + Hamburger (Split to Top Right) ── */}
+            <div className="flex lg:hidden items-center gap-2">
+              <Link to="/cart" className="relative p-2 rounded-xl text-gray-700">
+                <ShoppingBag size={22} />
+                {count > 0 && (
+                  <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-primary text-white text-[9px] rounded-full flex items-center justify-center font-black">
+                    {count}
+                  </span>
+                )}
+              </Link>
+              <button onClick={() => setMobileOpen(!mobileOpen)}
+                className="p-2 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors">
+                {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+              </button>
+            </div>
+          </div>
+
             {/* ── Search Bar ── */}
-            <div ref={searchRef} className="flex-1 relative min-w-0">
+            <div ref={searchRef} className="flex-1 relative min-w-0 pb-2 lg:pb-0">
               <form onSubmit={handleSearch}>
                 <div className={`relative flex items-center rounded-xl border transition-all duration-200 ${focused
                     ? 'border-primary/40 shadow-md shadow-primary/10 bg-white'
@@ -170,7 +189,7 @@ const Navbar: React.FC = () => {
                     onChange={onSearchChange}
                     onFocus={() => setFocused(true)}
                     placeholder="Search products, gifts, accessories…"
-                    className="flex-1 bg-transparent py-2.5 px-3 text-sm font-medium text-gray-800 placeholder:text-gray-400 outline-none min-w-0"
+                    className="flex-1 bg-transparent py-2.5 lg:py-2.5 px-3 text-sm font-medium text-gray-800 placeholder:text-gray-400 outline-none min-w-0"
                   />
                   {searchQ && (
                     <button type="button" onClick={() => { setSearchQ(''); setSuggestions([]) }}
@@ -321,24 +340,8 @@ const Navbar: React.FC = () => {
               )}
             </div>
 
-            {/* ── Mobile: Cart + Hamburger ── */}
-            <div className="flex lg:hidden items-center gap-2 ml-auto flex-shrink-0">
-              <Link to="/cart" className="relative p-2 rounded-xl text-gray-700">
-                <ShoppingBag size={22} />
-                {count > 0 && (
-                  <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-primary text-white text-[9px] rounded-full flex items-center justify-center font-black">
-                    {count}
-                  </span>
-                )}
-              </Link>
-              <button onClick={() => setMobileOpen(!mobileOpen)}
-                className="p-2 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors">
-                {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-              </button>
             </div>
-
           </div>
-        </div>
 
       </div>
 
