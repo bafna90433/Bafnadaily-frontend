@@ -41,6 +41,8 @@ export interface Category {
   featured: boolean
   sortOrder: number
   layoutType?: 'standard' | 'hanging'
+  banner?: string
+  isDashboardMain?: boolean
 }
 
 export interface User {
