@@ -140,12 +140,12 @@ const Navbar: React.FC = () => {
                 <img 
                   src={settings.siteLogo} 
                   alt={siteName} 
-                  className="h-10 lg:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
+                  className="h-11 lg:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
                 />
               ) : (
                 <>
                   <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-105"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-105"
                     style={{ background: 'linear-gradient(135deg, #E91E63, #C2185B)' }}
                   >
                     <span className="text-white font-black text-lg leading-none">{siteName[0].toUpperCase()}</span>
