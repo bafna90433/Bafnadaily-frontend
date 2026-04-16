@@ -89,10 +89,22 @@ const ProductCard: React.FC<Props> = ({ product }) => {
               <span className="text-[11px] text-gray-400">({product.numReviews})</span>
             </div>
           )}
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-bold text-gray-900 text-sm">₹{product.price}</span>
-            {product.mrp > product.price && <span className="text-xs text-gray-400 line-through">₹{product.mrp}</span>}
-          </div>
+          
+          {(product.perPiecePrice || product.perPacketText) && (
+            <div className="flex flex-col gap-1.5 mb-2">
+              {product.perPiecePrice && (
+                <div className="inline-flex items-center gap-1.5 bg-purple-50 border border-purple-100 text-purple-600 text-[10px] font-black px-2.5 py-1 rounded-full w-fit">
+                  <Tag size={10} className="fill-purple-600/10"/> {product.perPiecePrice}
+                </div>
+              )}
+              {product.perPacketText && (
+                <div className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-100 text-blue-600 text-[10px] font-black px-2.5 py-1 rounded-full w-fit">
+                  <Package size={10} className="fill-blue-600/10"/> {product.perPacketText}
+                </div>
+              )}
+            </div>
+          )}
+
           {(product.minQty || 1) > 1 && (
             <div className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-lg mb-1.5">
               📦 Min {product.minQty} pcs

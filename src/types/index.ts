@@ -26,6 +26,8 @@ export interface Product {
   material?: string
   sold: number
   minQty: number
+  perPiecePrice?: string
+  perPacketText?: string
 }
 
 export interface Category {

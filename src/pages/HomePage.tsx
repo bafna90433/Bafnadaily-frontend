@@ -247,7 +247,7 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
   }, [banners.length])
 
   return (
-    <div className="relative w-full overflow-hidden"
+    <div className="relative w-full overflow-hidden bg-white"
       style={{ borderRadius: mobile ? '1rem' : '2rem', aspectRatio: mobile ? '16/7' : '21/9', boxShadow: mobile ? '0 4px 20px rgba(0,0,0,0.10)' : '0 24px 64px rgba(233,30,99,0.18), 0 8px 24px rgba(0,0,0,0.08)' }}>
       {/* Decorative ring */}
       {!mobile && (
@@ -319,7 +319,7 @@ const HeroLayout4: React.FC<{ heroBanners: Banner[]; hangingBanners: Banner[] }>
       <div className="w-full flex flex-row items-stretch gap-16">
 
         {/* Left Column — Hanging Keychains (up to 6) */}
-        <div className="flex-1 flex flex-row items-start justify-center gap-4 overflow-hidden" style={{ alignSelf: 'stretch', marginTop: '-45px' }}>
+        <div className="flex-1 flex flex-row items-start justify-center gap-4 overflow-visible" style={{ alignSelf: 'stretch', marginTop: '-45px' }}>
           <style>{`
             @keyframes sway-hero { 0%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} 100%{transform:rotate(-6deg)} }
             .hero-kc { transform-origin: top center; }
@@ -692,7 +692,6 @@ const HomePage: React.FC = () => {
       {sec.categories !== false && <HorizontalCategoryScroll categories={categories} />}
       {sec.newArrivals !== false && <FullWidthProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true"/>}
       {sec.trendingProducts !== false && <FullWidthProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true"/>}
-      {hangingBanners.length > 0 && <HangingStrip hangingBanners={hangingBanners}/>}
       {sec.promoBanners !== false && <FullWidthPromoBanners sec={sec} />}
       {sec.featuredProducts !== false && <FullWidthProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true"/>}
       <FullWidthBottomCTA />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ShoppingCart, Heart, ChevronLeft, ChevronRight, Package, Shield, Truck, Star, Minus, Plus, ThumbsUp } from 'lucide-react'
+import { ShoppingCart, Heart, ChevronLeft, ChevronRight, Package, Shield, Truck, Star, Minus, Plus, ThumbsUp, Tag } from 'lucide-react'
 import api from '../utils/api'
 import { Product } from '../types'
 import useCartStore from '../store/cartStore'
@@ -221,6 +221,22 @@ const ProductDetailPage: React.FC = () => {
               </>
             )}
           </div>
+          
+          {(product.perPiecePrice || product.perPacketText) && (
+            <div className="flex flex-wrap gap-3 mt-3">
+              {product.perPiecePrice && (
+                <div className="inline-flex items-center gap-2 bg-purple-50 border border-purple-100 text-purple-700 text-sm font-black px-4 py-1.5 rounded-full shadow-sm">
+                  <Tag size={16} className="fill-purple-700/10"/> {product.perPiecePrice}
+                </div>
+              )}
+              {product.perPacketText && (
+                <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 text-sm font-black px-4 py-1.5 rounded-full shadow-sm">
+                  <Package size={16} className="fill-blue-700/10"/> {product.perPacketText}
+                </div>
+              )}
+            </div>
+          )}
+
           {product.mrp > product.price && (
             <p className="text-green-600 text-sm font-semibold mt-1">You save ₹{product.mrp - product.price}!</p>
           )}
