@@ -328,8 +328,6 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      </div>
-
       {/* ── Mobile Menu Overlay ── */}
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 bg-white z-50 overflow-y-auto" style={{ top: '72px' }}>
