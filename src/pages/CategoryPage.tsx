@@ -72,8 +72,8 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
           {bn.image
             ? <img src={ik.banner(bn.image)} alt={bn.title || 'Banner'} width={900} height={400} loading="eager" fetchPriority="high" className="w-full h-full" style={{ objectFit: 'cover', objectPosition: 'center' }} />
             : <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#E91E63,#C77DFF)' }}>
-                <p className="text-white font-black text-xl text-center px-6">{bn.title}</p>
-              </div>
+              <p className="text-white font-black text-xl text-center px-6">{bn.title}</p>
+            </div>
           }
         </Link>
       ))}
@@ -125,7 +125,7 @@ const CategoryPage: React.FC = () => {
         // 2. Fetch Category-Specific Banners
         const bannerRes = await api.get(`/banners?isActive=true&category=${fetchedCategory._id}`);
         const allBanners: Banner[] = bannerRes.data.banners || [];
-        setHeroBanners(allBanners.filter(b => b.type === 'hero'));
+        setHeroBanners(allBanners.filter(b => b.type !== 'hanging'));
         setHangingBanners(allBanners.filter(b => b.type === 'hanging'));
 
         // 3. Deals page: fetch from deals endpoint
@@ -390,124 +390,124 @@ const StandardLayout = ({ category, subCategories, products, deals, heroBanners,
     {/* Page content with padding */}
     <div className="px-4 md:px-10 lg:px-16 xl:px-24">
 
-    {/* Header */}
-    <div className="mb-8">
-      <h1 className="text-3xl md:text-5xl font-heading font-bold text-gray-900 flex items-center gap-3">
-        <span>{category.icon}</span>
-        {category.name || category.slug}
-      </h1>
-      {category.description && <p className="text-gray-500 mt-3 text-lg max-w-3xl">{category.description}</p>}
-    </div>
-
-    {/* Deals Of The Day — Countdown Banner */}
-    {isDealsPage && deals.length > 0 && (
-      <div className="mb-8 rounded-3xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #ff4d00 0%, #ff8c00 50%, #ffd700 100%)' }}>
-        <div className="px-6 md:px-10 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <span className="bg-white/20 backdrop-blur text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest animate-pulse">🔥 Limited Time Offer</span>
-            <p className="text-white/80 text-sm font-medium mt-2">{deals.length} deals available today</p>
-          </div>
-          <DealsCountdown endTime={deals[0]?.endTime || null} />
-        </div>
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl md:text-5xl font-heading font-bold text-gray-900 flex items-center gap-3">
+          <span>{category.icon}</span>
+          {category.name || category.slug}
+        </h1>
+        {category.description && <p className="text-gray-500 mt-3 text-lg max-w-3xl">{category.description}</p>}
       </div>
-    )}
 
-    {/* Circular Subcategories Carousel */}
-    {subCategories.length > 0 && (
-      <div className="flex flex-wrap gap-5 mb-12">
-        <button
-          onClick={() => onSelectSub(null)}
-          className="flex flex-col items-center gap-2 group w-[100px] sm:w-[120px] cursor-pointer border-none bg-transparent p-0"
-        >
-          <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 overflow-hidden flex flex-col items-center justify-center transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-105 ${selectedSubId === null ? 'border-primary bg-primary/15 scale-105 shadow-md' : 'border-primary bg-primary/5'}`}>
-            <span className="text-xl sm:text-2xl font-black text-primary uppercase">View</span>
-            <span className="text-[10px] font-bold text-primary/60 tracking-tighter uppercase font-heading">All</span>
+      {/* Deals Of The Day — Countdown Banner */}
+      {isDealsPage && deals.length > 0 && (
+        <div className="mb-8 rounded-3xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #ff4d00 0%, #ff8c00 50%, #ffd700 100%)' }}>
+          <div className="px-6 md:px-10 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <span className="bg-white/20 backdrop-blur text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest animate-pulse">🔥 Limited Time Offer</span>
+              <p className="text-white/80 text-sm font-medium mt-2">{deals.length} deals available today</p>
+            </div>
+            <DealsCountdown endTime={deals[0]?.endTime || null} />
           </div>
-          <span className={`text-[12px] sm:text-[13px] font-bold text-center leading-tight ${selectedSubId === null ? 'text-primary' : 'text-primary'}`}>View All</span>
-        </button>
+        </div>
+      )}
 
-        {subCategories.map((sub) => (
+      {/* Circular Subcategories Carousel */}
+      {subCategories.length > 0 && (
+        <div className="flex flex-wrap gap-5 mb-12">
           <button
-            key={sub._id}
-            onClick={() => onSelectSub(sub._id)}
+            onClick={() => onSelectSub(null)}
             className="flex flex-col items-center gap-2 group w-[100px] sm:w-[120px] cursor-pointer border-none bg-transparent p-0"
           >
-            <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 overflow-hidden bg-gray-50 flex items-center justify-center transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-105 ${selectedSubId === sub._id ? 'border-primary scale-105 shadow-md ring-2 ring-primary/30' : 'border-gray-200 group-hover:border-primary'}`}>
-              {sub.image ? (
-                <img src={sub.image} alt={sub.name} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-2xl">{sub.icon || '🛍️'}</span>
-              )}
+            <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 overflow-hidden flex flex-col items-center justify-center transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-105 ${selectedSubId === null ? 'border-primary bg-primary/15 scale-105 shadow-md' : 'border-primary bg-primary/5'}`}>
+              <span className="text-xl sm:text-2xl font-black text-primary uppercase">View</span>
+              <span className="text-[10px] font-bold text-primary/60 tracking-tighter uppercase font-heading">All</span>
             </div>
-            <span className={`text-[12px] sm:text-[13px] font-bold text-center leading-tight transition-colors line-clamp-2 px-1 ${selectedSubId === sub._id ? 'text-primary' : 'text-gray-700 group-hover:text-primary'}`}>
-              {sub.name}
-            </span>
+            <span className={`text-[12px] sm:text-[13px] font-bold text-center leading-tight ${selectedSubId === null ? 'text-primary' : 'text-primary'}`}>View All</span>
           </button>
-        ))}
-      </div>
-    )}
 
-    {/* Products Grid */}
-    {productsLoading ? (
-      <div className="flex justify-center items-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    ) : isDealsPage ? (
-      <>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-          {deals.map((deal) => (
-            <DealCard key={deal._id} deal={deal} />
+          {subCategories.map((sub) => (
+            <button
+              key={sub._id}
+              onClick={() => onSelectSub(sub._id)}
+              className="flex flex-col items-center gap-2 group w-[100px] sm:w-[120px] cursor-pointer border-none bg-transparent p-0"
+            >
+              <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 overflow-hidden bg-gray-50 flex items-center justify-center transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-105 ${selectedSubId === sub._id ? 'border-primary scale-105 shadow-md ring-2 ring-primary/30' : 'border-gray-200 group-hover:border-primary'}`}>
+                {sub.image ? (
+                  <img src={sub.image} alt={sub.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-2xl">{sub.icon || '🛍️'}</span>
+                )}
+              </div>
+              <span className={`text-[12px] sm:text-[13px] font-bold text-center leading-tight transition-colors line-clamp-2 px-1 ${selectedSubId === sub._id ? 'text-primary' : 'text-gray-700 group-hover:text-primary'}`}>
+                {sub.name}
+              </span>
+            </button>
           ))}
         </div>
-        {deals.length === 0 && (
-          <div className="text-center py-20 text-gray-400 bg-gray-50 rounded-3xl mt-8 border-2 border-dashed border-gray-200">
-            <p className="text-5xl mb-4">🏷️</p>
-            <p className="font-medium text-lg text-gray-500">No active deals right now.</p>
-          </div>
-        )}
-      </>
-    ) : (
-      <>
-        {/* Product count */}
-        {products.length > 0 && (
-          <p className="text-sm text-gray-500 mb-4 font-medium">
-            Showing <span className="font-bold text-gray-800">{products.length}</span> of <span className="font-bold text-gray-800">{totalProducts}</span> products
-          </p>
-        )}
+      )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-          {products.map((p) => <ProductCard key={p._id} product={p} />)}
+      {/* Products Grid */}
+      {productsLoading ? (
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
         </div>
-
-        {/* Load More Button */}
-        {products.length < totalProducts && (
-          <div className="flex justify-center mt-10">
-            <button
-              onClick={onLoadMore}
-              disabled={loadingMore}
-              className="px-8 py-3 rounded-2xl bg-primary text-white font-bold text-sm shadow-md hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-60 flex items-center gap-2"
-            >
-              {loadingMore ? (
-                <>
-                  <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></span>
-                  Loading...
-                </>
-              ) : (
-                `Load More (${totalProducts - products.length} more)`
-              )}
-            </button>
+      ) : isDealsPage ? (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+            {deals.map((deal) => (
+              <DealCard key={deal._id} deal={deal} />
+            ))}
           </div>
-        )}
+          {deals.length === 0 && (
+            <div className="text-center py-20 text-gray-400 bg-gray-50 rounded-3xl mt-8 border-2 border-dashed border-gray-200">
+              <p className="text-5xl mb-4">🏷️</p>
+              <p className="font-medium text-lg text-gray-500">No active deals right now.</p>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          {/* Product count */}
+          {products.length > 0 && (
+            <p className="text-sm text-gray-500 mb-4 font-medium">
+              Showing <span className="font-bold text-gray-800">{products.length}</span> of <span className="font-bold text-gray-800">{totalProducts}</span> products
+            </p>
+          )}
 
-        {/* Empty State for Products */}
-        {products.length === 0 && (
-          <div className="text-center py-20 text-gray-400 bg-gray-50 rounded-3xl mt-8 border-2 border-dashed border-gray-200">
-            <p className="text-5xl mb-4">🛒</p>
-            <p className="font-medium text-lg text-gray-500">No products available in this category yet.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+            {products.map((p) => <ProductCard key={p._id} product={p} />)}
           </div>
-        )}
-      </>
-    )}
+
+          {/* Load More Button */}
+          {products.length < totalProducts && (
+            <div className="flex justify-center mt-10">
+              <button
+                onClick={onLoadMore}
+                disabled={loadingMore}
+                className="px-8 py-3 rounded-2xl bg-primary text-white font-bold text-sm shadow-md hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-60 flex items-center gap-2"
+              >
+                {loadingMore ? (
+                  <>
+                    <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></span>
+                    Loading...
+                  </>
+                ) : (
+                  `Load More (${totalProducts - products.length} more)`
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Empty State for Products */}
+          {products.length === 0 && (
+            <div className="text-center py-20 text-gray-400 bg-gray-50 rounded-3xl mt-8 border-2 border-dashed border-gray-200">
+              <p className="text-5xl mb-4">🛒</p>
+              <p className="font-medium text-lg text-gray-500">No products available in this category yet.</p>
+            </div>
+          )}
+        </>
+      )}
     </div>{/* end inner padding div */}
   </div>
 );

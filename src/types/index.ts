@@ -129,4 +129,5 @@ export interface Banner {
   showOnWebsite?: boolean
   isActive: boolean
   sortOrder: number
+  category?: { _id: string; name: string; slug: string } | string | null
 }
