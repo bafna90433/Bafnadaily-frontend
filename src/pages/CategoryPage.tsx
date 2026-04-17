@@ -1,10 +1,12 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { ik } from '../utils/imagekit';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { Product, Category, Banner } from '../types';
 import ProductCard from '../components/product/ProductCard';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
+import useCartStore from '../store/cartStore';
+import useAuthStore from '../store/authStore';
 
 // ── Deals Countdown Timer ──────────────────────────────────────────────────────
 const DealsCountdown: React.FC<{ endTime: string | null }> = ({ endTime }) => {
@@ -50,30 +52,27 @@ const DealsCountdown: React.FC<{ endTime: string | null }> = ({ endTime }) => {
   );
 };
 
-// ── Hero Banner Card Component (from HomePage) ─────────────────────────────
+// ── Hero Banner Slider ──────────────────────────────────────────────────────
 const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ banners, mobile }) => {
   const [active, setActive] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
   useEffect(() => {
     if (banners.length <= 1) return
     timerRef.current = setInterval(() => setActive(i => (i + 1) % banners.length), 3500)
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [banners.length])
-
   if (!banners.length) return null
-
   return (
     <div className="relative w-full overflow-hidden bg-white"
       style={{ borderRadius: mobile ? '1rem' : '2rem', aspectRatio: mobile ? '16/7' : '5/2', boxShadow: mobile ? '0 4px 20px rgba(0,0,0,0.10)' : '0 24px 64px rgba(233,30,99,0.18), 0 8px 24px rgba(0,0,0,0.08)' }}>
       {banners.map((bn, i) => (
-        <Link key={bn._id} to={bn.link || '/products'}
+        <Link key={bn._id} to={bn.link || '/'}
           className={`absolute inset-0 transition-opacity duration-700 ${i === active ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
           {bn.image
             ? <img src={ik.banner(bn.image)} alt={bn.title || 'Banner'} width={900} height={400} loading="eager" fetchPriority="high" className="w-full h-full" style={{ objectFit: 'cover', objectPosition: 'center' }} />
             : <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#E91E63,#C77DFF)' }}>
-              <p className="text-white font-black text-xl text-center px-6">{bn.title}</p>
-            </div>
+                <p className="text-white font-black text-xl text-center px-6">{bn.title}</p>
+              </div>
           }
         </Link>
       ))}
@@ -90,74 +89,80 @@ interface DealProduct {
   endTime: string;
 }
 
+const LIMIT = 24;
+
+// Helper: get ALL descendants (children + grandchildren) of a category
+const getAllDescendantIds = (parentId: string, allCats: any[]): string[] => {
+  const children = allCats.filter(
+    (c: any) => c.parent?._id === parentId || c.parent === parentId
+  );
+  return [
+    ...children.map((c: any) => c._id),
+    ...children.flatMap((c: any) => getAllDescendantIds(c._id, allCats)),
+  ];
+};
+
 const CategoryPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [products, setProducts] = useState<Product[]>([]);
   const [deals, setDeals] = useState<DealProduct[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
   const [subCategories, setSubCategories] = useState<Category[]>([]);
-  const [heroBanners, setHeroBanners] = useState<Banner[]>([])
-  const [hangingBanners, setHangingBanners] = useState<Banner[]>([])
+  const [allCatIds, setAllCatIds] = useState<string>(''); // all descendant IDs joined
+  const [heroBanners, setHeroBanners] = useState<Banner[]>([]);
+  const [hangingBanners, setHangingBanners] = useState<Banner[]>([]);
   const [selectedSubId, setSelectedSubId] = useState<string | null>(null);
   const [productsLoading, setProductsLoading] = useState<boolean>(false);
   const [totalProducts, setTotalProducts] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [loadingMore, setLoadingMore] = useState<boolean>(false);
+  const [totalPages, setTotalPages] = useState<number>(1);
   const isDealsPage = slug === 'deals-of-the-day';
 
-  // UI States
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCategoryAndBanners = async () => {
+    const fetchAll = async () => {
       if (!slug) return;
       setLoading(true);
       setError(null);
       setSelectedSubId(null);
+      setCurrentPage(1);
 
       try {
-        // 1. Fetch Main Category
         const { data: { category: fetchedCategory } } = await api.get(`/categories/${slug}`);
         if (!fetchedCategory) throw new Error("Category not found");
         setCategory(fetchedCategory);
 
-        // 2. Fetch Banners (Backend now returns both category-specific and global fallback)
+        // Banners
         const bannerRes = await api.get(`/banners?isActive=true&category=${fetchedCategory._id}`);
         const allBanners: Banner[] = bannerRes.data.banners || [];
+        setHeroBanners(allBanners.filter((b: Banner) => b.type === 'hero' || b.type === 'promo' || b.type === 'category'));
+        setHangingBanners(allBanners.filter((b: Banner) => b.type === 'hanging'));
 
-        // Separation Logic:
-        // If there are ANY banners specifically assigned to this category, we might want to prioritize them.
-        // For now, we'll show all (sorted by backend) but strictly separate Hero and Hanging types.
-        setHeroBanners(allBanners.filter(b => b.type === 'hero' || b.type === 'promo' || b.type === 'category'));
-        setHangingBanners(allBanners.filter(b => b.type === 'hanging'));
+        // All categories
+        const subRes = await api.get('/categories/all');
+        const allCats = subRes?.data?.categories || [];
 
-        // 3. Deals page: fetch from deals endpoint
+        // Direct children (for the subcategory circles UI)
+        const directSubs = allCats.filter(
+          (c: any) => c.parent?._id === fetchedCategory._id || c.parent === fetchedCategory._id
+        );
+        setSubCategories(directSubs);
+
         if (fetchedCategory.slug === 'deals-of-the-day') {
-          const [subRes, dealsRes] = await Promise.all([
-            api.get('/categories/all'),
-            api.get('/deals-of-day'),
-          ]);
+          const dealsRes = await api.get('/deals-of-day');
           setDeals(dealsRes.data?.deals || []);
-          const filteredSubs = (subRes?.data?.categories || []).filter(
-            (c: any) => c.parent?._id === fetchedCategory._id || c.parent === fetchedCategory._id
-          );
-          setSubCategories(filteredSubs);
-        } else {
-          const subRes = await api.get('/categories/all');
-          const filteredSubs = (subRes?.data?.categories || []).filter(
-            (c: any) => c.parent?._id === fetchedCategory._id || c.parent === fetchedCategory._id
-          );
-          setSubCategories(filteredSubs);
+        } else if (fetchedCategory.layoutType !== 'hanging') {
+          // ALL descendants (recursive) for products query
+          const descendantIds = getAllDescendantIds(fetchedCategory._id, allCats);
+          const ids = [fetchedCategory._id, ...descendantIds].join(',');
+          setAllCatIds(ids);
 
-          if (fetchedCategory.layoutType !== 'hanging') {
-            // Pass ALL category IDs (parent + all subs) directly — guaranteed to show all products
-            const allCatIds = [fetchedCategory._id, ...filteredSubs.map((s: any) => s._id)].join(',');
-            const prodRes = await api.get(`/products?categoryIds=${allCatIds}&limit=48&page=1`);
-            setProducts(prodRes.data?.products || []);
-            setTotalProducts(prodRes.data?.total || 0);
-            setCurrentPage(1);
-          }
+          const prodRes = await api.get(`/products?categoryIds=${ids}&limit=${LIMIT}&page=1`);
+          setProducts(prodRes.data?.products || []);
+          setTotalProducts(prodRes.data?.total || 0);
+          setTotalPages(prodRes.data?.pages || 1);
         }
 
       } catch (err: any) {
@@ -166,64 +171,57 @@ const CategoryPage: React.FC = () => {
         setLoading(false);
       }
     };
-
-    fetchCategoryAndBanners();
+    fetchAll();
   }, [slug]);
 
-  const handleSubCategorySelect = async (subId: string | null) => {
+  // Fetch products when page changes
+  const fetchProducts = async (page: number, subId: string | null) => {
     if (!category) return;
-    setSelectedSubId(subId);
     setProductsLoading(true);
-    setCurrentPage(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     try {
       let url = '';
       if (subId) {
-        // Specific subcategory selected — show only that subcategory's products
-        url = `/products?category=${subId}&limit=48&page=1`;
+        url = `/products?category=${subId}&limit=${LIMIT}&page=${page}`;
       } else {
-        // View All — show parent + ALL subcategories
-        const allCatIds = [category._id, ...subCategories.map((s: any) => s._id)].join(',');
-        url = `/products?categoryIds=${allCatIds}&limit=48&page=1`;
+        url = `/products?categoryIds=${allCatIds}&limit=${LIMIT}&page=${page}`;
       }
       const res = await api.get(url);
       setProducts(res.data?.products || []);
       setTotalProducts(res.data?.total || 0);
+      setTotalPages(res.data?.pages || 1);
+      setCurrentPage(page);
     } catch {
-      // keep existing products on error
     } finally {
       setProductsLoading(false);
     }
   };
 
-  const handleLoadMore = async () => {
+  const handleSubCategorySelect = async (subId: string | null) => {
     if (!category) return;
-    const nextPage = currentPage + 1;
-    setLoadingMore(true);
+    setSelectedSubId(subId);
+    setCurrentPage(1);
+    setProductsLoading(true);
     try {
-      let url = '';
-      if (selectedSubId) {
-        url = `/products?category=${selectedSubId}&limit=48&page=${nextPage}`;
-      } else {
-        const allCatIds = [category._id, ...subCategories.map((s: any) => s._id)].join(',');
-        url = `/products?categoryIds=${allCatIds}&limit=48&page=${nextPage}`;
-      }
+      const url = subId
+        ? `/products?category=${subId}&limit=${LIMIT}&page=1`
+        : `/products?categoryIds=${allCatIds}&limit=${LIMIT}&page=1`;
       const res = await api.get(url);
-      setProducts(prev => [...prev, ...(res.data?.products || [])]);
-      setCurrentPage(nextPage);
+      setProducts(res.data?.products || []);
+      setTotalProducts(res.data?.total || 0);
+      setTotalPages(res.data?.pages || 1);
     } catch {
-      // keep existing on error
     } finally {
-      setLoadingMore(false);
+      setProductsLoading(false);
     }
   };
 
-  // Main Render Logic
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error} />;
   if (!category) return <ErrorState message="Category could not be found." />;
 
   return category.layoutType === 'hanging' ? (
-    <HangingLayout category={category} subCategories={subCategories} heroBanners={heroBanners} />
+    <HangingLayout category={category} subCategories={subCategories} />
   ) : (
     <StandardLayout
       category={category}
@@ -237,8 +235,9 @@ const CategoryPage: React.FC = () => {
       productsLoading={productsLoading}
       isDealsPage={isDealsPage}
       totalProducts={totalProducts}
-      onLoadMore={handleLoadMore}
-      loadingMore={loadingMore}
+      currentPage={currentPage}
+      totalPages={totalPages}
+      onPageChange={(page) => fetchProducts(page, selectedSubId)}
     />
   );
 };
@@ -267,19 +266,18 @@ const ErrorState = ({ message }: { message: string }) => (
   </div>
 );
 
-const HangingLayout = ({ category, subCategories, heroBanners }: { category: Category; subCategories: Category[]; heroBanners: Banner[] }) => (
+const HangingLayout = ({ category, subCategories }: { category: Category; subCategories: Category[] }) => (
   <div className="min-h-screen bg-pink-50/30 pb-20">
-    {/* Dynamic Banner Section for Hanging Layout */}
-    {(category.banner || heroBanners.length > 0) && (
+    {/* Banner Section for Hanging Layout */}
+    {category.banner && (
       <div className="w-full relative overflow-hidden mb-8 border-b-4 border-primary/20 bg-pink-50/50" style={{ minHeight: '30vh' }}>
-        {/* Background image: prefer category-specific hero if exists, otherwise fallback to old category.banner */}
-        <img 
-          src={heroBanners[0]?.image || category.banner} 
-          className="absolute inset-0 w-full h-full object-cover opacity-20 blur-sm" 
-          alt="" 
+        <img
+          src={category.banner}
+          className="absolute inset-0 w-full h-full object-cover opacity-20 blur-sm"
+          alt=""
         />
         <div className="absolute inset-0 bg-gradient-to-t from-pink-50 via-transparent to-transparent" />
-        
+
         <div className="relative z-10 py-16 px-6 flex flex-col items-center justify-center min-h-[30vh]">
           <p className="text-primary font-black uppercase tracking-[0.3em] text-[10px] mb-3">Premium Collection</p>
           <h1 className="text-4xl md:text-7xl font-heading font-black text-gray-900 drop-shadow-sm uppercase text-center max-w-4xl">
@@ -332,130 +330,93 @@ const HangingLayout = ({ category, subCategories, heroBanners }: { category: Cat
   </div>
 );
 
-const StandardLayout = ({ category, subCategories, products, deals, heroBanners, hangingBanners, selectedSubId, onSelectSub, productsLoading, isDealsPage, totalProducts, onLoadMore, loadingMore }: { category: Category; subCategories: Category[]; products: Product[]; deals: DealProduct[]; heroBanners: Banner[]; hangingBanners: Banner[]; selectedSubId: string | null; onSelectSub: (id: string | null) => void; productsLoading: boolean; isDealsPage?: boolean; totalProducts: number; onLoadMore: () => void; loadingMore: boolean }) => (
+const StandardLayout = ({ category, subCategories, products, deals, heroBanners, hangingBanners, selectedSubId, onSelectSub, productsLoading, isDealsPage, totalProducts, currentPage, totalPages, onPageChange }: { category: Category; subCategories: Category[]; products: Product[]; deals: DealProduct[]; heroBanners: Banner[]; hangingBanners: Banner[]; selectedSubId: string | null; onSelectSub: (id: string | null) => void; productsLoading: boolean; isDealsPage?: boolean; totalProducts: number; currentPage: number; totalPages: number; onPageChange: (page: number) => void }) => (
   <div className="w-full pb-20">
-    {/* ── Hero Banner — same full-width style as HomePage HeroLayout4 ── */}
-    {(heroBanners.length > 0 || hangingBanners.length > 0) && (
-      <section className="relative overflow-hidden mb-8" style={{ background: 'linear-gradient(135deg, #fff0f6 0%, #fdf2ff 40%, #fff8f0 70%, #fefffe 100%)' }}>
-        {/* Decorative blobs */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-20 -left-20 w-80 h-80 rounded-full" style={{ background: 'radial-gradient(circle, rgba(233,30,99,0.07) 0%, transparent 70%)' }} />
-          <div className="absolute top-10 right-10 w-64 h-64 rounded-full" style={{ background: 'radial-gradient(circle, rgba(199,125,255,0.08) 0%, transparent 70%)' }} />
-          <div className="absolute bottom-0 left-1/3 w-72 h-72 rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,139,90,0.06) 0%, transparent 70%)' }} />
-        </div>
-        <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: 'linear-gradient(90deg, transparent, rgba(233,30,99,0.25), rgba(199,125,255,0.25), transparent)' }} />
 
-        {/* Mobile: Hero Banner Slider + Hanging Items auto-scrolling marquee */}
-        <div className="block lg:hidden w-full relative z-10 px-3 pt-3 overflow-hidden">
-          {heroBanners.length > 0 && <HeroBannerCard banners={heroBanners} mobile />}
-          
+    {/* ── Hero section: hanging items + banner (like HomePage) ── */}
+    {(heroBanners.length > 0 || hangingBanners.length > 0) ? (
+      <section style={{ background: 'linear-gradient(180deg,#fde8f0 0%,transparent 85%)', paddingTop: '52px', paddingBottom: '32px', position: 'relative' }}>
+        {/* Rope line at top */}
+        <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: 'linear-gradient(90deg,transparent,rgba(233,30,99,0.4),rgba(199,125,255,0.4),transparent)' }} />
+
+        {/* ── MOBILE ── */}
+        <div className="block lg:hidden">
+          {/* Banner on top — z-index: 10, overlaps marquee below */}
+          {heroBanners.length > 0 && (
+            <div className="px-3" style={{ position: 'relative', zIndex: 10, marginBottom: '-20px' }}>
+              <HeroBannerCard banners={heroBanners} mobile />
+            </div>
+          )}
           {hangingBanners.length > 0 && (
-            <div className="mt-8 pb-4 relative">
+            <div style={{ width: '100vw', overflowX: 'hidden', position: 'relative', zIndex: 1, paddingTop: heroBanners.length > 0 ? '30px' : '0' }}>
               <style>{`
-                @keyframes marquee-scroll {
-                  0% { transform: translateX(0); }
-                  100% { transform: translateX(-50%); }
-                }
-                .marquee-container {
-                  display: flex;
-                  gap: 1.5rem;
-                  width: max-content;
-                  animation: marquee-scroll 15s linear infinite;
-                }
-                .marquee-container:hover { animation-play-state: paused; }
-                @keyframes sway-mob { 0%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} 100%{transform:rotate(-3deg)} }
-                .mob-hang { transform-origin: top center; animation: sway-mob 3s ease-in-out infinite; }
-                .no-scrollbar::-webkit-scrollbar { display: none; }
+                @keyframes mob-marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+                .mob-mq { display:flex; gap:1rem; width:max-content; animation:mob-marquee 15s linear infinite; padding-left:12px; }
+                .mob-mq:hover { animation-play-state:paused }
+                @keyframes mob-sway { 0%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} 100%{transform:rotate(-3deg)} }
+                .mob-hang-item { transform-origin:top center; animation:mob-sway 3s ease-in-out infinite; }
               `}</style>
-              
-              <div className="marquee-container no-scrollbar">
-                {/* Render twice for seamless loop */}
+              <div className="mob-mq">
                 {[...hangingBanners, ...hangingBanners].map((b, i) => (
-                  <div key={i} className="mob-hang flex flex-col items-center" style={{ animationDelay: `${(i % hangingBanners.length) * 0.5}s` }}>
-                    <div className="w-[1px] h-10 bg-gradient-to-b from-pink-400 to-pink-200" />
+                  <div key={i} className="mob-hang-item flex flex-col items-center flex-shrink-0" style={{ animationDelay: `${(i % hangingBanners.length) * 0.5}s` }}>
+                    <div className="w-px h-10 bg-gradient-to-b from-pink-400 to-pink-200" />
                     <div className="w-2.5 h-2.5 rounded-full border-2 border-slate-300 -mb-0.5 z-10 bg-white" />
-                    <div className="bg-white p-1.5 rounded-2xl shadow-xl border border-pink-100 flex-shrink-0">
-                      <img src={ik.hanging(b.image)} alt={b.title || 'item'} width={112} height={176} loading="lazy" className="w-28 h-44 rounded-xl object-cover" />
-                      {b.title && (
-                        <div className="mt-1.5 bg-pink-500 text-white text-[10px] font-black py-1 px-3 rounded-full text-center truncate max-w-[112px] shadow-lg shadow-pink-500/20">
-                          {b.title}
-                        </div>
-                      )}
+                    <div className="bg-white p-1.5 rounded-2xl shadow-lg">
+                      <img src={ik.hanging(b.image)} alt={b.title || ''} width={100} height={160} loading="lazy" className="w-24 h-40 rounded-xl object-cover" />
+                      {b.title && <div className="mt-1.5 bg-pink-500 text-white text-[10px] font-black py-1 px-3 rounded-full text-center truncate max-w-[100px]">{b.title}</div>}
                     </div>
                   </div>
                 ))}
               </div>
-              
-              {/* Fade edges */}
-              <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-pink-50/50 to-transparent pointer-events-none z-10" />
-              <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-pink-50/50 to-transparent pointer-events-none z-10" />
             </div>
           )}
         </div>
 
-        {/* Desktop: hanging items left + banner right (identical to HomePage) */}
-        <div className="hidden lg:flex w-full px-14 xl:px-24 py-12 relative z-10 items-stretch" style={{ minHeight: '60vh' }}>
-          <div className="w-full flex flex-row items-stretch gap-16">
-            {/* Left — Hanging banners with auto-scroll marquee */}
-            {hangingBanners.length > 0 && (
-              <div className="flex-1 relative overflow-hidden" style={{ alignSelf: 'stretch', marginTop: '-45px' }}>
-                <style>{`
-                  @keyframes marquee-pc {
-                    0% { transform: translateX(0); }
-                    100% { transform: translateX(-50%); }
-                  }
-                  .marquee-pc-container {
-                    display: flex;
-                    gap: 1.5rem;
-                    width: max-content;
-                    animation: marquee-pc 25s linear infinite;
-                  }
-                  .marquee-pc-container:hover { animation-play-state: paused; }
-                  @keyframes sway-cat { 0%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} 100%{transform:rotate(-6deg)} }
-                  .cat-hang2 { transform-origin: top center; animation: sway-cat 3.2s ease-in-out infinite; }
-                `}</style>
-                
-                <div className="marquee-pc-container pt-1">
-                  {/* Duplicated for seamless loop */}
-                  {[...hangingBanners, ...hangingBanners].map((b, i) => (
-                    <a key={i} href={b.link || '#'} className="cat-hang2 flex flex-col items-center" style={{ textDecoration: 'none', flexShrink: 0, animationDelay: `${(i % hangingBanners.length) * 0.4}s` }}>
-                      <div style={{ width: '2px', height: '45px', background: 'linear-gradient(180deg,#f43f8e,#e879a0)', borderRadius: '1px' }} />
-                      <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '2px solid #9ca3af', background: 'transparent', marginBottom: '-3px', zIndex: 2 }} />
-                      <div style={{ background: 'white', padding: '8px', borderRadius: '30px', boxShadow: '0 15px 40px rgba(244,63,142,0.25)', border: '2px solid rgba(244,63,142,0.18)' }}>
-                        <img src={ik.hanging(b.image)} alt={b.title || 'item'} width={160} height={240} loading="lazy" style={{ width: '160px', height: '240px', borderRadius: '24px', objectFit: 'cover', display: 'block' }} />
-                        {b.title && (
-                          <div style={{ marginTop: '10px', background: 'linear-gradient(135deg,#f43f8e,#ec4899)', borderRadius: '18px', padding: '6px 15px', textAlign: 'center', boxShadow: '0 4px 12px rgba(244,63,142,0.35)' }}>
-                            <span style={{ color: 'white', fontSize: '14px', fontWeight: 900, letterSpacing: '0.6px', whiteSpace: 'nowrap' }}>{b.title}</span>
-                          </div>
-                        )}
-                      </div>
-                    </a>
-                  ))}
-                </div>
-                
-                {/* Edge Fades */}
-                <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-pink-50/80 to-transparent pointer-events-none z-10" />
-                <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-pink-50/80 to-transparent pointer-events-none z-10" />
+        {/* ── DESKTOP ── */}
+        <div className="hidden lg:flex w-full pb-4 items-start" style={{ position: 'relative' }}>
+          {/* Left — hanging items (z-index: 1, behind banner) */}
+          {hangingBanners.length > 0 && (
+            <div className="flex-1 min-w-0" style={{ overflowX: 'hidden', position: 'relative', zIndex: 1 }}>
+              <style>{`
+                @keyframes pc-marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+                .pc-mq { display:flex; gap:1.5rem; width:max-content; animation:pc-marquee 25s linear infinite; }
+                .pc-mq:hover { animation-play-state:paused }
+                @keyframes pc-sway { 0%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} 100%{transform:rotate(-6deg)} }
+                .pc-hang-item { transform-origin:top center; animation:pc-sway 3.2s ease-in-out infinite; }
+              `}</style>
+              <div className="pc-mq">
+                {[...hangingBanners, ...hangingBanners].map((b, i) => (
+                  <a key={i} href={b.link || '#'} className="pc-hang-item flex flex-col items-center flex-shrink-0" style={{ textDecoration: 'none', animationDelay: `${(i % hangingBanners.length) * 0.4}s` }}>
+                    <div style={{ width: 2, height: 52, background: 'linear-gradient(180deg,#f43f8e,#e879a0)', borderRadius: 1 }} />
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', border: '2px solid #9ca3af', background: 'white', marginBottom: -3, zIndex: 2 }} />
+                    <div style={{ background: 'white', padding: 8, borderRadius: 30, boxShadow: '0 8px 24px rgba(244,63,142,0.15)' }}>
+                      <img src={ik.hanging(b.image)} alt={b.title || ''} width={160} height={240} loading="lazy" style={{ width: 160, height: 240, borderRadius: 24, objectFit: 'cover', display: 'block' }} />
+                      {b.title && (
+                        <div style={{ marginTop: 10, background: 'linear-gradient(135deg,#f43f8e,#ec4899)', borderRadius: 18, padding: '6px 15px', textAlign: 'center' }}>
+                          <span style={{ color: 'white', fontSize: 14, fontWeight: 900, letterSpacing: '0.6px', whiteSpace: 'nowrap' }}>{b.title}</span>
+                        </div>
+                      )}
+                    </div>
+                  </a>
+                ))}
               </div>
-            )}
-
-            {/* Right — Main banner slider */}
-            {heroBanners.length > 0 && (
-              <div className="flex-[1.5] flex flex-col justify-center">
-                <HeroBannerCard banners={heroBanners} />
-              </div>
-            )}
-          </div>
+            </div>
+          )}
+          {/* Right — banner: z-index: 10, overlaps left items slightly */}
+          {heroBanners.length > 0 && (
+            <div className="flex-[1.5] flex flex-col justify-center pt-2 pr-14 xl:pr-24"
+              style={{ position: 'relative', zIndex: 10, marginLeft: '-60px' }}>
+              <HeroBannerCard banners={heroBanners} />
+            </div>
+          )}
         </div>
       </section>
-    )}
-
-    {/* Fallback: old category banner if no hero banners set */}
-    {category.banner && heroBanners.length === 0 && hangingBanners.length === 0 && (
-      <div className="w-full aspect-[2/1] md:aspect-[4/1] overflow-hidden mb-8 shadow-xl relative">
+    ) : category.banner ? (
+      /* Fallback: simple category banner image */
+      <div className="w-full aspect-[2/1] md:aspect-[4/1] overflow-hidden mb-8 shadow-xl">
         <img src={category.banner} className="w-full h-full object-cover" alt={category.name} />
       </div>
-    )}
+    ) : null}
 
     {/* Page content with padding */}
     <div className="px-4 md:px-10 lg:px-16 xl:px-24">
@@ -539,9 +500,9 @@ const StandardLayout = ({ category, subCategories, products, deals, heroBanners,
       ) : (
         <>
           {/* Product count */}
-          {products.length > 0 && (
+          {totalProducts > 0 && (
             <p className="text-sm text-gray-500 mb-4 font-medium">
-              Showing <span className="font-bold text-gray-800">{products.length}</span> of <span className="font-bold text-gray-800">{totalProducts}</span> products
+              <span className="font-bold text-gray-800">{totalProducts}</span> products
             </p>
           )}
 
@@ -549,23 +510,42 @@ const StandardLayout = ({ category, subCategories, products, deals, heroBanners,
             {products.map((p) => <ProductCard key={p._id} product={p} />)}
           </div>
 
-          {/* Load More Button */}
-          {products.length < totalProducts && (
-            <div className="flex justify-center mt-10">
+          {/* Numbered Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-10 flex-wrap">
+              {/* Prev */}
               <button
-                onClick={onLoadMore}
-                disabled={loadingMore}
-                className="px-8 py-3 rounded-2xl bg-primary text-white font-bold text-sm shadow-md hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-60 flex items-center gap-2"
-              >
-                {loadingMore ? (
-                  <>
-                    <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></span>
-                    Loading...
-                  </>
-                ) : (
-                  `Load More (${totalProducts - products.length} more)`
-                )}
-              </button>
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="w-9 h-9 rounded-full flex items-center justify-center border border-gray-200 text-gray-500 hover:border-primary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all font-bold text-sm"
+              >‹</button>
+
+              {/* Page numbers */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                // Show: first, last, current, and neighbors
+                const show = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+                const showDots = !show && (page === 2 || page === totalPages - 1);
+                if (showDots) return <span key={page} className="text-gray-400 text-sm px-1">…</span>;
+                if (!show) return null;
+                return (
+                  <button
+                    key={page}
+                    onClick={() => onPageChange(page)}
+                    className={`w-9 h-9 rounded-full text-sm font-bold transition-all ${
+                      page === currentPage
+                        ? 'bg-primary text-white shadow-md shadow-primary/30'
+                        : 'border border-gray-200 text-gray-600 hover:border-primary hover:text-primary'
+                    }`}
+                  >{page}</button>
+                );
+              })}
+
+              {/* Next */}
+              <button
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="w-9 h-9 rounded-full flex items-center justify-center border border-gray-200 text-gray-500 hover:border-primary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all font-bold text-sm"
+              >›</button>
             </div>
           )}
 
@@ -588,26 +568,94 @@ const DealCard: React.FC<{ deal: DealProduct }> = ({ deal }) => {
   const savings = product.price - dealPrice;
   const expired = new Date(deal.endTime) < new Date();
 
+  const { cart, addToCart, updateItem } = useCartStore();
+  const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const [adding, setAdding] = useState(false);
+
+  const cartItem = cart?.items?.find(i => i.product?._id === product._id);
+  const qtyInCart = cartItem?.quantity || 0;
+
+  const rawImg = product.images?.[0]?.url || '';
+  const img = rawImg ? ik.thumb(rawImg) : `https://placehold.co/300x300/FCE4EC/E91E63?text=${encodeURIComponent(product.name)}`;
+
+  const handleCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!user) { navigate('/login'); return; }
+    if (navigator.vibrate) navigator.vibrate(30);
+    setAdding(true);
+    await addToCart(product._id, product.minQty || 1);
+    setAdding(false);
+  };
+
+  const handleUpdateQty = async (e: React.MouseEvent, delta: number) => {
+    e.preventDefault();
+    if (!cartItem) return;
+    if (navigator.vibrate) navigator.vibrate(30);
+    const newQty = cartItem.quantity + delta;
+    if (newQty < (product.minQty || 1)) return;
+    await updateItem(cartItem._id, newQty);
+  };
+
   if (expired) return <ProductCard product={product} />;
 
   return (
-    <a href={`/products/${product.slug}`} className="block group">
+    <Link to={`/product/${product.slug}`} className="block group">
       <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 relative">
+        {/* Discount badge */}
         <div className="absolute top-2 left-2 z-10 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
           {discountType === 'percentage' ? `${discountValue}% OFF` : `₹${discountValue} OFF`}
         </div>
         <div className="aspect-square overflow-hidden bg-gray-50">
-          <img src={product.images?.[0]?.url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+          <img src={img} alt={product.name} width={300} height={300}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy"
+            onError={(e) => { (e.target as HTMLImageElement).src = `https://placehold.co/300x300/FCE4EC/E91E63?text=Product` }}
+          />
         </div>
         <div className="p-3">
           <p className="text-xs font-bold text-gray-800 line-clamp-2 leading-tight mb-2">{product.name}</p>
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap mb-0.5">
             <span className="text-base font-black text-red-600">₹{dealPrice}</span>
             <span className="text-xs text-gray-400 line-through">₹{product.price}</span>
           </div>
-          <p className="text-[10px] text-green-600 font-bold mt-0.5">Save ₹{savings}</p>
+          <p className="text-[10px] text-green-600 font-bold mb-2">Save ₹{savings.toFixed(0)}</p>
+
+          {/* ── Cart Controls ── */}
+          {product.stock > 0 ? (
+            qtyInCart > 0 ? (
+              <div className="flex items-center rounded-xl overflow-hidden border border-primary h-9">
+                <button
+                  onClick={(e) => handleUpdateQty(e, -1)}
+                  disabled={qtyInCart <= (product.minQty || 1)}
+                  className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="text-base font-black text-primary leading-none">−</span>
+                </button>
+                <div className="flex-[1.5] h-full flex items-center justify-center bg-primary text-white font-black text-sm">
+                  {qtyInCart}
+                </div>
+                <button
+                  onClick={(e) => handleUpdateQty(e, 1)}
+                  className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <span className="text-base font-black text-primary leading-none">+</span>
+                </button>
+              </div>
+            ) : (
+              <button onClick={handleCart} disabled={adding}
+                className="w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                style={{ background: 'linear-gradient(135deg, #E91E63, #C2185B)', color: '#fff', boxShadow: '0 4px 14px rgba(233,30,99,0.25)' }}>
+                <ShoppingCart size={13} />
+                {adding ? 'Adding…' : 'Add to Cart'}
+              </button>
+            )
+          ) : (
+            <div className="w-full py-2 rounded-xl bg-gray-100 text-gray-400 text-xs font-semibold text-center">
+              Out of Stock
+            </div>
+          )}
         </div>
       </div>
-    </a>
+    </Link>
   );
 };
