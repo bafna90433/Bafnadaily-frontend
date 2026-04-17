@@ -1,9 +1,53 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../utils/api';
 import { Product, Category, Banner } from '../types';
 import ProductCard from '../components/product/ProductCard';
 import { ArrowRight, Sparkles } from 'lucide-react';
+
+// ── Deals Countdown Timer ──────────────────────────────────────────────────────
+const DealsCountdown: React.FC<{ endTime: string | null }> = ({ endTime }) => {
+  const calc = useCallback(() => {
+    if (!endTime) return null;
+    const diff = new Date(endTime).getTime() - Date.now();
+    if (diff <= 0) return { h: 0, m: 0, s: 0, ended: true };
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    return { h, m, s, ended: false };
+  }, [endTime]);
+
+  const [time, setTime] = useState(calc);
+
+  useEffect(() => {
+    const t = setInterval(() => setTime(calc()), 1000);
+    return () => clearInterval(t);
+  }, [calc]);
+
+  if (!endTime || !time) return null;
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+
+  return (
+    <div className="flex items-center gap-3 flex-wrap">
+      <span className="text-sm font-bold text-gray-700">
+        {time.ended ? '🔴 Deal Ended' : '⏰ Ends in:'}
+      </span>
+      {!time.ended && (
+        <div className="flex items-center gap-1.5">
+          {[['H', time.h], ['M', time.m], ['S', time.s]].map(([label, val]) => (
+            <div key={label as string} className="flex flex-col items-center">
+              <div className="bg-red-600 text-white text-lg font-black w-12 h-12 rounded-xl flex items-center justify-center shadow-md">
+                {pad(val as number)}
+              </div>
+              <span className="text-[9px] font-bold text-gray-400 mt-0.5 uppercase">{label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 // ── Hero Banner Card Component (from HomePage) ─────────────────────────────
 const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ banners, mobile }) => {
@@ -36,14 +80,27 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
   )
 }
 
+interface DealProduct {
+  _id: string;
+  product: Product;
+  dealPrice: number;
+  discountType: 'percentage' | 'flat';
+  discountValue: number;
+  endTime: string;
+}
+
 const CategoryPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [products, setProducts] = useState<Product[]>([]);
+  const [deals, setDeals] = useState<DealProduct[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
   const [subCategories, setSubCategories] = useState<Category[]>([]);
   const [heroBanners, setHeroBanners] = useState<Banner[]>([])
   const [hangingBanners, setHangingBanners] = useState<Banner[]>([])
-  
+  const [selectedSubId, setSelectedSubId] = useState<string | null>(null);
+  const [productsLoading, setProductsLoading] = useState<boolean>(false);
+  const isDealsPage = slug === 'deals-of-the-day';
+
   // UI States
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +110,8 @@ const CategoryPage: React.FC = () => {
       if (!slug) return;
       setLoading(true);
       setError(null);
-      
+      setSelectedSubId(null);
+
       try {
         // 1. Fetch Main Category
         const { data: { category: fetchedCategory } } = await api.get(`/categories/${slug}`);
@@ -66,18 +124,30 @@ const CategoryPage: React.FC = () => {
         setHeroBanners(allBanners.filter(b => b.type !== 'hanging'));
         setHangingBanners(allBanners.filter(b => b.type === 'hanging'));
 
-        // 3. Prepare concurrent API calls
-        const promises: Promise<any>[] = [api.get('/categories/all')];
-        if (fetchedCategory.layoutType !== 'hanging') {
-          promises.push(api.get(`/products?category=${fetchedCategory._id}&limit=24`));
+        // 3. Deals page: fetch from deals endpoint
+        if (fetchedCategory.slug === 'deals-of-the-day') {
+          const [subRes, dealsRes] = await Promise.all([
+            api.get('/categories/all'),
+            api.get('/deals-of-day'),
+          ]);
+          setDeals(dealsRes.data?.deals || []);
+          const filteredSubs = (subRes?.data?.categories || []).filter(
+            (c: any) => c.parent?._id === fetchedCategory._id || c.parent === fetchedCategory._id
+          );
+          setSubCategories(filteredSubs);
+        } else {
+          const [subRes, prodRes] = await Promise.all([
+            api.get('/categories/all'),
+            fetchedCategory.layoutType !== 'hanging'
+              ? api.get(`/products?category=${fetchedCategory._id}&limit=24`)
+              : Promise.resolve(null),
+          ]);
+          const filteredSubs = (subRes?.data?.categories || []).filter(
+            (c: any) => c.parent?._id === fetchedCategory._id || c.parent === fetchedCategory._id
+          );
+          setSubCategories(filteredSubs);
+          if (prodRes) setProducts(prodRes.data?.products || []);
         }
-
-        const [subRes, prodRes] = await Promise.all(promises);
-        const filteredSubs = (subRes?.data?.categories || []).filter(
-          (c: any) => c.parent?._id === fetchedCategory._id || c.parent === fetchedCategory._id
-        );
-        setSubCategories(filteredSubs);
-        if (prodRes) setProducts(prodRes.data?.products || []);
 
       } catch (err: any) {
         setError(err?.response?.data?.message || "Failed to load collection.");
@@ -89,6 +159,21 @@ const CategoryPage: React.FC = () => {
     fetchCategoryAndBanners();
   }, [slug]);
 
+  const handleSubCategorySelect = async (subId: string | null) => {
+    if (!category) return;
+    setSelectedSubId(subId);
+    setProductsLoading(true);
+    try {
+      const categoryId = subId || category._id;
+      const res = await api.get(`/products?category=${categoryId}&limit=24`);
+      setProducts(res.data?.products || []);
+    } catch {
+      // keep existing products on error
+    } finally {
+      setProductsLoading(false);
+    }
+  };
+
   // Main Render Logic
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error} />;
@@ -97,12 +182,17 @@ const CategoryPage: React.FC = () => {
   return category.layoutType === 'hanging' ? (
     <HangingLayout category={category} subCategories={subCategories} />
   ) : (
-    <StandardLayout 
-      category={category} 
-      subCategories={subCategories} 
+    <StandardLayout
+      category={category}
+      subCategories={subCategories}
       products={products}
+      deals={deals}
       heroBanners={heroBanners}
       hangingBanners={hangingBanners}
+      selectedSubId={selectedSubId}
+      onSelectSub={handleSubCategorySelect}
+      productsLoading={productsLoading}
+      isDealsPage={isDealsPage}
     />
   );
 };
@@ -187,7 +277,7 @@ const HangingLayout = ({ category, subCategories }: { category: Category; subCat
   </div>
 );
 
-const StandardLayout = ({ category, subCategories, products, heroBanners, hangingBanners }: { category: Category; subCategories: Category[]; products: Product[]; heroBanners: Banner[]; hangingBanners: Banner[] }) => (
+const StandardLayout = ({ category, subCategories, products, deals, heroBanners, hangingBanners, selectedSubId, onSelectSub, productsLoading, isDealsPage }: { category: Category; subCategories: Category[]; products: Product[]; deals: DealProduct[]; heroBanners: Banner[]; hangingBanners: Banner[]; selectedSubId: string | null; onSelectSub: (id: string | null) => void; productsLoading: boolean; isDealsPage?: boolean }) => (
   <div className="w-full px-4 md:px-10 lg:px-16 xl:px-24 py-6 pb-20">
     {/* ── Category Specific Professional Hero Banner (Dynamic) ── */}
     {(heroBanners.length > 0 || hangingBanners.length > 0) && (
@@ -259,48 +349,117 @@ const StandardLayout = ({ category, subCategories, products, heroBanners, hangin
       {category.description && <p className="text-gray-500 mt-3 text-lg max-w-3xl">{category.description}</p>}
     </div>
 
+    {/* Deals Of The Day — Countdown Banner */}
+    {isDealsPage && deals.length > 0 && (
+      <div className="mb-8 rounded-3xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #ff4d00 0%, #ff8c00 50%, #ffd700 100%)' }}>
+        <div className="px-6 md:px-10 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <span className="bg-white/20 backdrop-blur text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest animate-pulse">🔥 Limited Time Offer</span>
+            <p className="text-white/80 text-sm font-medium mt-2">{deals.length} deals available today</p>
+          </div>
+          <DealsCountdown endTime={deals[0]?.endTime || null} />
+        </div>
+      </div>
+    )}
+
     {/* Circular Subcategories Carousel */}
-    {(subCategories.length > 0 || category.parent) && (
+    {subCategories.length > 0 && (
       <div className="flex flex-wrap gap-5 mb-12">
-        <Link
-          to={`/category/${category.parent?.slug || category.slug}`}
-          className="flex flex-col items-center gap-2 group w-[100px] sm:w-[120px]"
+        <button
+          onClick={() => onSelectSub(null)}
+          className="flex flex-col items-center gap-2 group w-[100px] sm:w-[120px] cursor-pointer border-none bg-transparent p-0"
         >
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-primary bg-primary/5 overflow-hidden flex flex-col items-center justify-center transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-105">
+          <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 overflow-hidden flex flex-col items-center justify-center transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-105 ${selectedSubId === null ? 'border-primary bg-primary/15 scale-105 shadow-md' : 'border-primary bg-primary/5'}`}>
             <span className="text-xl sm:text-2xl font-black text-primary uppercase">View</span>
             <span className="text-[10px] font-bold text-primary/60 tracking-tighter uppercase font-heading">All</span>
           </div>
-          <span className="text-[12px] sm:text-[13px] font-bold text-primary text-center leading-tight">View All</span>
-        </Link>
+          <span className={`text-[12px] sm:text-[13px] font-bold text-center leading-tight ${selectedSubId === null ? 'text-primary' : 'text-primary'}`}>View All</span>
+        </button>
 
         {subCategories.map((sub) => (
-          <Link key={sub._id} to={`/category/${sub.slug}`} className="flex flex-col items-center gap-2 group w-[100px] sm:w-[120px]">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-gray-200 group-hover:border-primary overflow-hidden bg-gray-50 flex items-center justify-center transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-105">
+          <button
+            key={sub._id}
+            onClick={() => onSelectSub(sub._id)}
+            className="flex flex-col items-center gap-2 group w-[100px] sm:w-[120px] cursor-pointer border-none bg-transparent p-0"
+          >
+            <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 overflow-hidden bg-gray-50 flex items-center justify-center transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:scale-105 ${selectedSubId === sub._id ? 'border-primary scale-105 shadow-md ring-2 ring-primary/30' : 'border-gray-200 group-hover:border-primary'}`}>
               {sub.image ? (
                 <img src={sub.image} alt={sub.name} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-2xl">{sub.icon || '🛍️'}</span>
               )}
             </div>
-            <span className="text-[12px] sm:text-[13px] font-bold text-gray-700 group-hover:text-primary text-center leading-tight transition-colors line-clamp-2 px-1">
+            <span className={`text-[12px] sm:text-[13px] font-bold text-center leading-tight transition-colors line-clamp-2 px-1 ${selectedSubId === sub._id ? 'text-primary' : 'text-gray-700 group-hover:text-primary'}`}>
               {sub.name}
             </span>
-          </Link>
+          </button>
         ))}
       </div>
     )}
 
     {/* Products Grid */}
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-      {products.map((p) => <ProductCard key={p._id} product={p} />)}
-    </div>
-
-    {/* Empty State for Products */}
-    {products.length === 0 && (
-      <div className="text-center py-20 text-gray-400 bg-gray-50 rounded-3xl mt-8 border-2 border-dashed border-gray-200">
-        <p className="text-5xl mb-4">🛒</p>
-        <p className="font-medium text-lg text-gray-500">No products available in this category yet.</p>
+    {productsLoading ? (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
       </div>
+    ) : isDealsPage ? (
+      <>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+          {deals.map((deal) => (
+            <DealCard key={deal._id} deal={deal} />
+          ))}
+        </div>
+        {deals.length === 0 && (
+          <div className="text-center py-20 text-gray-400 bg-gray-50 rounded-3xl mt-8 border-2 border-dashed border-gray-200">
+            <p className="text-5xl mb-4">🏷️</p>
+            <p className="font-medium text-lg text-gray-500">No active deals right now.</p>
+          </div>
+        )}
+      </>
+    ) : (
+      <>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+          {products.map((p) => <ProductCard key={p._id} product={p} />)}
+        </div>
+
+        {/* Empty State for Products */}
+        {products.length === 0 && (
+          <div className="text-center py-20 text-gray-400 bg-gray-50 rounded-3xl mt-8 border-2 border-dashed border-gray-200">
+            <p className="text-5xl mb-4">🛒</p>
+            <p className="font-medium text-lg text-gray-500">No products available in this category yet.</p>
+          </div>
+        )}
+      </>
     )}
   </div>
 );
+
+// ── Deal Product Card ──────────────────────────────────────────────────────────
+const DealCard: React.FC<{ deal: DealProduct }> = ({ deal }) => {
+  const { product, dealPrice, discountValue, discountType } = deal;
+  const savings = product.price - dealPrice;
+  const expired = new Date(deal.endTime) < new Date();
+
+  if (expired) return <ProductCard product={product} />;
+
+  return (
+    <a href={`/products/${product.slug}`} className="block group">
+      <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 relative">
+        <div className="absolute top-2 left-2 z-10 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+          {discountType === 'percentage' ? `${discountValue}% OFF` : `₹${discountValue} OFF`}
+        </div>
+        <div className="aspect-square overflow-hidden bg-gray-50">
+          <img src={product.images?.[0]?.url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+        </div>
+        <div className="p-3">
+          <p className="text-xs font-bold text-gray-800 line-clamp-2 leading-tight mb-2">{product.name}</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-base font-black text-red-600">₹{dealPrice}</span>
+            <span className="text-xs text-gray-400 line-through">₹{product.price}</span>
+          </div>
+          <p className="text-[10px] text-green-600 font-bold mt-0.5">Save ₹{savings}</p>
+        </div>
+      </div>
+    </a>
+  );
+};
