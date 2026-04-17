@@ -122,10 +122,14 @@ const CategoryPage: React.FC = () => {
         if (!fetchedCategory) throw new Error("Category not found");
         setCategory(fetchedCategory);
 
-        // 2. Fetch Category-Specific Banners
+        // 2. Fetch Banners (Backend now returns both category-specific and global fallback)
         const bannerRes = await api.get(`/banners?isActive=true&category=${fetchedCategory._id}`);
         const allBanners: Banner[] = bannerRes.data.banners || [];
-        setHeroBanners(allBanners.filter(b => b.type !== 'hanging'));
+
+        // Separation Logic:
+        // If there are ANY banners specifically assigned to this category, we might want to prioritize them.
+        // For now, we'll show all (sorted by backend) but strictly separate Hero and Hanging types.
+        setHeroBanners(allBanners.filter(b => b.type === 'hero' || b.type === 'promo' || b.type === 'category'));
         setHangingBanners(allBanners.filter(b => b.type === 'hanging'));
 
         // 3. Deals page: fetch from deals endpoint
@@ -219,7 +223,7 @@ const CategoryPage: React.FC = () => {
   if (!category) return <ErrorState message="Category could not be found." />;
 
   return category.layoutType === 'hanging' ? (
-    <HangingLayout category={category} subCategories={subCategories} />
+    <HangingLayout category={category} subCategories={subCategories} heroBanners={heroBanners} />
   ) : (
     <StandardLayout
       category={category}
@@ -263,16 +267,25 @@ const ErrorState = ({ message }: { message: string }) => (
   </div>
 );
 
-const HangingLayout = ({ category, subCategories }: { category: Category; subCategories: Category[] }) => (
+const HangingLayout = ({ category, subCategories, heroBanners }: { category: Category; subCategories: Category[]; heroBanners: Banner[] }) => (
   <div className="min-h-screen bg-pink-50/30 pb-20">
-    {/* Banner Section */}
-    {category.banner && (
-      <div className="w-full aspect-[2/1] md:aspect-[4/1] relative overflow-hidden mb-8 border-b-4 border-primary/20">
-        <img src={category.banner} className="w-full h-full object-cover" alt={category.name} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-8 md:p-16">
-          <h1 className="text-white text-4xl md:text-7xl font-heading font-black drop-shadow-2xl uppercase">
+    {/* Dynamic Banner Section for Hanging Layout */}
+    {(category.banner || heroBanners.length > 0) && (
+      <div className="w-full relative overflow-hidden mb-8 border-b-4 border-primary/20 bg-pink-50/50" style={{ minHeight: '30vh' }}>
+        {/* Background image: prefer category-specific hero if exists, otherwise fallback to old category.banner */}
+        <img 
+          src={heroBanners[0]?.image || category.banner} 
+          className="absolute inset-0 w-full h-full object-cover opacity-20 blur-sm" 
+          alt="" 
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-pink-50 via-transparent to-transparent" />
+        
+        <div className="relative z-10 py-16 px-6 flex flex-col items-center justify-center min-h-[30vh]">
+          <p className="text-primary font-black uppercase tracking-[0.3em] text-[10px] mb-3">Premium Collection</p>
+          <h1 className="text-4xl md:text-7xl font-heading font-black text-gray-900 drop-shadow-sm uppercase text-center max-w-4xl">
             {category.name}
           </h1>
+          <div className="h-1.5 w-24 bg-gradient-to-r from-primary to-purple-500 mt-6 rounded-full" />
         </div>
       </div>
     )}
@@ -292,10 +305,10 @@ const HangingLayout = ({ category, subCategories }: { category: Category; subCat
         {subCategories.map((sub) => (
           <Link key={sub._id} to={`/category/${sub.slug}`} className="group flex flex-col items-center">
             <div className="w-0.5 h-16 bg-gradient-to-b from-primary to-primary/20 group-hover:h-20 transition-all duration-500" />
-            <div className="bg-white p-3 rounded-2xl shadow-xl border-2 border-primary/10 group-hover:border-primary group-hover:-rotate-3 transition-all duration-500 group-hover:scale-110">
-              <div className="w-36 h-48 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-100 shadow-inner">
+            <div className="bg-white p-4 rounded-[2rem] shadow-2xl border-2 border-primary/10 group-hover:border-primary group-hover:-rotate-3 transition-all duration-500 group-hover:scale-110">
+              <div className="w-40 h-56 rounded-[1.5rem] overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-100 shadow-inner">
                 {sub.image ? (
-                  <img src={ik.catCircle(sub.image)} alt={sub.name} width={200} height={200} loading="lazy" className="w-full h-full object-cover" />
+                  <img src={ik.catCircle(sub.image)} alt={sub.name} width={240} height={320} loading="lazy" className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-4xl">{sub.icon || '🛍️'}</span>
                 )}
@@ -332,12 +345,36 @@ const StandardLayout = ({ category, subCategories, products, deals, heroBanners,
         </div>
         <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: 'linear-gradient(90deg, transparent, rgba(233,30,99,0.25), rgba(199,125,255,0.25), transparent)' }} />
 
-        {/* Mobile: full-width banner slider */}
-        {heroBanners.length > 0 && (
-          <div className="block lg:hidden w-full relative z-10 px-3 pt-3 pb-1">
-            <HeroBannerCard banners={heroBanners} mobile />
-          </div>
-        )}
+        {/* Mobile: Hero Banner Slider + Hanging Items below */}
+        <div className="block lg:hidden w-full relative z-10 px-3 pt-3">
+          {heroBanners.length > 0 && <HeroBannerCard banners={heroBanners} mobile />}
+          
+          {hangingBanners.length > 0 && (
+            <div className="mt-6 pb-2 overflow-x-auto no-scrollbar scroll-smooth">
+              <div className="flex flex-row items-start justify-center gap-4 px-2 min-w-max">
+                <style>{`
+                  @keyframes sway-mob { 0%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} 100%{transform:rotate(-3deg)} }
+                  .mob-hang { transform-origin: top center; animation: sway-mob 3s ease-in-out infinite; }
+                  .no-scrollbar::-webkit-scrollbar { display: none; }
+                `}</style>
+                {hangingBanners.map((b, i) => (
+                  <div key={i} className="mob-hang flex flex-col items-center" style={{ animationDelay: `${i * 0.5}s` }}>
+                    <div className="w-[1px] h-8 bg-gradient-to-b from-pink-400 to-pink-200" />
+                    <div className="w-2 h-2 rounded-full border-2 border-slate-300 -mb-0.5 z-10 bg-white" />
+                    <div className="bg-white p-1.5 rounded-2xl shadow-xl border border-pink-100">
+                      <img src={ik.hanging(b.image)} alt={b.title || 'item'} width={112} height={176} loading="lazy" className="w-28 h-44 rounded-xl object-cover" />
+                      {b.title && (
+                        <div className="mt-1.5 bg-pink-500 text-white text-[10px] font-black py-1 px-3 rounded-full text-center truncate max-w-[112px]">
+                          {b.title}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Desktop: hanging items left + banner right (identical to HomePage) */}
         <div className="hidden lg:flex w-full px-14 xl:px-24 py-12 relative z-10 items-stretch" style={{ minHeight: '60vh' }}>
@@ -356,11 +393,11 @@ const StandardLayout = ({ category, subCategories, products, deals, heroBanners,
                   <a key={i} href={b.link || '#'} className="cat-hang2 flex flex-col items-center" style={{ textDecoration: 'none', flexShrink: 0 }}>
                     <div style={{ width: '2px', height: '45px', background: 'linear-gradient(180deg,#f43f8e,#e879a0)', borderRadius: '1px' }} />
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '2px solid #9ca3af', background: 'transparent', marginBottom: '-3px', zIndex: 2 }} />
-                    <div style={{ background: 'white', padding: '5px', borderRadius: '20px', boxShadow: '0 8px 24px rgba(244,63,142,0.18)', border: '2px solid rgba(244,63,142,0.12)' }}>
-                      <img src={ik.hanging(b.image)} alt={b.title || 'item'} width={100} height={150} loading="lazy" style={{ width: '100px', height: '150px', borderRadius: '15px', objectFit: 'cover', display: 'block' }} />
+                    <div style={{ background: 'white', padding: '6px', borderRadius: '25px', boxShadow: '0 12px 30px rgba(244,63,142,0.22)', border: '2px solid rgba(244,63,142,0.15)' }}>
+                      <img src={ik.hanging(b.image)} alt={b.title || 'item'} width={130} height={200} loading="lazy" style={{ width: '130px', height: '200px', borderRadius: '20px', objectFit: 'cover', display: 'block' }} />
                       {b.title && (
-                        <div style={{ marginTop: '6px', background: 'linear-gradient(135deg,#f43f8e,#ec4899)', borderRadius: '12px', padding: '4px 10px', textAlign: 'center', boxShadow: '0 2px 8px rgba(244,63,142,0.3)' }}>
-                          <span style={{ color: 'white', fontSize: '11px', fontWeight: 900, letterSpacing: '0.4px', whiteSpace: 'nowrap' }}>{b.title}</span>
+                        <div style={{ marginTop: '8px', background: 'linear-gradient(135deg,#f43f8e,#ec4899)', borderRadius: '15px', padding: '5px 12px', textAlign: 'center', boxShadow: '0 3px 10px rgba(244,63,142,0.3)' }}>
+                          <span style={{ color: 'white', fontSize: '12px', fontWeight: 900, letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{b.title}</span>
                         </div>
                       )}
                     </div>
