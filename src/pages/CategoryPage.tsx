@@ -345,26 +345,39 @@ const StandardLayout = ({ category, subCategories, products, deals, heroBanners,
         </div>
         <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: 'linear-gradient(90deg, transparent, rgba(233,30,99,0.25), rgba(199,125,255,0.25), transparent)' }} />
 
-        {/* Mobile: Hero Banner Slider + Hanging Items below */}
-        <div className="block lg:hidden w-full relative z-10 px-3 pt-3">
+        {/* Mobile: Hero Banner Slider + Hanging Items auto-scrolling marquee */}
+        <div className="block lg:hidden w-full relative z-10 px-3 pt-3 overflow-hidden">
           {heroBanners.length > 0 && <HeroBannerCard banners={heroBanners} mobile />}
           
           {hangingBanners.length > 0 && (
-            <div className="mt-6 pb-2 overflow-x-auto no-scrollbar scroll-smooth">
-              <div className="flex flex-row items-start justify-center gap-4 px-2 min-w-max">
-                <style>{`
-                  @keyframes sway-mob { 0%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} 100%{transform:rotate(-3deg)} }
-                  .mob-hang { transform-origin: top center; animation: sway-mob 3s ease-in-out infinite; }
-                  .no-scrollbar::-webkit-scrollbar { display: none; }
-                `}</style>
-                {hangingBanners.map((b, i) => (
-                  <div key={i} className="mob-hang flex flex-col items-center" style={{ animationDelay: `${i * 0.5}s` }}>
-                    <div className="w-[1px] h-8 bg-gradient-to-b from-pink-400 to-pink-200" />
-                    <div className="w-2 h-2 rounded-full border-2 border-slate-300 -mb-0.5 z-10 bg-white" />
-                    <div className="bg-white p-1.5 rounded-2xl shadow-xl border border-pink-100">
+            <div className="mt-8 pb-4 relative">
+              <style>{`
+                @keyframes marquee-scroll {
+                  0% { transform: translateX(0); }
+                  100% { transform: translateX(-50%); }
+                }
+                .marquee-container {
+                  display: flex;
+                  gap: 1.5rem;
+                  width: max-content;
+                  animation: marquee-scroll 30s linear infinite;
+                }
+                .marquee-container:hover { animation-play-state: paused; }
+                @keyframes sway-mob { 0%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} 100%{transform:rotate(-3deg)} }
+                .mob-hang { transform-origin: top center; animation: sway-mob 3s ease-in-out infinite; }
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+              `}</style>
+              
+              <div className="marquee-container no-scrollbar">
+                {/* Render twice for seamless loop */}
+                {[...hangingBanners, ...hangingBanners].map((b, i) => (
+                  <div key={i} className="mob-hang flex flex-col items-center" style={{ animationDelay: `${(i % hangingBanners.length) * 0.5}s` }}>
+                    <div className="w-[1px] h-10 bg-gradient-to-b from-pink-400 to-pink-200" />
+                    <div className="w-2.5 h-2.5 rounded-full border-2 border-slate-300 -mb-0.5 z-10 bg-white" />
+                    <div className="bg-white p-1.5 rounded-2xl shadow-xl border border-pink-100 flex-shrink-0">
                       <img src={ik.hanging(b.image)} alt={b.title || 'item'} width={112} height={176} loading="lazy" className="w-28 h-44 rounded-xl object-cover" />
                       {b.title && (
-                        <div className="mt-1.5 bg-pink-500 text-white text-[10px] font-black py-1 px-3 rounded-full text-center truncate max-w-[112px]">
+                        <div className="mt-1.5 bg-pink-500 text-white text-[10px] font-black py-1 px-3 rounded-full text-center truncate max-w-[112px] shadow-lg shadow-pink-500/20">
                           {b.title}
                         </div>
                       )}
@@ -372,6 +385,10 @@ const StandardLayout = ({ category, subCategories, products, deals, heroBanners,
                   </div>
                 ))}
               </div>
+              
+              {/* Fade edges */}
+              <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-pink-50/50 to-transparent pointer-events-none z-10" />
+              <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-pink-50/50 to-transparent pointer-events-none z-10" />
             </div>
           )}
         </div>
