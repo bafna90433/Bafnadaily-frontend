@@ -99,6 +99,9 @@ const CategoryPage: React.FC = () => {
   const [hangingBanners, setHangingBanners] = useState<Banner[]>([])
   const [selectedSubId, setSelectedSubId] = useState<string | null>(null);
   const [productsLoading, setProductsLoading] = useState<boolean>(false);
+  const [totalProducts, setTotalProducts] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const isDealsPage = slug === 'deals-of-the-day';
 
   // UI States
@@ -139,14 +142,18 @@ const CategoryPage: React.FC = () => {
           const [subRes, prodRes] = await Promise.all([
             api.get('/categories/all'),
             fetchedCategory.layoutType !== 'hanging'
-              ? api.get(`/products?category=${fetchedCategory._id}&limit=24`)
+              ? api.get(`/products?category=${fetchedCategory._id}&limit=48&page=1`)
               : Promise.resolve(null),
           ]);
           const filteredSubs = (subRes?.data?.categories || []).filter(
             (c: any) => c.parent?._id === fetchedCategory._id || c.parent === fetchedCategory._id
           );
           setSubCategories(filteredSubs);
-          if (prodRes) setProducts(prodRes.data?.products || []);
+          if (prodRes) {
+            setProducts(prodRes.data?.products || []);
+            setTotalProducts(prodRes.data?.total || 0);
+            setCurrentPage(1);
+          }
         }
 
       } catch (err: any) {
@@ -163,14 +170,32 @@ const CategoryPage: React.FC = () => {
     if (!category) return;
     setSelectedSubId(subId);
     setProductsLoading(true);
+    setCurrentPage(1);
     try {
       const categoryId = subId || category._id;
-      const res = await api.get(`/products?category=${categoryId}&limit=24`);
+      const res = await api.get(`/products?category=${categoryId}&limit=48&page=1`);
       setProducts(res.data?.products || []);
+      setTotalProducts(res.data?.total || 0);
     } catch {
       // keep existing products on error
     } finally {
       setProductsLoading(false);
+    }
+  };
+
+  const handleLoadMore = async () => {
+    if (!category) return;
+    const nextPage = currentPage + 1;
+    setLoadingMore(true);
+    try {
+      const categoryId = selectedSubId || category._id;
+      const res = await api.get(`/products?category=${categoryId}&limit=48&page=${nextPage}`);
+      setProducts(prev => [...prev, ...(res.data?.products || [])]);
+      setCurrentPage(nextPage);
+    } catch {
+      // keep existing on error
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -193,6 +218,9 @@ const CategoryPage: React.FC = () => {
       onSelectSub={handleSubCategorySelect}
       productsLoading={productsLoading}
       isDealsPage={isDealsPage}
+      totalProducts={totalProducts}
+      onLoadMore={handleLoadMore}
+      loadingMore={loadingMore}
     />
   );
 };
@@ -277,7 +305,7 @@ const HangingLayout = ({ category, subCategories }: { category: Category; subCat
   </div>
 );
 
-const StandardLayout = ({ category, subCategories, products, deals, heroBanners, hangingBanners, selectedSubId, onSelectSub, productsLoading, isDealsPage }: { category: Category; subCategories: Category[]; products: Product[]; deals: DealProduct[]; heroBanners: Banner[]; hangingBanners: Banner[]; selectedSubId: string | null; onSelectSub: (id: string | null) => void; productsLoading: boolean; isDealsPage?: boolean }) => (
+const StandardLayout = ({ category, subCategories, products, deals, heroBanners, hangingBanners, selectedSubId, onSelectSub, productsLoading, isDealsPage, totalProducts, onLoadMore, loadingMore }: { category: Category; subCategories: Category[]; products: Product[]; deals: DealProduct[]; heroBanners: Banner[]; hangingBanners: Banner[]; selectedSubId: string | null; onSelectSub: (id: string | null) => void; productsLoading: boolean; isDealsPage?: boolean; totalProducts: number; onLoadMore: () => void; loadingMore: boolean }) => (
   <div className="w-full px-4 md:px-10 lg:px-16 xl:px-24 py-6 pb-20">
     {/* ── Category Specific Professional Hero Banner (Dynamic) ── */}
     {(heroBanners.length > 0 || hangingBanners.length > 0) && (
@@ -418,9 +446,36 @@ const StandardLayout = ({ category, subCategories, products, deals, heroBanners,
       </>
     ) : (
       <>
+        {/* Product count */}
+        {products.length > 0 && (
+          <p className="text-sm text-gray-500 mb-4 font-medium">
+            Showing <span className="font-bold text-gray-800">{products.length}</span> of <span className="font-bold text-gray-800">{totalProducts}</span> products
+          </p>
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
           {products.map((p) => <ProductCard key={p._id} product={p} />)}
         </div>
+
+        {/* Load More Button */}
+        {products.length < totalProducts && (
+          <div className="flex justify-center mt-10">
+            <button
+              onClick={onLoadMore}
+              disabled={loadingMore}
+              className="px-8 py-3 rounded-2xl bg-primary text-white font-bold text-sm shadow-md hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-60 flex items-center gap-2"
+            >
+              {loadingMore ? (
+                <>
+                  <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></span>
+                  Loading...
+                </>
+              ) : (
+                `Load More (${totalProducts - products.length} more)`
+              )}
+            </button>
+          </div>
+        )}
 
         {/* Empty State for Products */}
         {products.length === 0 && (
