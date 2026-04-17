@@ -222,15 +222,21 @@ const Navbar: React.FC = () => {
                         <div className="flex items-center gap-3 px-6 py-5 text-sm text-gray-400"><div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />Searching store…</div>
                       )}
                       {!loadingSugg && suggestions.length === 0 && (
-                        <div className="px-6 py-10 text-center">
+                        <div className="px-6 py-8 text-center">
                           <p className="text-3xl mb-3 opacity-50">🔍</p>
-                          <p className="text-sm font-medium text-gray-400">No boutiques found for "{searchQ}"</p>
+                          <p className="text-sm font-medium text-gray-500">No products found for "<span className="font-bold text-gray-700">{searchQ}</span>"</p>
+                          <button
+                            onMouseDown={() => { navigate(`/search?q=${encodeURIComponent(searchQ.trim())}`); setSearchQ(''); setFocused(false) }}
+                            className="mt-3 text-xs text-primary font-bold hover:underline"
+                          >
+                            View all results →
+                          </button>
                         </div>
                       )}
                       {suggestions.map(product => (
                         <button key={product._id} onMouseDown={() => goToProduct(product.slug)}
                           className="w-full flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 group/item">
-                          <div className="w-12 h-12 rounded-xl border border-gray-100 overflow-hidden bg-white shadow-sm transition-transform group-hover/item:scale-110">
+                          <div className="w-12 h-12 rounded-xl border border-gray-100 overflow-hidden bg-white shadow-sm transition-transform group-hover/item:scale-110 flex-shrink-0">
                             {product.images?.[0]?.url ? <img src={product.images[0].url} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-lg">📦</div>}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -240,6 +246,14 @@ const Navbar: React.FC = () => {
                           <ChevronRight size={14} className="text-gray-300 opacity-0 group-hover/item:opacity-100 transition-all group-hover/item:translate-x-1" />
                         </button>
                       ))}
+                      {suggestions.length > 0 && (
+                        <button
+                          onMouseDown={() => { navigate(`/search?q=${encodeURIComponent(searchQ.trim())}`); setSearchQ(''); setFocused(false); setSuggestions([]) }}
+                          className="w-full py-3 text-xs font-black text-primary hover:bg-primary/5 transition-colors text-center border-t border-gray-50"
+                        >
+                          See all results for "{searchQ}" →
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
