@@ -139,17 +139,16 @@ const CategoryPage: React.FC = () => {
           );
           setSubCategories(filteredSubs);
         } else {
-          const [subRes, prodRes] = await Promise.all([
-            api.get('/categories/all'),
-            fetchedCategory.layoutType !== 'hanging'
-              ? api.get(`/products?category=${fetchedCategory._id}&limit=48&page=1`)
-              : Promise.resolve(null),
-          ]);
+          const subRes = await api.get('/categories/all');
           const filteredSubs = (subRes?.data?.categories || []).filter(
             (c: any) => c.parent?._id === fetchedCategory._id || c.parent === fetchedCategory._id
           );
           setSubCategories(filteredSubs);
-          if (prodRes) {
+
+          if (fetchedCategory.layoutType !== 'hanging') {
+            // Pass ALL category IDs (parent + all subs) directly — guaranteed to show all products
+            const allCatIds = [fetchedCategory._id, ...filteredSubs.map((s: any) => s._id)].join(',');
+            const prodRes = await api.get(`/products?categoryIds=${allCatIds}&limit=48&page=1`);
             setProducts(prodRes.data?.products || []);
             setTotalProducts(prodRes.data?.total || 0);
             setCurrentPage(1);
@@ -172,8 +171,16 @@ const CategoryPage: React.FC = () => {
     setProductsLoading(true);
     setCurrentPage(1);
     try {
-      const categoryId = subId || category._id;
-      const res = await api.get(`/products?category=${categoryId}&limit=48&page=1`);
+      let url = '';
+      if (subId) {
+        // Specific subcategory selected — show only that subcategory's products
+        url = `/products?category=${subId}&limit=48&page=1`;
+      } else {
+        // View All — show parent + ALL subcategories
+        const allCatIds = [category._id, ...subCategories.map((s: any) => s._id)].join(',');
+        url = `/products?categoryIds=${allCatIds}&limit=48&page=1`;
+      }
+      const res = await api.get(url);
       setProducts(res.data?.products || []);
       setTotalProducts(res.data?.total || 0);
     } catch {
@@ -188,8 +195,14 @@ const CategoryPage: React.FC = () => {
     const nextPage = currentPage + 1;
     setLoadingMore(true);
     try {
-      const categoryId = selectedSubId || category._id;
-      const res = await api.get(`/products?category=${categoryId}&limit=48&page=${nextPage}`);
+      let url = '';
+      if (selectedSubId) {
+        url = `/products?category=${selectedSubId}&limit=48&page=${nextPage}`;
+      } else {
+        const allCatIds = [category._id, ...subCategories.map((s: any) => s._id)].join(',');
+        url = `/products?categoryIds=${allCatIds}&limit=48&page=${nextPage}`;
+      }
+      const res = await api.get(url);
       setProducts(prev => [...prev, ...(res.data?.products || [])]);
       setCurrentPage(nextPage);
     } catch {
