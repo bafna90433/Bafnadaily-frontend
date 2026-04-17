@@ -360,7 +360,7 @@ const StandardLayout = ({ category, subCategories, products, deals, heroBanners,
                   display: flex;
                   gap: 1.5rem;
                   width: max-content;
-                  animation: marquee-scroll 30s linear infinite;
+                  animation: marquee-scroll 15s linear infinite;
                 }
                 .marquee-container:hover { animation-play-state: paused; }
                 @keyframes sway-mob { 0%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} 100%{transform:rotate(-3deg)} }
