@@ -114,7 +114,7 @@ const ProductDetailPage: React.FC = () => {
   const { user } = useAuthStore()
 
   useEffect(() => {
-    setLoading(true); setImgIdx(0); setVariant(''); setTab('desc'); setCartQty(0); setCartItemId(null)
+    setLoading(true); setImgIdx(0); setVariant(''); setTab('reviews'); setCartQty(0); setCartItemId(null)
     api.get(`/products/${slug}`).then(async r => {
       const p = r.data.product
       setProduct(p)
