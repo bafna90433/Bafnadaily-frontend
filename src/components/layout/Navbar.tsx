@@ -45,11 +45,17 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate()
   const { pathname } = useLocation()
 
-  useEffect(() => { setMobileOpen(false); setFocused(false) }, [pathname])
+  useEffect(() => {
+    setMobileOpen(false)
+    setFocused(false)
+    window.scrollTo(0, 0)
+  }, [pathname])
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 10)
-    window.addEventListener('scroll', handler)
+    const handler = () => {
+      setScrolled(window.scrollY > 10)
+    }
+    window.addEventListener('scroll', handler, { passive: true })
     api.get('/categories').then(res => {
       if (res.data.success) setCategories(res.data.categories)
     }).catch(() => { })
@@ -115,8 +121,8 @@ const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-50">
 
-      {/* ── Promo Bar ── */}
-      <div style={{ background: 'linear-gradient(90deg, #C2185B, #E91E63, #AD1457)' }}>
+      {/* ── Promo Bar — Desktop only ── */}
+      <div className="hidden lg:block" style={{ background: 'linear-gradient(90deg, #C2185B, #E91E63, #AD1457)' }}>
         <div className="px-4 py-2 text-center overflow-hidden relative">
           <p className="text-white/80 text-[11px] font-semibold tracking-widest uppercase whitespace-nowrap">
             {promoText}
@@ -130,19 +136,21 @@ const Navbar: React.FC = () => {
           : 'bg-white border-b border-gray-100'
         }`}>
         <div className="max-w-[1400px] mx-auto px-4 lg:px-10">
-          
+
           {/* ── TOP LEVEL (Desktop & Mobile) ── */}
-          <div className="flex flex-col lg:flex-row lg:items-center py-3 lg:py-4 gap-4 lg:gap-0">
-            
-            {/* Logo & Mobile Actions wrapper */}
-            <div className="flex items-center justify-between lg:w-[250px] flex-shrink-0">
+          <div className={`flex flex-col lg:flex-row lg:items-center lg:py-2 lg:gap-0 transition-all duration-300 ${pathname === '/' ? 'py-2 gap-2' : 'py-1.5 gap-0'}`}>
+
+            {/* Logo & Mobile Actions — mobile pe sirf homepage pe dikhao */}
+            <div className={`flex items-center justify-between lg:w-[250px] flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out ${
+              pathname === '/' ? 'max-h-24 opacity-100 mb-0' : 'max-h-0 opacity-0 mb-0 lg:max-h-24 lg:opacity-100'
+            }`}>
               {/* Logo */}
               <Link to="/" className="flex items-center group transition-transform active:scale-95">
                 {settings.siteLogo ? (
                   <img 
                     src={settings.siteLogo} 
                     alt={siteName} 
-                    className="h-14 lg:h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
+                    className="h-10 lg:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                   />
                 ) : (
                   <div className="flex items-center gap-2.5">
@@ -188,10 +196,10 @@ const Navbar: React.FC = () => {
                     onChange={onSearchChange}
                     onFocus={() => setFocused(true)}
                     placeholder="Search products, gifts, accessories…"
-                    className="flex-1 bg-transparent py-3 lg:py-3.5 px-4 text-sm font-semibold text-gray-800 placeholder:text-gray-400 outline-none"
+                    className="flex-1 bg-transparent py-2 lg:py-2.5 px-3 text-sm font-semibold text-gray-800 placeholder:text-gray-400 outline-none"
                   />
                   <button type="submit"
-                    className="m-1.5 text-white text-xs font-black px-5 py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
+                    className="m-1 text-white text-xs font-black px-4 py-2 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
                     style={{ background: 'linear-gradient(135deg, #E91E63, #C2185B)' }}>
                     Search
                   </button>

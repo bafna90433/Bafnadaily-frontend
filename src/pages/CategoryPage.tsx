@@ -69,7 +69,7 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
         <Link key={bn._id} to={bn.link || '/products'}
           className={`absolute inset-0 transition-opacity duration-700 ${i === active ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
           {bn.image
-            ? <img src={bn.image} alt={bn.title} className="w-full h-full" style={{ objectFit: mobile ? 'cover' : 'contain', objectPosition: 'center' }} />
+            ? <img src={bn.image} alt={bn.title} className="w-full h-full" style={{ objectFit: 'cover', objectPosition: 'center' }} />
             : <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#E91E63,#C77DFF)' }}>
                 <p className="text-white font-black text-xl text-center px-6">{bn.title}</p>
               </div>

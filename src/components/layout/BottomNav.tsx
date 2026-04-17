@@ -17,34 +17,34 @@ const BottomNav: React.FC = () => {
   ]
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 lg:hidden z-40 safe-area-bottom shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-      <div className="flex items-center justify-around py-2 px-1">
+    <nav className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 lg:hidden z-40 safe-area-bottom shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
+      <div className="flex items-center justify-around py-1 px-1">
         {links.map(({ to, icon: Icon, label, badge }) => {
           const active = pathname === to
           const isCart = to === '/cart'
           const shouldFloat = isCart && count > 0 && !active
 
           return (
-            <Link 
-              key={to} 
-              to={to} 
-              className={`flex flex-col items-center gap-0.5 px-3 py-1 relative transition-all duration-300 ${
-                shouldFloat ? 'translate-y-[-20px]' : ''
+            <Link
+              key={to}
+              to={to}
+              className={`flex flex-col items-center gap-0 px-3 py-1 relative transition-all duration-300 ${
+                shouldFloat ? 'translate-y-[-14px]' : ''
               }`}
             >
-              <div className={`relative p-2 rounded-full transition-all duration-500 ${
-                shouldFloat 
-                  ? 'bg-primary text-white shadow-lg scale-110 animate-pulse' 
+              <div className={`relative p-1.5 rounded-full transition-all duration-500 ${
+                shouldFloat
+                  ? 'bg-primary text-white shadow-lg scale-110 animate-pulse'
                   : active ? 'text-primary' : 'text-gray-400'
               }`}>
-                <Icon size={shouldFloat ? 26 : 22} />
+                <Icon size={shouldFloat ? 22 : 19} />
                 {badge && (
-                  <span className={`absolute ${shouldFloat ? '-top-1 -right-4' : '-top-1 -right-2'} px-1.5 py-0.5 bg-red-500 text-white text-[9px] rounded-full border-2 border-white flex items-center justify-center font-black whitespace-nowrap shadow-sm`}>
+                  <span className={`absolute ${shouldFloat ? '-top-1 -right-4' : '-top-1 -right-2'} px-1 py-0.5 bg-red-500 text-white text-[8px] rounded-full border-2 border-white flex items-center justify-center font-black whitespace-nowrap shadow-sm`}>
                     {badge}
                   </span>
                 )}
               </div>
-              <span className={`text-[10px] font-bold mt-0.5 transition-colors ${
+              <span className={`text-[9px] font-bold transition-colors ${
                 active ? 'text-primary' : 'text-gray-400'
               }`}>
                 {label}
