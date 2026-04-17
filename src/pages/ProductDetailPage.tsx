@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ShoppingCart, Heart, ChevronLeft, ChevronRight, Package, Shield, Truck, Star, Minus, Plus, ThumbsUp, Tag } from 'lucide-react'
+import { ShoppingCart, Heart, ChevronLeft, ChevronRight, Package, Shield, Truck, Star, Minus, Plus, ThumbsUp, Tag, Check } from 'lucide-react'
 import api from '../utils/api'
 import { Product } from '../types'
 import useCartStore from '../store/cartStore'
@@ -102,14 +102,17 @@ const ProductDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [imgIdx, setImgIdx] = useState(0)
   const [qty, setQty] = useState(1)
+  const [cartQty, setCartQty] = useState(0)  // 0 = not in cart
+  const [cartItemId, setCartItemId] = useState<string | null>(null)
+  const [adding, setAdding] = useState(false)
   const [variant, setVariant] = useState('')
   const [wishlisted, setWishlisted] = useState(false)
   const [tab, setTab] = useState<'desc'|'reviews'|'shipping'>('desc')
-  const { addToCart } = useCartStore()
+  const { addToCart, cart, updateItem, removeItem } = useCartStore()
   const { user } = useAuthStore()
 
   useEffect(() => {
-    setLoading(true); setImgIdx(0); setVariant(''); setTab('desc')
+    setLoading(true); setImgIdx(0); setVariant(''); setTab('desc'); setCartQty(0); setCartItemId(null)
     api.get(`/products/${slug}`).then(async r => {
       const p = r.data.product
       setProduct(p)
@@ -121,7 +124,35 @@ const ProductDetailPage: React.FC = () => {
     }).catch(() => navigate('/')).finally(() => setLoading(false))
   }, [slug])
 
-  const handleCart = async () => { if (!user) { navigate('/login'); return }; await addToCart(product!._id, qty, variant) }
+  // Sync cartQty from cart store
+  useEffect(() => {
+    if (!product || !cart) return
+    const item = cart.items?.find(i => i.product?._id === product._id)
+    if (item) { setCartQty(item.quantity); setCartItemId(item._id) }
+    else { setCartQty(0); setCartItemId(null) }
+  }, [cart, product])
+
+  const handleCart = async () => {
+    if (!user) { navigate('/login'); return }
+    setAdding(true)
+    await addToCart(product!._id, product!.minQty || 1, variant)
+    setAdding(false)
+  }
+
+  const handleIncrease = async () => {
+    if (!cartItemId) return
+    await updateItem(cartItemId, cartQty + 1)
+  }
+
+  const handleDecrease = async () => {
+    if (!cartItemId) return
+    if (cartQty <= (product?.minQty || 1)) {
+      await removeItem(cartItemId)
+    } else {
+      await updateItem(cartItemId, cartQty - 1)
+    }
+  }
+
   const handleBuyNow = async () => { if (!user) { navigate('/login'); return }; await addToCart(product!._id, qty, variant); navigate('/checkout') }
   const handleWishlist = async () => {
     if (!user) { navigate('/login'); return }
@@ -283,23 +314,20 @@ const ProductDetailPage: React.FC = () => {
             </div>
           )}
 
-          {/* Qty */}
-          <div className="mt-5 flex items-center gap-4">
-            <span className="font-semibold text-sm">Qty:</span>
-            <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
-              <button onClick={() => setQty(q => Math.max(product.minQty||1, q - 1))} className="px-3 py-2 hover:bg-gray-50 transition-colors"><Minus size={16}/></button>
-              <span className="px-4 py-2 font-bold">{qty}</span>
-              <button onClick={() => setQty(q => Math.min(product.stock, q + 1))} className="px-3 py-2 hover:bg-gray-50 transition-colors"><Plus size={16}/></button>
-            </div>
-            <span className="text-xs text-gray-400">{product.stock} in stock</span>
-            {(product.minQty||1) > 1 && <span className="text-xs bg-orange-100 text-orange-700 font-bold px-2 py-1 rounded-full">Min {product.minQty} pcs</span>}
-          </div>
-
-          {/* CTA */}
-          <div className="flex gap-3 mt-6">
-            <button onClick={handleCart} disabled={product.stock===0} className="btn-outline flex-1 flex items-center justify-center gap-2">
-              <ShoppingCart size={18}/> Add to Cart
-            </button>
+          {/* CTA — desktop (inline) */}
+          <div className="hidden md:flex gap-3 mt-6">
+            {cartQty > 0 ? (
+              <div className="flex items-center border-2 border-primary rounded-xl overflow-hidden flex-1">
+                <button onClick={handleDecrease} className="px-4 py-3 text-primary hover:bg-primary/5 transition-colors font-black text-lg"><Minus size={16}/></button>
+                <span className="flex-1 text-center font-black text-primary text-base">{cartQty}</span>
+                <button onClick={handleIncrease} disabled={cartQty >= product.stock} className="px-4 py-3 text-primary hover:bg-primary/5 transition-colors font-black text-lg disabled:opacity-30"><Plus size={16}/></button>
+              </div>
+            ) : (
+              <button onClick={handleCart} disabled={product.stock===0 || adding} className="btn-outline flex-1 flex items-center justify-center gap-2">
+                {adding ? <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"/> : <ShoppingCart size={18}/>}
+                Add to Cart
+              </button>
+            )}
             <button onClick={handleBuyNow} disabled={product.stock===0} className="btn-primary flex-1">
               Buy Now
             </button>
@@ -366,6 +394,45 @@ const ProductDetailPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* ── Sticky Bottom CTA — mobile only ── */}
+      <div className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-gray-100 px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+        <div className="flex items-center gap-3">
+          {/* Price quick view */}
+          <div className="flex-shrink-0">
+            <p className="text-lg font-black text-gray-900">₹{product.price}</p>
+            {product.mrp > product.price && (
+              <p className="text-[10px] text-gray-400 line-through leading-none">₹{product.mrp}</p>
+            )}
+          </div>
+          <div className="flex gap-2 flex-1">
+            {cartQty > 0 ? (
+              <div className="flex-1 flex items-center border-2 border-primary rounded-xl overflow-hidden">
+                <button onClick={handleDecrease} className="px-4 py-3 text-primary active:bg-primary/10 transition-colors"><Minus size={15}/></button>
+                <span className="flex-1 text-center font-black text-primary text-base">{cartQty}</span>
+                <button onClick={handleIncrease} disabled={cartQty >= product.stock} className="px-4 py-3 text-primary active:bg-primary/10 transition-colors disabled:opacity-30"><Plus size={15}/></button>
+              </div>
+            ) : (
+              <button
+                onClick={handleCart}
+                disabled={product.stock === 0 || adding}
+                className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl border-2 border-primary text-primary font-black text-sm active:scale-95 transition-all disabled:opacity-40"
+              >
+                {adding ? <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"/> : <ShoppingCart size={16}/>}
+                {adding ? '' : 'Add to Cart'}
+              </button>
+            )}
+            <button
+              onClick={handleBuyNow}
+              disabled={product.stock === 0}
+              className="flex-1 py-3 rounded-xl font-black text-sm text-white active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-primary/30"
+              style={{ background: 'linear-gradient(135deg, #E91E63, #C2185B)' }}
+            >
+              Buy Now
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

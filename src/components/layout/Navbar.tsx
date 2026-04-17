@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   Search, ShoppingCart, Heart, User, Menu, X, Package,
   LogOut, ChevronDown, ShoppingBag, TrendingUp, ChevronRight,
-  Zap, Gift, Sparkles, Crown,
+  Zap, Gift, Sparkles, Crown, ArrowLeft,
 } from 'lucide-react'
 import useAuthStore from '../../store/authStore'
 import useCartStore from '../../store/cartStore'
@@ -183,8 +183,17 @@ const Navbar: React.FC = () => {
             </div>
 
             {/* Desktop Center: Redesigned Search Pill */}
-            <div ref={searchRef} className="flex-1 lg:max-w-xl mx-auto w-full relative group">
-              <form onSubmit={handleSearch}>
+            <div ref={searchRef} className="flex-1 lg:max-w-xl mx-auto w-full relative group flex items-center gap-2">
+              {/* Back button — mobile only, non-home pages */}
+              {pathname !== '/' && (
+                <button
+                  onClick={() => navigate(-1)}
+                  className="lg:hidden flex-shrink-0 p-2 rounded-xl bg-gray-50 border border-gray-100 text-gray-600 active:scale-95 transition-all"
+                >
+                  <ArrowLeft size={19} />
+                </button>
+              )}
+              <form onSubmit={handleSearch} className="flex-1 relative">
                 <div className={`relative flex items-center rounded-2xl border transition-all duration-300 ${focused
                     ? 'border-primary shadow-[0_10px_30px_rgba(233,30,99,0.1)] bg-white'
                     : 'border-gray-200 bg-gray-50/50 hover:bg-white hover:border-gray-300 hover:shadow-md'
