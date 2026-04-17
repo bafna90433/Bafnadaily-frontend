@@ -297,39 +297,21 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
   }, [banners.length])
 
   return (
-    <div className="relative w-full overflow-hidden bg-white"
-      style={{ borderRadius: mobile ? '1rem' : '2rem', aspectRatio: mobile ? '16/7' : '5/2', boxShadow: mobile ? '0 4px 20px rgba(0,0,0,0.10)' : '0 24px 64px rgba(233,30,99,0.18), 0 8px 24px rgba(0,0,0,0.08)' }}>
-      {/* Decorative ring */}
-      {!mobile && (
-        <div className="absolute inset-0 rounded-[2rem] pointer-events-none z-20"
-          style={{ border: '1.5px solid rgba(233,30,99,0.15)' }} />
-      )}
-
+    <div className="relative w-full overflow-hidden bg-white shadow-2xl"
+      style={{ borderRadius: mobile ? '1.5rem' : '3.5rem', aspectRatio: mobile ? '16/9' : '2/1', boxShadow: mobile ? '0 10px 30px rgba(0,0,0,0.1)' : '0 25px 60px rgba(0,0,0,0.12)' }}>
       {banners.map((bn, i) => (
         <Link key={bn._id} to={bn.link || '/products'}
-          className={`absolute inset-0 transition-opacity duration-700 ${i === active ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-          {bn.image
-            ? <img
-                src={ik.banner(bn.image)}
-                alt={bn.title || 'Banner'}
-                className="w-full h-full"
-                style={{ objectFit: 'cover', objectPosition: 'center' }}
-                width={900} height={400}
-                loading={i === 0 ? 'eager' : 'lazy'}
-                fetchPriority={i === 0 ? 'high' : 'low'}
-              />
-            : <div className="w-full h-full flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg,#E91E63,#C77DFF)' }}>
-              <p className="text-white font-black text-xl text-center px-6">{bn.title}</p>
+          className={`absolute inset-0 transition-opacity duration-700 ${i === active ? 'opacity-100 scale-100' : 'opacity-0 scale-105 pointer-events-none'}`}>
+          {bn.image ? (
+            <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+              {/* Blurred Background to fill empty gaps (Premium look) */}
+              <img src={ik.banner(bn.image)} alt="" className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110" aria-hidden="true" />
+              {/* Main Image (No Crop) */}
+              <img src={ik.banner(bn.image)} alt={bn.title || 'Banner'} loading={i === 0 ? 'eager' : 'lazy'} fetchPriority={i === 0 ? 'high' : 'low'} className="relative z-10 w-full h-full object-contain" />
             </div>
-          }
-          {/* Gradient overlay at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 h-32"
-            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)' }} />
-          {bn.title && (
-            <div className="absolute bottom-5 left-5 right-5 z-10">
-              <p className="text-white font-black text-base leading-snug drop-shadow-lg">{bn.title}</p>
-              {bn.subtitle && <p className="text-white/75 text-xs mt-1">{bn.subtitle}</p>}
+          ) : (
+            <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#E91E63,#C77DFF)' }}>
+              <p className="text-white font-black text-xl text-center px-6">{bn.title}</p>
             </div>
           )}
         </Link>
@@ -377,26 +359,20 @@ const HeroLayout4: React.FC<{ heroBanners: Banner[]; hangingBanners: Banner[] }>
       <div className="w-full flex flex-row items-stretch gap-16">
 
         {/* Left Column — Hanging Keychains (up to 6) */}
-        <div className="flex-1 flex flex-row items-start justify-center gap-4 overflow-visible" style={{ alignSelf: 'stretch', marginTop: '-45px' }}>
+        <div className="flex-1 flex flex-row items-start justify-center gap-6 overflow-visible" style={{ alignSelf: 'stretch', marginTop: '-45px' }}>
           <style>{`
             @keyframes sway-hero { 0%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} 100%{transform:rotate(-6deg)} }
-            .hero-kc { transform-origin: top center; }
-            .hero-kc:nth-child(odd)  { animation: sway-hero 3.2s ease-in-out infinite; }
-            .hero-kc:nth-child(even) { animation: sway-hero 3.2s ease-in-out infinite 0.7s; }
-            .hero-kc:nth-child(3n)   { animation: sway-hero 3.2s ease-in-out infinite 1.4s; }
+            .hero-kc { transform-origin: top center; animation: sway-hero 3.5s ease-in-out infinite; }
           `}</style>
           {hangingBanners.slice(0, 6).map((b, i) => (
-            <a key={i} href={b.link || '/products'} className="hero-kc flex flex-col items-center" style={{ textDecoration: 'none', flexShrink: 0 }}>
-              {/* Rope string (Fine-tuned length) */}
-              <div style={{ width: '2px', height: '45px', background: 'linear-gradient(180deg,#f43f8e,#e879a0)', borderRadius: '1px' }} />
-              {/* Metal ring */}
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '2px solid #9ca3af', background: 'transparent', marginBottom: '-3px', zIndex: 2 }} />
-              {/* Image card */}
-              <div style={{ background: 'white', padding: '5px', borderRadius: '20px', boxShadow: '0 8px 24px rgba(244,63,142,0.18)', border: '2px solid rgba(244,63,142,0.12)' }}>
-                <img src={ik.hanging(b.image)} alt={b.title || 'keychain'} width={100} height={150} loading="lazy" style={{ width: '100px', height: '150px', borderRadius: '15px', objectFit: 'cover', display: 'block' }} />
+            <a key={i} href={b.link || '/products'} className="hero-kc flex flex-col items-center group/item" style={{ animationDelay: `${i * 0.6}s` }}>
+              <div style={{ width: '2px', height: '60px', background: 'linear-gradient(180deg,#f43f8e,#e879a0)', borderRadius: '1px' }} />
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', border: '2px solid #cbd5e1', background: 'white', marginBottom: '-3px', zIndex: 2 }} />
+              <div style={{ background: 'white', padding: '8px', borderRadius: '30px', boxShadow: '0 15px 45px rgba(244,63,142,0.22)', border: '2.5px solid rgba(244,63,142,0.15)' }} className="group-hover/item:border-primary transition-all duration-300">
+                <img src={ik.hanging(b.image)} alt={b.title || 'keychain'} width={165} height={250} loading="lazy" style={{ width: '165px', height: '250px', borderRadius: '24px', objectFit: 'cover' }} />
                 {b.title && (
-                  <div style={{ marginTop: '6px', background: 'linear-gradient(135deg,#f43f8e,#ec4899)', borderRadius: '12px', padding: '4px 10px', textAlign: 'center', boxShadow: '0 2px 8px rgba(244,63,142,0.3)' }}>
-                    <span style={{ color: 'white', fontSize: '11px', fontWeight: 900, letterSpacing: '0.4px', whiteSpace: 'nowrap' }}>{b.title}</span>
+                  <div style={{ marginTop: '10px', background: 'linear-gradient(135deg,#f43f8e,#ec4899)', borderRadius: '14px', padding: '6px 14px', textAlign: 'center', boxShadow: '0 4px 12px rgba(244,63,142,0.4)' }}>
+                    <span style={{ color: 'white', fontSize: '13px', fontWeight: 900, letterSpacing: '0.6px', whiteSpace: 'nowrap' }}>{b.title}</span>
                   </div>
                 )}
               </div>

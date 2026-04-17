@@ -86,6 +86,20 @@ const ProductCard: React.FC<Props> = ({ product }) => {
             )}
           </div>
           <h3 className="font-semibold text-sm text-gray-800 line-clamp-2 leading-snug mb-1.5">{product.name}</h3>
+          
+          {/* Price */}
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-base font-black text-primary">₹{product.price}</span>
+            {product.mrp > product.price && (
+              <span className="text-xs text-gray-400 line-through font-medium">₹{product.mrp}</span>
+            )}
+            {product.discount > 0 && (
+              <span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
+                {product.discount}% OFF
+              </span>
+            )}
+          </div>
+
           {product.averageRating > 0 && (
             <div className="flex items-center gap-1 mb-1.5">
               <div className="flex">{[1,2,3,4,5].map(s => <Star key={s} size={10} className={s <= Math.round(product.averageRating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'} />)}</div>
