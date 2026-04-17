@@ -49,6 +49,10 @@ interface SiteSettings {
   websiteLayout: number
   mobileLayout: number
   hapticFeedback: boolean
+  metaPixelId: string
+  metaPixelEnabled: boolean
+  googleAnalyticsId: string
+  googleAnalyticsEnabled: boolean
 }
 
 const DEFAULT: SiteSettings = {
@@ -85,6 +89,10 @@ const DEFAULT: SiteSettings = {
   websiteLayout: 4,
   mobileLayout: 1,
   hapticFeedback: true,
+  metaPixelId: '',
+  metaPixelEnabled: false,
+  googleAnalyticsId: '',
+  googleAnalyticsEnabled: false,
 }
 
 interface SettingsState {

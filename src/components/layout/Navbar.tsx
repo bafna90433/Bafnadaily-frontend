@@ -91,7 +91,7 @@ const Navbar: React.FC = () => {
   }
 
   const goToProduct = (slug: string) => {
-    navigate(`/products/${slug}`)
+    navigate(`/product/${slug}`)
     setSearchQ(''); setFocused(false); setSuggestions([])
   }
 
