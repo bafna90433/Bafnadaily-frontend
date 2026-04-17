@@ -306,9 +306,9 @@ const HangingLayout = ({ category, subCategories, heroBanners }: { category: Cat
           <Link key={sub._id} to={`/category/${sub.slug}`} className="group flex flex-col items-center">
             <div className="w-0.5 h-16 bg-gradient-to-b from-primary to-primary/20 group-hover:h-20 transition-all duration-500" />
             <div className="bg-white p-4 rounded-[2rem] shadow-2xl border-2 border-primary/10 group-hover:border-primary group-hover:-rotate-3 transition-all duration-500 group-hover:scale-110">
-              <div className="w-40 h-56 rounded-[1.5rem] overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-100 shadow-inner">
+              <div className="w-40 h-56 lg:w-52 lg:h-72 rounded-[1.5rem] overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-100 shadow-inner">
                 {sub.image ? (
-                  <img src={ik.catCircle(sub.image)} alt={sub.name} width={240} height={320} loading="lazy" className="w-full h-full object-cover" />
+                  <img src={ik.catCircle(sub.image)} alt={sub.name} width={300} height={400} loading="lazy" className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-4xl">{sub.icon || '🛍️'}</span>
                 )}
@@ -393,11 +393,11 @@ const StandardLayout = ({ category, subCategories, products, deals, heroBanners,
                   <a key={i} href={b.link || '#'} className="cat-hang2 flex flex-col items-center" style={{ textDecoration: 'none', flexShrink: 0 }}>
                     <div style={{ width: '2px', height: '45px', background: 'linear-gradient(180deg,#f43f8e,#e879a0)', borderRadius: '1px' }} />
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '2px solid #9ca3af', background: 'transparent', marginBottom: '-3px', zIndex: 2 }} />
-                    <div style={{ background: 'white', padding: '6px', borderRadius: '25px', boxShadow: '0 12px 30px rgba(244,63,142,0.22)', border: '2px solid rgba(244,63,142,0.15)' }}>
-                      <img src={ik.hanging(b.image)} alt={b.title || 'item'} width={130} height={200} loading="lazy" style={{ width: '130px', height: '200px', borderRadius: '20px', objectFit: 'cover', display: 'block' }} />
+                    <div style={{ background: 'white', padding: '8px', borderRadius: '30px', boxShadow: '0 15px 40px rgba(244,63,142,0.25)', border: '2px solid rgba(244,63,142,0.18)' }}>
+                      <img src={ik.hanging(b.image)} alt={b.title || 'item'} width={160} height={240} loading="lazy" style={{ width: '160px', height: '240px', borderRadius: '24px', objectFit: 'cover', display: 'block' }} />
                       {b.title && (
-                        <div style={{ marginTop: '8px', background: 'linear-gradient(135deg,#f43f8e,#ec4899)', borderRadius: '15px', padding: '5px 12px', textAlign: 'center', boxShadow: '0 3px 10px rgba(244,63,142,0.3)' }}>
-                          <span style={{ color: 'white', fontSize: '12px', fontWeight: 900, letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{b.title}</span>
+                        <div style={{ marginTop: '10px', background: 'linear-gradient(135deg,#f43f8e,#ec4899)', borderRadius: '18px', padding: '6px 15px', textAlign: 'center', boxShadow: '0 4px 12px rgba(244,63,142,0.35)' }}>
+                          <span style={{ color: 'white', fontSize: '14px', fontWeight: 900, letterSpacing: '0.6px', whiteSpace: 'nowrap' }}>{b.title}</span>
                         </div>
                       )}
                     </div>
