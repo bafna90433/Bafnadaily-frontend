@@ -125,7 +125,7 @@ const CategoryPage: React.FC = () => {
         // 2. Fetch Category-Specific Banners
         const bannerRes = await api.get(`/banners?isActive=true&category=${fetchedCategory._id}`);
         const allBanners: Banner[] = bannerRes.data.banners || [];
-        setHeroBanners(allBanners.filter(b => b.type !== 'hanging'));
+        setHeroBanners(allBanners.filter(b => b.type === 'hero'));
         setHangingBanners(allBanners.filter(b => b.type === 'hanging'));
 
         // 3. Deals page: fetch from deals endpoint
