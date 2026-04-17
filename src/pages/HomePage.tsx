@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
+import { ik } from '../utils/imagekit'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Zap, Gift, Truck, Shield, Tag, Sparkles, Crown, Star, ShoppingBag, TrendingUp, Diamond, Watch, Award, HeartHandshake, Package, RotateCcw, ChevronRight } from 'lucide-react'
 import { Product, Banner, Category } from '../types'
@@ -308,7 +309,15 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
         <Link key={bn._id} to={bn.link || '/products'}
           className={`absolute inset-0 transition-opacity duration-700 ${i === active ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
           {bn.image
-            ? <img src={bn.image} alt={bn.title} className="w-full h-full" style={{ objectFit: 'cover', objectPosition: 'center' }} />
+            ? <img
+                src={ik.banner(bn.image)}
+                alt={bn.title || 'Banner'}
+                className="w-full h-full"
+                style={{ objectFit: 'cover', objectPosition: 'center' }}
+                width={900} height={400}
+                loading={i === 0 ? 'eager' : 'lazy'}
+                fetchPriority={i === 0 ? 'high' : 'low'}
+              />
             : <div className="w-full h-full flex items-center justify-center"
               style={{ background: 'linear-gradient(135deg,#E91E63,#C77DFF)' }}>
               <p className="text-white font-black text-xl text-center px-6">{bn.title}</p>
@@ -384,7 +393,7 @@ const HeroLayout4: React.FC<{ heroBanners: Banner[]; hangingBanners: Banner[] }>
               <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '2px solid #9ca3af', background: 'transparent', marginBottom: '-3px', zIndex: 2 }} />
               {/* Image card */}
               <div style={{ background: 'white', padding: '5px', borderRadius: '20px', boxShadow: '0 8px 24px rgba(244,63,142,0.18)', border: '2px solid rgba(244,63,142,0.12)' }}>
-                <img src={b.image} alt={b.title || 'keychain'} style={{ width: '100px', height: '150px', borderRadius: '15px', objectFit: 'cover', display: 'block' }} />
+                <img src={ik.hanging(b.image)} alt={b.title || 'keychain'} width={100} height={150} loading="lazy" style={{ width: '100px', height: '150px', borderRadius: '15px', objectFit: 'cover', display: 'block' }} />
                 {b.title && (
                   <div style={{ marginTop: '6px', background: 'linear-gradient(135deg,#f43f8e,#ec4899)', borderRadius: '12px', padding: '4px 10px', textAlign: 'center', boxShadow: '0 2px 8px rgba(244,63,142,0.3)' }}>
                     <span style={{ color: 'white', fontSize: '11px', fontWeight: 900, letterSpacing: '0.4px', whiteSpace: 'nowrap' }}>{b.title}</span>
@@ -532,7 +541,7 @@ const HangingStrip: React.FC<{ hangingBanners: Banner[] }> = ({ hangingBanners }
             {/* Image */}
             <div className="rounded-2xl overflow-hidden shadow-lg"
               style={{ width: '80px', height: '80px', border: '2px solid rgba(233,30,99,0.18)' }}>
-              <img src={b.image} alt={b.title || 'keychain'} className="w-full h-full object-cover" />
+              <img src={ik.hanging(b.image)} alt={b.title || 'keychain'} width={80} height={80} loading="lazy" className="w-full h-full object-cover" />
             </div>
             {/* Label */}
             {b.title && (
@@ -588,7 +597,7 @@ const HorizontalCategoryScroll: React.FC<{ categories: Category[] }> = ({ catego
             <div className="w-full aspect-square rounded-[3rem] md:rounded-[4rem] overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl"
               style={{ background: p.bg, border: `3px solid ${p.border}` }}>
               {cat.image
-                ? <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+                ? <img src={ik.catCircle(cat.image)} alt={cat.name} width={200} height={200} loading="lazy" className="w-full h-full object-cover" />
                 : <span className="text-4xl md:text-8xl">{cat.icon || '🛍️'}</span>
               }
             </div>

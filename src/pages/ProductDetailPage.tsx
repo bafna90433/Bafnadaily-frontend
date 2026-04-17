@@ -7,6 +7,7 @@ import useCartStore from '../store/cartStore'
 import useAuthStore from '../store/authStore'
 import ProductCard from '../components/product/ProductCard'
 import toast from 'react-hot-toast'
+import { ik } from '../utils/imagekit'
 
 // ── Star Rating Display ────────────────────────────────────────────────────────
 function StarRow({ rating, size = 14 }: { rating: number; size?: number }) {
@@ -107,7 +108,8 @@ const ProductDetailPage: React.FC = () => {
   const [adding, setAdding] = useState(false)
   const [variant, setVariant] = useState('')
   const [wishlisted, setWishlisted] = useState(false)
-  const [tab, setTab] = useState<'desc'|'reviews'|'shipping'>('desc')
+  const [tab, setTab] = useState<'reviews'|'shipping'>('reviews')
+  const [descOpen, setDescOpen] = useState(false)
   const { addToCart, cart, updateItem, removeItem } = useCartStore()
   const { user } = useAuthStore()
 
@@ -162,7 +164,7 @@ const ProductDetailPage: React.FC = () => {
   }
 
   if (loading) return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="w-full px-4 md:px-10 lg:px-16 xl:px-24 py-8">
       <div className="grid md:grid-cols-2 gap-8">
         <div className="aspect-square skeleton rounded-2xl"/>
         <div className="space-y-4">{Array(6).fill(0).map((_,i)=><div key={i} className="h-8 skeleton rounded"/>)}</div>
@@ -176,7 +178,7 @@ const ProductDetailPage: React.FC = () => {
     : [{ url: `https://placehold.co/600x600/FCE4EC/E91E63?text=${product.name}` }]
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="w-full px-4 md:px-10 lg:px-16 xl:px-24 py-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-xs text-gray-400 mb-6">
         <button onClick={() => navigate('/')} className="hover:text-primary">Home</button><span>/</span>
@@ -184,11 +186,11 @@ const ProductDetailPage: React.FC = () => {
         <span className="text-gray-700 line-clamp-1">{product.name}</span>
       </nav>
 
-      <div className="grid md:grid-cols-2 gap-8 mb-12">
+      <div className="grid md:grid-cols-[1fr_1.2fr] lg:grid-cols-[1fr_1.4fr] gap-10 mb-12">
         {/* ── Images ── */}
-        <div className="max-w-md mx-auto w-full">
+        <div className="w-full">
           <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-50 mb-3">
-            <img src={images[imgIdx]?.url} alt={product.name} className="w-full h-full object-cover"/>
+            <img src={ik.detail(images[imgIdx]?.url)} alt={product.name} width={600} height={600} loading="eager" fetchPriority="high" className="w-full h-full object-cover"/>
             {images.length > 1 && <>
               <button onClick={() => setImgIdx(i => (i-1+images.length)%images.length)}
                 className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white rounded-full shadow flex items-center justify-center hover:scale-110 transition-transform">
@@ -210,7 +212,7 @@ const ProductDetailPage: React.FC = () => {
             {images.map((img, i) => (
               <button key={i} onClick={() => setImgIdx(i)}
                 className={`w-16 h-16 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all ${imgIdx===i?'border-primary scale-105':'border-transparent hover:border-gray-300'}`}>
-                <img src={img.url} alt="" className="w-full h-full object-cover"/>
+                <img src={ik.detailThumb(img.url)} alt="" width={64} height={64} loading="lazy" className="w-full h-full object-cover"/>
               </button>
             ))}
           </div>
@@ -347,22 +349,70 @@ const ProductDetailPage: React.FC = () => {
               🎁 Gift wrapping available at checkout (+₹29)
             </div>
           )}
+
+          {/* ── Description — accordion on mobile, always open on desktop ── */}
+          {product.description && (
+            <div className="mt-5">
+              {/* Mobile accordion */}
+              <div className="md:hidden border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                <button
+                  onClick={() => setDescOpen(o => !o)}
+                  className="w-full flex items-center justify-between px-4 py-3.5 bg-gradient-to-r from-pink-50 to-purple-50 active:from-pink-100 active:to-purple-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-base">📋</span>
+                    <span className="text-sm font-black text-gray-800 tracking-wide">Product Description</span>
+                  </div>
+                  <div className={`w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center transition-transform duration-300 ${descOpen ? 'rotate-180' : ''}`}>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 4L6 8L10 4" stroke="#E91E63" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                </button>
+                <div className={`overflow-hidden transition-all duration-400 ease-in-out ${descOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="px-4 py-4 bg-white border-t border-gray-50">
+                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{product.description}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop — always visible */}
+              <div className="hidden md:block border-t border-gray-100 pt-5">
+                <h3 className="text-sm font-black text-gray-800 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span className="w-1 h-4 bg-primary rounded-full inline-block"/>
+                  Product Description
+                </h3>
+                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{product.description}</p>
+              </div>
+            </div>
+          )}
+
+          {/* ── Shipping info inline ── */}
+          <div className="mt-5 border-t border-gray-100 pt-5 grid grid-cols-2 gap-2">
+            {[
+              { emoji: '✅', text: 'Free delivery above ₹499' },
+              { emoji: '🚚', text: '3–7 business days' },
+              { emoji: '💵', text: 'Cash on Delivery available' },
+              { emoji: '↩️', text: '7-day easy returns' },
+            ].map(({ emoji, text }) => (
+              <div key={text} className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-xl px-3 py-2">
+                <span>{emoji}</span><span className="font-medium">{text}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* ── Tabs: Description / Reviews / Shipping ── */}
+      {/* ── Tabs: Reviews / Shipping ── */}
       <div className="mb-12">
         <div className="flex border-b border-gray-200 mb-6">
-          {([['desc','Description'],['reviews',`Reviews${product.numReviews > 0 ? ` (${product.numReviews})` : ''}`],['shipping','Shipping']] as const).map(([k,l]) => (
+          {([['reviews',`Reviews${product.numReviews > 0 ? ` (${product.numReviews})` : ''}`],['shipping','Shipping Info']] as const).map(([k,l]) => (
             <button key={k} onClick={() => setTab(k as any)}
               className={`px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${tab===k?'border-primary text-primary':'border-transparent text-gray-500 hover:text-gray-700'}`}>
               {l}
             </button>
           ))}
         </div>
-        {tab==='desc' && (
-          <p className="text-gray-600 leading-relaxed whitespace-pre-line">{product.description}</p>
-        )}
         {tab==='reviews' && (
           <ReviewsSection
             reviews={product.reviews || []}

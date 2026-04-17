@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { ik } from '../utils/imagekit';
 import { useParams, Link } from 'react-router-dom';
 import api from '../utils/api';
 import { Product, Category, Banner } from '../types';
@@ -69,7 +70,7 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
         <Link key={bn._id} to={bn.link || '/products'}
           className={`absolute inset-0 transition-opacity duration-700 ${i === active ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
           {bn.image
-            ? <img src={bn.image} alt={bn.title} className="w-full h-full" style={{ objectFit: 'cover', objectPosition: 'center' }} />
+            ? <img src={ik.banner(bn.image)} alt={bn.title || 'Banner'} width={900} height={400} loading="eager" fetchPriority="high" className="w-full h-full" style={{ objectFit: 'cover', objectPosition: 'center' }} />
             : <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#E91E63,#C77DFF)' }}>
                 <p className="text-white font-black text-xl text-center px-6">{bn.title}</p>
               </div>
@@ -294,7 +295,7 @@ const HangingLayout = ({ category, subCategories }: { category: Category; subCat
             <div className="bg-white p-3 rounded-2xl shadow-xl border-2 border-primary/10 group-hover:border-primary group-hover:-rotate-3 transition-all duration-500 group-hover:scale-110">
               <div className="w-36 h-48 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-100 shadow-inner">
                 {sub.image ? (
-                  <img src={sub.image} alt={sub.name} className="w-full h-full object-cover" />
+                  <img src={ik.catCircle(sub.image)} alt={sub.name} width={200} height={200} loading="lazy" className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-4xl">{sub.icon || '🛍️'}</span>
                 )}
@@ -319,53 +320,58 @@ const HangingLayout = ({ category, subCategories }: { category: Category; subCat
 );
 
 const StandardLayout = ({ category, subCategories, products, deals, heroBanners, hangingBanners, selectedSubId, onSelectSub, productsLoading, isDealsPage, totalProducts, onLoadMore, loadingMore }: { category: Category; subCategories: Category[]; products: Product[]; deals: DealProduct[]; heroBanners: Banner[]; hangingBanners: Banner[]; selectedSubId: string | null; onSelectSub: (id: string | null) => void; productsLoading: boolean; isDealsPage?: boolean; totalProducts: number; onLoadMore: () => void; loadingMore: boolean }) => (
-  <div className="w-full px-4 md:px-10 lg:px-16 xl:px-24 py-6 pb-20">
-    {/* ── Category Specific Professional Hero Banner (Dynamic) ── */}
+  <div className="w-full pb-20">
+    {/* ── Hero Banner — same full-width style as HomePage HeroLayout4 ── */}
     {(heroBanners.length > 0 || hangingBanners.length > 0) && (
-      <section className="relative overflow-hidden rounded-[2.5rem] mb-12" style={{ background: 'linear-gradient(135deg, #fff0f6 0%, #fdf2ff 40%, #fff8f0 70%, #fefffe 100%)' }}>
-        {/* Soft decorative blobs */}
+      <section className="relative overflow-hidden mb-8" style={{ background: 'linear-gradient(135deg, #fff0f6 0%, #fdf2ff 40%, #fff8f0 70%, #fefffe 100%)' }}>
+        {/* Decorative blobs */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-20 -left-20 w-80 h-80 rounded-full" style={{ background: 'radial-gradient(circle, rgba(233,30,99,0.07) 0%, transparent 70%)' }} />
           <div className="absolute top-10 right-10 w-64 h-64 rounded-full" style={{ background: 'radial-gradient(circle, rgba(199,125,255,0.08) 0%, transparent 70%)' }} />
           <div className="absolute bottom-0 left-1/3 w-72 h-72 rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,139,90,0.06) 0%, transparent 70%)' }} />
         </div>
+        <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: 'linear-gradient(90deg, transparent, rgba(233,30,99,0.25), rgba(199,125,255,0.25), transparent)' }} />
 
-        {/* Mobile only: banner card slider */}
+        {/* Mobile: full-width banner slider */}
         {heroBanners.length > 0 && (
-          <div className="block lg:hidden w-full relative z-10 px-3 pt-3 pb-4">
+          <div className="block lg:hidden w-full relative z-10 px-3 pt-3 pb-1">
             <HeroBannerCard banners={heroBanners} mobile />
           </div>
         )}
 
-        {/* Desktop: split layout — hanging items left, slider right */}
-        <div className="hidden lg:flex w-full px-10 xl:px-20 py-12 relative z-10 items-stretch" style={{ minHeight: '400px' }}>
+        {/* Desktop: hanging items left + banner right (identical to HomePage) */}
+        <div className="hidden lg:flex w-full px-14 xl:px-24 py-12 relative z-10 items-stretch" style={{ minHeight: '60vh' }}>
           <div className="w-full flex flex-row items-stretch gap-16">
-            {/* Left Column — Hanging items */}
+            {/* Left — Hanging banners */}
             {hangingBanners.length > 0 && (
-              <div className="flex-1 flex flex-row items-start justify-center gap-6 overflow-visible" style={{ alignSelf: 'stretch', marginTop: '-45px' }}>
+              <div className="flex-1 flex flex-row items-start justify-center gap-4 overflow-visible" style={{ alignSelf: 'stretch', marginTop: '-45px' }}>
                 <style>{`
-                  @keyframes sway-category { 0%{transform:rotate(-5deg)} 50%{transform:rotate(5deg)} 100%{transform:rotate(-5deg)} }
-                  .cat-hang:nth-child(odd)  { animation: sway-category 3s ease-in-out infinite; }
-                  .cat-hang:nth-child(even) { animation: sway-category 3s ease-in-out infinite 0.5s; }
+                  @keyframes sway-cat { 0%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} 100%{transform:rotate(-6deg)} }
+                  .cat-hang2 { transform-origin: top center; }
+                  .cat-hang2:nth-child(odd)  { animation: sway-cat 3.2s ease-in-out infinite; }
+                  .cat-hang2:nth-child(even) { animation: sway-cat 3.2s ease-in-out infinite 0.7s; }
+                  .cat-hang2:nth-child(3n)   { animation: sway-cat 3.2s ease-in-out infinite 1.4s; }
                 `}</style>
-                {hangingBanners.slice(0, 4).map((b, i) => (
-                  <a key={i} href={b.link || '#'} className="cat-hang flex flex-col items-center" style={{ textDecoration: 'none', flexShrink: 0 }}>
-                    <div style={{ width: '1.5px', height: '40px', background: 'linear-gradient(180deg,#f43f8e,#e879a0)', borderRadius: '1px' }} />
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', border: '1.5px solid #9ca3af', background: 'transparent', marginBottom: '-2px', zIndex: 2 }} />
-                    <div style={{ background: 'white', padding: '4px', borderRadius: '18px', boxShadow: '0 6px 18px rgba(244,63,142,0.15)', border: '1.5px solid rgba(244,63,142,0.1)' }}>
-                      <img src={b.image} alt="keychain" style={{ width: '90px', height: '130px', borderRadius: '14px', objectFit: 'cover', display: 'block' }} />
-                      <div style={{ marginTop: '4px', background: 'linear-gradient(135deg,#f43f8e,#ec4899)', borderRadius: '10px', padding: '3px 8px', textAlign: 'center' }}>
-                        <span style={{ color: 'white', fontSize: '9px', fontWeight: 900, letterSpacing: '0.4px' }}>Under {b.title?.split('Under')[1] || '50'}</span>
-                      </div>
+                {hangingBanners.slice(0, 6).map((b, i) => (
+                  <a key={i} href={b.link || '#'} className="cat-hang2 flex flex-col items-center" style={{ textDecoration: 'none', flexShrink: 0 }}>
+                    <div style={{ width: '2px', height: '45px', background: 'linear-gradient(180deg,#f43f8e,#e879a0)', borderRadius: '1px' }} />
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '2px solid #9ca3af', background: 'transparent', marginBottom: '-3px', zIndex: 2 }} />
+                    <div style={{ background: 'white', padding: '5px', borderRadius: '20px', boxShadow: '0 8px 24px rgba(244,63,142,0.18)', border: '2px solid rgba(244,63,142,0.12)' }}>
+                      <img src={ik.hanging(b.image)} alt={b.title || 'item'} width={100} height={150} loading="lazy" style={{ width: '100px', height: '150px', borderRadius: '15px', objectFit: 'cover', display: 'block' }} />
+                      {b.title && (
+                        <div style={{ marginTop: '6px', background: 'linear-gradient(135deg,#f43f8e,#ec4899)', borderRadius: '12px', padding: '4px 10px', textAlign: 'center', boxShadow: '0 2px 8px rgba(244,63,142,0.3)' }}>
+                          <span style={{ color: 'white', fontSize: '11px', fontWeight: 900, letterSpacing: '0.4px', whiteSpace: 'nowrap' }}>{b.title}</span>
+                        </div>
+                      )}
                     </div>
                   </a>
                 ))}
               </div>
             )}
 
-            {/* Right Column — Main Banner Slider */}
+            {/* Right — Main banner slider */}
             {heroBanners.length > 0 && (
-              <div className="flex-[2.5] flex flex-col justify-center">
+              <div className="flex-[1.5] flex flex-col justify-center">
                 <HeroBannerCard banners={heroBanners} />
               </div>
             )}
@@ -374,12 +380,15 @@ const StandardLayout = ({ category, subCategories, products, deals, heroBanners,
       </section>
     )}
 
-    {/* Old Banner Section (Showing only if no Hero banners) */}
-    {category.banner && heroBanners.length === 0 && (
-      <div className="w-full aspect-[2/1] md:aspect-[4/1] rounded-3xl overflow-hidden mb-8 shadow-xl relative">
+    {/* Fallback: old category banner if no hero banners set */}
+    {category.banner && heroBanners.length === 0 && hangingBanners.length === 0 && (
+      <div className="w-full aspect-[2/1] md:aspect-[4/1] overflow-hidden mb-8 shadow-xl relative">
         <img src={category.banner} className="w-full h-full object-cover" alt={category.name} />
       </div>
     )}
+
+    {/* Page content with padding */}
+    <div className="px-4 md:px-10 lg:px-16 xl:px-24">
 
     {/* Header */}
     <div className="mb-8">
@@ -499,6 +508,7 @@ const StandardLayout = ({ category, subCategories, products, deals, heroBanners,
         )}
       </>
     )}
+    </div>{/* end inner padding div */}
   </div>
 );
 

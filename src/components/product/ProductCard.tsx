@@ -6,6 +6,7 @@ import useCartStore from '../../store/cartStore'
 import useAuthStore from '../../store/authStore'
 import api from '../../utils/api'
 import toast from 'react-hot-toast'
+import { ik } from '../../utils/imagekit'
 
 interface Props { product: Product }
 
@@ -19,7 +20,8 @@ const ProductCard: React.FC<Props> = ({ product }) => {
   const cartItem = cart?.items?.find(i => i.product?._id === product._id)
   const qtyInCart = cartItem?.quantity || 0
 
-  const img = product.images?.[0]?.url || `https://placehold.co/400x400/FCE4EC/E91E63?text=${encodeURIComponent(product.name)}`
+  const rawImg = product.images?.[0]?.url || ''
+  const img = rawImg ? ik.thumb(rawImg) : `https://placehold.co/300x300/FCE4EC/E91E63?text=${encodeURIComponent(product.name)}`
 
   const handleCart = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -55,8 +57,9 @@ const ProductCard: React.FC<Props> = ({ product }) => {
         {/* Image */}
         <div className="relative overflow-hidden bg-gray-50" style={{ aspectRatio: '1/1' }}>
           <img src={img} alt={product.name} loading="lazy"
+            width={300} height={300}
             className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
-            onError={(e) => { (e.target as HTMLImageElement).src = `https://placehold.co/400x400/FCE4EC/E91E63?text=Product` }}
+            onError={(e) => { (e.target as HTMLImageElement).src = `https://placehold.co/300x300/FCE4EC/E91E63?text=Product` }}
           />
           {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
