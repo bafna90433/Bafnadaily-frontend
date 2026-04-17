@@ -396,30 +396,46 @@ const StandardLayout = ({ category, subCategories, products, deals, heroBanners,
         {/* Desktop: hanging items left + banner right (identical to HomePage) */}
         <div className="hidden lg:flex w-full px-14 xl:px-24 py-12 relative z-10 items-stretch" style={{ minHeight: '60vh' }}>
           <div className="w-full flex flex-row items-stretch gap-16">
-            {/* Left — Hanging banners */}
+            {/* Left — Hanging banners with auto-scroll marquee */}
             {hangingBanners.length > 0 && (
-              <div className="flex-1 flex flex-row items-start justify-center gap-4 overflow-visible" style={{ alignSelf: 'stretch', marginTop: '-45px' }}>
+              <div className="flex-1 relative overflow-hidden" style={{ alignSelf: 'stretch', marginTop: '-45px' }}>
                 <style>{`
+                  @keyframes marquee-pc {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-50%); }
+                  }
+                  .marquee-pc-container {
+                    display: flex;
+                    gap: 1.5rem;
+                    width: max-content;
+                    animation: marquee-pc 25s linear infinite;
+                  }
+                  .marquee-pc-container:hover { animation-play-state: paused; }
                   @keyframes sway-cat { 0%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} 100%{transform:rotate(-6deg)} }
-                  .cat-hang2 { transform-origin: top center; }
-                  .cat-hang2:nth-child(odd)  { animation: sway-cat 3.2s ease-in-out infinite; }
-                  .cat-hang2:nth-child(even) { animation: sway-cat 3.2s ease-in-out infinite 0.7s; }
-                  .cat-hang2:nth-child(3n)   { animation: sway-cat 3.2s ease-in-out infinite 1.4s; }
+                  .cat-hang2 { transform-origin: top center; animation: sway-cat 3.2s ease-in-out infinite; }
                 `}</style>
-                {hangingBanners.slice(0, 6).map((b, i) => (
-                  <a key={i} href={b.link || '#'} className="cat-hang2 flex flex-col items-center" style={{ textDecoration: 'none', flexShrink: 0 }}>
-                    <div style={{ width: '2px', height: '45px', background: 'linear-gradient(180deg,#f43f8e,#e879a0)', borderRadius: '1px' }} />
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '2px solid #9ca3af', background: 'transparent', marginBottom: '-3px', zIndex: 2 }} />
-                    <div style={{ background: 'white', padding: '8px', borderRadius: '30px', boxShadow: '0 15px 40px rgba(244,63,142,0.25)', border: '2px solid rgba(244,63,142,0.18)' }}>
-                      <img src={ik.hanging(b.image)} alt={b.title || 'item'} width={160} height={240} loading="lazy" style={{ width: '160px', height: '240px', borderRadius: '24px', objectFit: 'cover', display: 'block' }} />
-                      {b.title && (
-                        <div style={{ marginTop: '10px', background: 'linear-gradient(135deg,#f43f8e,#ec4899)', borderRadius: '18px', padding: '6px 15px', textAlign: 'center', boxShadow: '0 4px 12px rgba(244,63,142,0.35)' }}>
-                          <span style={{ color: 'white', fontSize: '14px', fontWeight: 900, letterSpacing: '0.6px', whiteSpace: 'nowrap' }}>{b.title}</span>
-                        </div>
-                      )}
-                    </div>
-                  </a>
-                ))}
+                
+                <div className="marquee-pc-container pt-1">
+                  {/* Duplicated for seamless loop */}
+                  {[...hangingBanners, ...hangingBanners].map((b, i) => (
+                    <a key={i} href={b.link || '#'} className="cat-hang2 flex flex-col items-center" style={{ textDecoration: 'none', flexShrink: 0, animationDelay: `${(i % hangingBanners.length) * 0.4}s` }}>
+                      <div style={{ width: '2px', height: '45px', background: 'linear-gradient(180deg,#f43f8e,#e879a0)', borderRadius: '1px' }} />
+                      <div style={{ width: '10px', height: '10px', borderRadius: '50%', border: '2px solid #9ca3af', background: 'transparent', marginBottom: '-3px', zIndex: 2 }} />
+                      <div style={{ background: 'white', padding: '8px', borderRadius: '30px', boxShadow: '0 15px 40px rgba(244,63,142,0.25)', border: '2px solid rgba(244,63,142,0.18)' }}>
+                        <img src={ik.hanging(b.image)} alt={b.title || 'item'} width={160} height={240} loading="lazy" style={{ width: '160px', height: '240px', borderRadius: '24px', objectFit: 'cover', display: 'block' }} />
+                        {b.title && (
+                          <div style={{ marginTop: '10px', background: 'linear-gradient(135deg,#f43f8e,#ec4899)', borderRadius: '18px', padding: '6px 15px', textAlign: 'center', boxShadow: '0 4px 12px rgba(244,63,142,0.35)' }}>
+                            <span style={{ color: 'white', fontSize: '14px', fontWeight: 900, letterSpacing: '0.6px', whiteSpace: 'nowrap' }}>{b.title}</span>
+                          </div>
+                        )}
+                      </div>
+                    </a>
+                  ))}
+                </div>
+                
+                {/* Edge Fades */}
+                <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-pink-50/80 to-transparent pointer-events-none z-10" />
+                <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-pink-50/80 to-transparent pointer-events-none z-10" />
               </div>
             )}
 
