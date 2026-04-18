@@ -292,6 +292,13 @@ const StandardLayout = ({
 }) => (
   <div className="w-full pb-20">
     <section className="relative overflow-hidden mb-12" style={{ background: 'linear-gradient(135deg, #fff0f6 0%, #fdf2ff 40%, #fff8f0 70%, #fefffe 100%)' }}>
+      {/* Mobile only: full-width landscape banner */}
+      {heroBanners.length > 0 && (
+        <div className="block lg:hidden w-full relative z-10 px-3 pt-3 pb-1">
+          <HeroBannerCard banners={heroBanners} mobile />
+        </div>
+      )}
+
       <div className="hidden lg:flex w-full px-14 xl:px-24 py-12 items-stretch min-h-[50vh]">
         <div className="w-full flex row gap-16">
           <div className="flex-1 flex flex-row items-start justify-center gap-6 mt-[-45px]">
@@ -413,7 +420,7 @@ const DealCard: React.FC<{ deal: DealProduct }> = ({ deal }) => {
             <span className="text-sm font-black text-red-600">₹{dealPrice}</span>
             <span className="text-[10px] text-gray-400 line-through">₹{product.price}</span>
           </div>
-          {product.stock > 0 ? (
+          {product.stock !== 0 ? (
             qtyInCart > 0 ? (
               <div className="flex items-center h-8 rounded-lg overflow-hidden border border-primary">
                 <button onClick={(e) => handleUpdateQty(e, -1)} className="flex-1 bg-gray-50">−</button>

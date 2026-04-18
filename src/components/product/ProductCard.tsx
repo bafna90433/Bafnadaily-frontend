@@ -132,7 +132,7 @@ const ProductCard: React.FC<Props> = ({ product }) => {
           )}
 
           {/* ── Cart Controls ── always visible ── */}
-          {product.stock > 0 ? (
+          {product.stock !== 0 ? (
             qtyInCart > 0 ? (
               <div className="flex items-center rounded-xl overflow-hidden border border-primary h-9">
                 <button
