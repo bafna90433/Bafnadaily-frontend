@@ -164,7 +164,7 @@ const CategoryPage: React.FC = () => {
 
         const bannerRes = await api.get(`/banners?isActive=true&category=${fetchedCategory._id}`);
         const allBanners: Banner[] = bannerRes.data.banners || [];
-        
+
         const catHeros = allBanners.filter((b: any) => {
           const bannerCatId = typeof b.category === 'object' ? b.category?._id : b.category;
           return bannerCatId === fetchedCategory._id && (b.type === 'hero' || b.type === 'promo' || b.type === 'category');
@@ -295,9 +295,13 @@ const StandardLayout = ({
       <div className="hidden lg:flex w-full px-14 xl:px-24 py-12 items-stretch min-h-[50vh]">
         <div className="w-full flex row gap-16">
           <div className="flex-1 flex flex-row items-start justify-center gap-6 mt-[-45px]">
+            <style>{`
+              @keyframes sway-hero { 0%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} 100%{transform:rotate(-6deg)} }
+              .hang-item-style { transform-origin: top center; animation: sway-hero 3.5s ease-in-out infinite; }
+            `}</style>
             {hangingBanners.slice(0, 6).map((b, i) => (
-              <a key={i} href={b.link || '#'} className="flex flex-col items-center group">
-                <div className="w-[2px] h-[60px] bg-gradient-to-b from-pink-500 to-pink-200" />
+              <a key={i} href={b.link || '#'} className="hang-item-style flex flex-col items-center group" style={{ animationDelay: `${i * 0.6}s` }}>
+                <div className="w-[2px] h-[60px] bg-gradient-to-b from-pink-500 to-pink-400" />
                 <div className="w-3 h-3 rounded-full bg-white border-2 border-slate-300 ring-2 ring-white -mb-0.5 z-10" />
                 <div className="bg-white p-2 rounded-[2rem] shadow-xl border-2 border-pink-100 group-hover:border-primary transition-all">
                   <img src={ik.hanging(b.image)} alt={b.title} width={165} height={250} className="w-40 h-64 rounded-[1.5rem] object-cover" />
