@@ -131,3 +131,11 @@ export interface Banner {
   sortOrder: number
   category?: { _id: string; name: string; slug: string } | string | null
 }
+export interface DealProduct {
+  _id: string;
+  product: Product;
+  dealPrice: number;
+  discountType: 'percentage' | 'flat';
+  discountValue: number;
+  endTime: string;
+}

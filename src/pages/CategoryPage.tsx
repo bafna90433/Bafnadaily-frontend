@@ -94,15 +94,6 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
   )
 }
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-interface DealProduct {
-  _id: string;
-  product: Product;
-  dealPrice: number;
-  discountType: 'percentage' | 'flat';
-  discountValue: number;
-  endTime: string;
-}
 
 const getAllDescendantIds = (parentId: string, allCats: any[]): string[] => {
   const children = allCats.filter((c: any) => c.parent?._id === parentId || c.parent === parentId);
@@ -174,8 +165,14 @@ const CategoryPage: React.FC = () => {
         const bannerRes = await api.get(`/banners?isActive=true&category=${fetchedCategory._id}`);
         const allBanners: Banner[] = bannerRes.data.banners || [];
         
-        const catHeros = allBanners.filter(b => (b.category?._id === fetchedCategory._id || b.category === fetchedCategory._id) && (b.type === 'hero' || b.type === 'promo' || b.type === 'category'));
-        const catHangings = allBanners.filter(b => (b.category?._id === fetchedCategory._id || b.category === fetchedCategory._id) && b.type === 'hanging');
+        const catHeros = allBanners.filter((b: any) => {
+          const bannerCatId = typeof b.category === 'object' ? b.category?._id : b.category;
+          return bannerCatId === fetchedCategory._id && (b.type === 'hero' || b.type === 'promo' || b.type === 'category');
+        });
+        const catHangings = allBanners.filter((b: any) => {
+          const bannerCatId = typeof b.category === 'object' ? b.category?._id : b.category;
+          return bannerCatId === fetchedCategory._id && b.type === 'hanging';
+        });
         const globalHeros = allBanners.filter(b => !b.category && (b.type === 'hero' || b.type === 'promo' || b.type === 'category'));
         const globalHangings = allBanners.filter(b => !b.category && b.type === 'hanging');
 
