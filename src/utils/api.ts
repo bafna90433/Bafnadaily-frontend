@@ -3,13 +3,8 @@ import axios from 'axios'
 import toast from 'react-hot-toast'
 
 const api = axios.create({
-<<<<<<< HEAD
-  baseURL: import.meta.env.VITE_API_URL || 'https://api.bafnatoys.com/api',
-  timeout: 15000,
-=======
   baseURL: import.meta.env.VITE_API_URL || 'https://api.bafnadaily.com/api',
   timeout: 30000,
->>>>>>> 6a5d903 (Updated frontend pages and API integration)
 })
 
 api.interceptors.request.use((config) => {
