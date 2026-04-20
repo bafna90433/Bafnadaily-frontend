@@ -312,7 +312,7 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
           {bn.image ? (
             <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
               <img src={ik.banner(bn.image)} alt="" className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110" aria-hidden="true" />
-              <img src={mobile ? ik.mobileBanner(bn.image) : ik.banner(bn.image)} alt={bn.title || 'Banner'} loading={i === 0 ? 'eager' : 'lazy'} fetchPriority={i === 0 ? 'high' : 'low'} className="relative z-10 w-full h-full object-contain" />
+              <img src={mobile ? ik.mobileBanner(bn.image) : ik.banner(bn.image)} alt={bn.title || 'Banner'} loading={i === 0 ? 'eager' : 'lazy'} fetchPriority={i === 0 ? 'high' : 'auto'} className="relative z-10 w-full h-full object-contain" />
             </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#E91E63,#C77DFF)' }}>
@@ -391,7 +391,7 @@ const FullWidthProductSection: React.FC<SectionProps> = ({ title, products, load
       </Link>
     </div>
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-      {loading ? Array(10).fill(0).map((_, i) => <SkeletonCard key={i} />) : products.map(p => <ProductCard key={p._id} product={p} />)}
+      {loading ? Array(10).fill(0).map((_, i) => <SkeletonCard key={i} />) : products.map((p, i) => <ProductCard key={p._id} product={p} priority={i < 4} />)}
     </div>
     {!loading && products.length === 0 && (
       <div className="text-center py-16 text-gray-400"><p className="text-5xl mb-4">🛍️</p><p className="font-medium">No products yet — add from admin panel</p></div>

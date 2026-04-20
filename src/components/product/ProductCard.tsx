@@ -8,9 +8,9 @@ import api from '../../utils/api'
 import toast from 'react-hot-toast'
 import { ik } from '../../utils/imagekit'
 
-interface Props { product: Product }
+interface Props { product: Product, priority?: boolean }
 
-const ProductCard: React.FC<Props> = ({ product }) => {
+const ProductCard: React.FC<Props> = ({ product, priority }) => {
   const { cart, addToCart, updateItem } = useCartStore()
   const { user } = useAuthStore()
   const navigate = useNavigate()
@@ -21,7 +21,8 @@ const ProductCard: React.FC<Props> = ({ product }) => {
   const qtyInCart = cartItem?.quantity || 0
 
   const rawImg = product.images?.[0]?.url || ''
-  const img = rawImg ? ik.thumb(rawImg) : `https://placehold.co/300x300/FCE4EC/E91E63?text=${encodeURIComponent(product.name)}`
+  // Use gridThumb for mobile-optimized grid
+  const img = rawImg ? ik.gridThumb(rawImg) : `https://placehold.co/300x300/FCE4EC/E91E63?text=${encodeURIComponent(product.name)}`
 
   const handleCart = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -56,7 +57,9 @@ const ProductCard: React.FC<Props> = ({ product }) => {
       <div className="card overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1" style={{ borderRadius: '1rem' }}>
         {/* Image */}
         <div className="relative overflow-hidden bg-gray-50" style={{ aspectRatio: '1/1' }}>
-          <img src={img} alt={product.name} loading="lazy"
+          <img src={img} alt={product.name} 
+            loading={priority ? 'eager' : 'lazy'}
+            fetchPriority={priority ? 'high' : 'auto'}
             width={300} height={300}
             className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
             onError={(e) => { (e.target as HTMLImageElement).src = `https://placehold.co/300x300/FCE4EC/E91E63?text=Product` }}
