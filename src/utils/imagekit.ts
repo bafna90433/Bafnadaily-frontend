@@ -26,6 +26,8 @@ export const ik = {
   catCircle: (url: string) => ikImg(url, 200, 200, 80),
   /** Hero / banner (wide) */
   banner: (url: string) => ikImg(url, 1200, undefined, 85),
+  /** Hero / banner for mobile */
+  mobileBanner: (url: string) => ikImg(url, 600, undefined, 80),
   /** Hanging keychain item */
   hanging: (url: string) => ikImg(url, 250, 375, 80),
   /** Product detail main image */

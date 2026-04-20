@@ -165,9 +165,37 @@ const ProductDetailPage: React.FC = () => {
 
   if (loading) return (
     <div className="w-full px-4 md:px-10 lg:px-16 xl:px-24 py-8">
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="aspect-square skeleton rounded-2xl"/>
-        <div className="space-y-4">{Array(6).fill(0).map((_,i)=><div key={i} className="h-8 skeleton rounded"/>)}</div>
+      <div className="grid md:grid-cols-[1fr_1.2fr] gap-10">
+        {/* Image Skeleton */}
+        <div className="space-y-3">
+          <div className="aspect-square skeleton rounded-2xl"/>
+          <div className="flex gap-2">
+            {[1,2,3,4].map(i => <div key={i} className="w-16 h-16 skeleton rounded-xl"/>)}
+          </div>
+        </div>
+        {/* Info Skeleton */}
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <div className="h-4 w-20 skeleton rounded"/>
+            <div className="h-10 w-3/4 skeleton rounded-xl"/>
+            <div className="h-6 w-32 skeleton rounded-lg opacity-50"/>
+          </div>
+          <div className="flex gap-3">
+            <div className="h-10 w-24 skeleton rounded-xl"/>
+            <div className="h-8 w-20 skeleton rounded-xl opacity-30"/>
+          </div>
+          <div className="h-20 w-full skeleton rounded-2xl"/>
+          <div className="flex gap-4">
+            <div className="h-14 flex-1 skeleton rounded-xl"/>
+            <div className="h-14 flex-1 skeleton rounded-xl"/>
+          </div>
+          <div className="space-y-2">
+            <div className="h-4 w-40 skeleton rounded"/>
+            <div className="h-4 w-full skeleton rounded"/>
+            <div className="h-4 w-full skeleton rounded"/>
+            <div className="h-4 w-2/3 skeleton rounded"/>
+          </div>
+        </div>
       </div>
     </div>
   )

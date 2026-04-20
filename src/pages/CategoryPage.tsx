@@ -162,9 +162,16 @@ const CategoryPage: React.FC = () => {
         if (!fetchedCategory) throw new Error('Category not found');
         setCategory(fetchedCategory);
 
-        const bannerRes = await api.get(`/banners?isActive=true&category=${fetchedCategory._id}`);
-        const allBanners: Banner[] = bannerRes.data.banners || [];
+        // Parallel fetch for everything else once we have the category
+        const [bannerRes, subRes] = await Promise.all([
+          api.get(`/banners?isActive=true&category=${fetchedCategory._id}`),
+          api.get('/categories/all')
+        ]);
 
+        const allBanners: Banner[] = bannerRes.data.banners || [];
+        const allCats = subRes?.data?.categories || [];
+
+        // Banners filtering
         const catHeros = allBanners.filter((b: any) => {
           const bannerCatId = typeof b.category === 'object' ? b.category?._id : b.category;
           return bannerCatId === fetchedCategory._id && (b.type === 'hero' || b.type === 'promo' || b.type === 'category');
@@ -179,11 +186,11 @@ const CategoryPage: React.FC = () => {
         setHeroBanners(catHeros.length > 0 ? catHeros : globalHeros);
         setHangingBanners(catHangings.length > 0 ? catHangings : globalHangings);
 
-        const subRes = await api.get('/categories/all');
-        const allCats = subRes?.data?.categories || [];
+        // Subcategories
         const directSubs = allCats.filter((c: any) => c.parent?._id === fetchedCategory._id || c.parent === fetchedCategory._id);
         setSubCategories(directSubs);
 
+        // Fetch products/deals in parallel with the above processing if possible, or right after
         if (fetchedCategory.slug === 'deals-of-the-day') {
           const dealsRes = await api.get('/deals-of-day');
           setDeals(dealsRes.data?.deals || []);
@@ -241,9 +248,43 @@ const CategoryPage: React.FC = () => {
 // ── Shared Layout Components ────────────────────────────────────────────────────
 
 const LoadingState = () => (
-  <div className="max-w-7xl mx-auto px-4 py-32 min-h-[60vh] flex flex-col items-center justify-center text-center">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4" />
-    <p className="text-gray-400 font-bold mt-4 animate-pulse">Loading your collection...</p>
+  <div className="w-full">
+    {/* Banner Skeleton */}
+    <section className="relative overflow-hidden mb-12 px-4 md:px-14 lg:px-24 py-12" style={{ background: 'linear-gradient(135deg, #fff0f6 0%, #fdf2ff 40%, #fff8f0 70%, #fefffe 100%)' }}>
+      <div className="w-full aspect-[16/9] lg:aspect-[2/1] skeleton rounded-[1.5rem] lg:rounded-[3.5rem]" />
+    </section>
+
+    <div className="px-4 md:px-10 lg:px-16 xl:px-24">
+      {/* Title Skeleton */}
+      <div className="mb-8 space-y-3">
+        <div className="h-10 w-64 skeleton rounded-xl" />
+        <div className="h-4 w-96 skeleton rounded-lg opacity-50" />
+      </div>
+
+      {/* Subcategories Skeleton */}
+      <div className="flex flex-wrap gap-5 mb-14 bg-gray-50/50 p-6 rounded-[2.5rem] border border-gray-100">
+        {Array(6).fill(0).map((_, i) => (
+          <div key={i} className="flex flex-col items-center gap-3">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full skeleton" />
+            <div className="h-3 w-16 skeleton rounded" />
+          </div>
+        ))}
+      </div>
+
+      {/* Products Grid Skeleton */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-6">
+        {Array(12).fill(0).map((_, i) => (
+          <div key={i} className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm transition-all relative">
+            <div className="aspect-square skeleton" />
+            <div className="p-3 space-y-2">
+              <div className="h-3 w-3/4 skeleton rounded" />
+              <div className="h-4 w-1/2 skeleton rounded" />
+              <div className="h-8 w-full skeleton rounded-lg" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   </div>
 );
 
@@ -340,7 +381,7 @@ const StandardLayout = ({
         <div className="flex flex-wrap gap-5 mb-14 bg-gray-50/50 p-6 rounded-[2.5rem] border border-gray-100">
           <button onClick={() => onSelectSub('SHOW_ALL')} className="flex flex-col items-center gap-2 group">
             <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 overflow-hidden flex items-center justify-center transition-all ${selectedSubId === 'SHOW_ALL' ? 'border-primary bg-primary/10' : 'border-primary/20 bg-primary/5'}`}>
-              <span className="text-primary font-black">ALL</span>
+              <span className="text-primary font-black text-xs">ALL</span>
             </div>
             <span className="text-[12px] font-bold text-gray-600">View All</span>
           </button>
@@ -355,22 +396,35 @@ const StandardLayout = ({
         </div>
       )}
 
-      {productsLoading ? (
-        <div className="py-20 text-center"><div className="animate-spin rounded-full h-10 w-10 border-t-2 border-primary mx-auto" /></div>
-      ) : isDealsPage ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-6">{deals.map((d) => <DealCard key={d._id} deal={d} />)}</div>
-      ) : (
-        <>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-6">{products.map((p) => <ProductCard key={p._id} product={p} />)}</div>
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-16 font-bold">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                <button key={p} onClick={() => onPageChange(p)} className={`w-10 h-10 rounded-xl transition-all ${p === currentPage ? 'bg-primary text-white shadow-lg' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary'}`}>{p}</button>
-              ))}
+      <div className="relative">
+        {productsLoading && (
+          <div className="absolute inset-0 z-10 bg-white/60 backdrop-blur-[2px] transition-all flex items-start justify-center pt-20">
+            <div className="bg-white p-4 rounded-2xl shadow-xl border border-gray-100 flex items-center gap-3">
+              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-primary" />
+              <span className="text-xs font-black text-gray-800 uppercase tracking-widest">Refreshing...</span>
             </div>
-          )}
-        </>
-      )}
+          </div>
+        )}
+        
+        {isDealsPage ? (
+          <div className={`grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-6 ${productsLoading ? 'opacity-40 grayscale' : ''}`}>
+            {deals.map((d) => <DealCard key={d._id} deal={d} />)}
+          </div>
+        ) : (
+          <>
+            <div className={`grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-6 ${productsLoading ? 'opacity-40 grayscale' : ''}`}>
+              {products.map((p) => <ProductCard key={p._id} product={p} />)}
+            </div>
+            {totalPages > 1 && (
+              <div className="flex justify-center gap-2 mt-16 font-bold">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button key={p} onClick={() => onPageChange(p)} className={`w-10 h-10 rounded-xl transition-all ${p === currentPage ? 'bg-primary text-white shadow-lg' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary'}`}>{p}</button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   </div>
 );

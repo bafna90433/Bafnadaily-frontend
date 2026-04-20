@@ -33,6 +33,28 @@ const SkeletonCard = () => (
   </div>
 )
 
+const SkeletonBanner = ({ mobile }: { mobile?: boolean }) => (
+  <div className="w-full bg-white skeleton" 
+    style={{ borderRadius: mobile ? '1.5rem' : '3.5rem', aspectRatio: mobile ? '16/9' : '2/1' }} />
+)
+
+const SkeletonCircles = () => (
+  <section className="px-6 md:px-14 lg:px-24 py-8">
+    <div className="flex items-center justify-between mb-5">
+      <div className="space-y-2"><div className="h-3 w-20 skeleton rounded" /><div className="h-6 w-48 skeleton rounded" /></div>
+      <div className="h-10 w-28 skeleton rounded-full" />
+    </div>
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 md:gap-12">
+      {Array(10).fill(0).map((_, i) => (
+        <div key={i} className="flex flex-col items-center gap-4">
+          <div className="w-full aspect-square rounded-[3rem] md:rounded-[4rem] skeleton" />
+          <div className="h-4 w-20 skeleton rounded" />
+        </div>
+      ))}
+    </div>
+  </section>
+)
+
 interface SectionProps { title: string; products: Product[]; loading: boolean; viewAll: string }
 const ProductSection: React.FC<SectionProps> = ({ title, products, loading, viewAll }) => (
   <section className="max-w-full mx-auto px-4 py-8">
@@ -49,9 +71,6 @@ const ProductSection: React.FC<SectionProps> = ({ title, products, loading, view
   </section>
 )
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// HERO LAYOUT 1 — Classic Split (Category Cards Right)
-// ═══════════════════════════════════════════════════════════════════════════════
 const HeroLayout1 = () => (
   <section className="relative overflow-hidden bg-gradient-to-br from-pink-50 via-white to-purple-50">
     <div className="max-w-full mx-auto px-4 py-14 md:py-24 flex flex-col md:flex-row items-center gap-10">
@@ -84,9 +103,6 @@ const HeroLayout1 = () => (
   </section>
 )
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// HERO LAYOUT 2 — Full-Width Gradient with Floating Stats
-// ═══════════════════════════════════════════════════════════════════════════════
 const HeroLayout2 = () => (
   <section className="relative overflow-hidden bg-gradient-to-r from-gray-900 via-slate-800 to-gray-900">
     <div className="max-w-full mx-auto px-4 py-16 md:py-28 text-center relative z-10">
@@ -130,19 +146,21 @@ const HeroLayout2 = () => (
   </section>
 )
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// MAIN DASHBOARD — 2x8 CATEGORY GRID
-// ═══════════════════════════════════════════════════════════════════════════════
-const MainDashboard = ({ categories }: { categories: any[] }) => {
+const MainDashboard = ({ categories, loading }: { categories: any[]; loading?: boolean }) => {
   const navigate = useNavigate()
 
-  // Specific categories the user asked for
+  if (loading) return (
+    <section className="max-w-full mx-auto px-4 py-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+        {Array(16).fill(0).map((_, i) => (
+          <div key={i} className="aspect-square rounded-3xl skeleton" />
+        ))}
+      </div>
+    </section>
+  )
+
   const focusSlugs = ['belt', 'keychains', 'hand-bags', 'women-kit', 'men']
-
-  // Create 16 slots
   const slots = Array(16).fill({ name: 'Coming Soon', emoji: '📦', soon: true })
-
-  // Fill focus ones first if they exist in DB, otherwise use placeholder labels
   const focusMap: Record<string, string> = {
     'belt': 'BELT',
     'keychains': 'ALL KEYCHAIN',
@@ -182,6 +200,7 @@ const MainDashboard = ({ categories }: { categories: any[] }) => {
     </section>
   )
 }
+
 const HeroLayout3 = () => (
   <section className="relative overflow-hidden bg-white">
     <div className="max-w-full mx-auto px-4 py-12 md:py-20">
@@ -215,9 +234,6 @@ const HeroLayout3 = () => (
   </section>
 )
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// FEATURES BAR component (shared)
-// ═══════════════════════════════════════════════════════════════════════════════
 const FeaturesBar = () => (
   <section className="bg-white border-y border-gray-100">
     <div className="max-w-full mx-auto px-4 py-5">
@@ -233,9 +249,6 @@ const FeaturesBar = () => (
   </section>
 )
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// CATEGORIES SECTION component (shared)
-// ═══════════════════════════════════════════════════════════════════════════════
 const CategoriesSection = () => (
   <section className="max-w-full mx-auto px-4 py-10">
     <h2 className="text-2xl md:text-3xl font-heading font-bold mb-5">Shop by Category</h2>
@@ -250,9 +263,6 @@ const CategoriesSection = () => (
   </section>
 )
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// PROMO BANNERS component (shared)
-// ═══════════════════════════════════════════════════════════════════════════════
 const PromoBanners: React.FC<{ sec: any }> = ({ sec }) => (
   <section className="max-w-7xl mx-auto px-4 pb-4 grid md:grid-cols-2 gap-4">
     {sec.underPriceBanner !== false && (
@@ -281,11 +291,6 @@ const PromoBanners: React.FC<{ sec: any }> = ({ sec }) => (
   </section>
 )
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// HERO LAYOUT 4 — Soft Pastel Boutique (Keychain & Women's Fashion)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-// ── Right-column banner card slider for Layout 4 ─────────────────────────────
 const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ banners, mobile }) => {
   const [active, setActive] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -299,15 +304,15 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
   return (
     <div className="relative w-full overflow-hidden bg-white shadow-2xl"
       style={{ borderRadius: mobile ? '1.5rem' : '3.5rem', aspectRatio: mobile ? '16/9' : '2/1', boxShadow: mobile ? '0 10px 30px rgba(0,0,0,0.1)' : '0 25px 60px rgba(0,0,0,0.12)' }}>
-      {banners.map((bn, i) => (
+      {banners.length === 0 ? (
+        <div className="absolute inset-0 skeleton" />
+      ) : banners.map((bn, i) => (
         <Link key={bn._id} to={bn.link || '/products'}
           className={`absolute inset-0 transition-opacity duration-700 ${i === active ? 'opacity-100 scale-100' : 'opacity-0 scale-105 pointer-events-none'}`}>
           {bn.image ? (
             <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-              {/* Blurred Background to fill empty gaps (Premium look) */}
               <img src={ik.banner(bn.image)} alt="" className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110" aria-hidden="true" />
-              {/* Main Image (No Crop) */}
-              <img src={ik.banner(bn.image)} alt={bn.title || 'Banner'} loading={i === 0 ? 'eager' : 'lazy'} fetchPriority={i === 0 ? 'high' : 'low'} className="relative z-10 w-full h-full object-contain" />
+              <img src={mobile ? ik.mobileBanner(bn.image) : ik.banner(bn.image)} alt={bn.title || 'Banner'} loading={i === 0 ? 'eager' : 'lazy'} fetchPriority={i === 0 ? 'high' : 'low'} className="relative z-10 w-full h-full object-contain" />
             </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#E91E63,#C77DFF)' }}>
@@ -316,8 +321,6 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
           )}
         </Link>
       ))}
-
-      {/* Dot indicators */}
       {banners.length > 1 && (
         <div className="absolute bottom-4 right-5 flex gap-1.5 z-20">
           {banners.map((_, i) => (
@@ -326,8 +329,6 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
           ))}
         </div>
       )}
-
-      {/* "Shop Now" pill */}
       <Link to={banners[active]?.link || '/products'}
         className="absolute top-4 right-4 z-20 flex items-center gap-1.5 text-xs font-black px-4 py-2 rounded-full backdrop-blur-sm"
         style={{ background: 'rgba(255,255,255,0.92)', color: '#E91E63', boxShadow: '0 2px 12px rgba(233,30,99,0.2)' }}>
@@ -339,26 +340,19 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
 
 const HeroLayout4: React.FC<{ heroBanners: Banner[]; hangingBanners: Banner[] }> = ({ heroBanners, hangingBanners }) => (
   <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fff0f6 0%, #fdf2ff 40%, #fff8f0 70%, #fefffe 100%)' }}>
-    {/* Soft decorative blobs */}
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       <div className="absolute -top-20 -left-20 w-80 h-80 rounded-full" style={{ background: 'radial-gradient(circle, rgba(233,30,99,0.07) 0%, transparent 70%)' }} />
       <div className="absolute top-10 right-10 w-64 h-64 rounded-full" style={{ background: 'radial-gradient(circle, rgba(199,125,255,0.08) 0%, transparent 70%)' }} />
       <div className="absolute bottom-0 left-1/3 w-72 h-72 rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,139,90,0.06) 0%, transparent 70%)' }} />
     </div>
     <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: 'linear-gradient(90deg, transparent, rgba(233,30,99,0.25), rgba(199,125,255,0.25), transparent)' }} />
-
-    {/* Mobile only: full-width landscape banner */}
     {heroBanners.length > 0 && (
       <div className="block lg:hidden w-full relative z-10 px-3 pt-3 pb-1">
         <HeroBannerCard banners={heroBanners} mobile />
       </div>
     )}
-
-    {/* Desktop: split layout — text left, banner right */}
     <div className="hidden lg:flex w-full px-14 xl:px-24 py-12 relative z-10 items-stretch" style={{ minHeight: '60vh' }}>
       <div className="w-full flex flex-row items-stretch gap-16">
-
-        {/* Left Column — Hanging Keychains (up to 6) */}
         <div className="flex-1 flex flex-row items-start justify-center gap-6 overflow-visible" style={{ alignSelf: 'stretch', marginTop: '-45px' }}>
           <style>{`
             @keyframes sway-hero { 0%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} 100%{transform:rotate(-6deg)} }
@@ -379,30 +373,20 @@ const HeroLayout4: React.FC<{ heroBanners: Banner[]; hangingBanners: Banner[] }>
             </a>
           ))}
         </div>
-
-        {/* Right Column — Banner */}
-        {heroBanners.length > 0 && (
-          <div className="flex-[1.5] flex flex-col justify-center">
-            <HeroBannerCard banners={heroBanners} />
-          </div>
-        )}
-
+        {heroBanners.length > 0 && <div className="flex-[1.5] flex flex-col justify-center"><HeroBannerCard banners={heroBanners} /></div>}
       </div>
     </div>
   </section>
 )
 
-// ── Full-Width Product Section (Layout 4) ────────────────────────────────────
 const FullWidthProductSection: React.FC<SectionProps> = ({ title, products, loading, viewAll }) => (
   <section className="px-6 md:px-14 lg:px-24 py-14">
-    {/* Section header with gradient accent */}
     <div className="flex items-end justify-between mb-8">
       <div>
         <h2 className="text-2xl md:text-3xl font-heading font-black text-gray-900 leading-tight">{title}</h2>
         <div className="h-1 w-16 mt-2 rounded-full" style={{ background: 'linear-gradient(90deg, #E91E63, #C77DFF)' }} />
       </div>
-      <Link to={viewAll}
-        className="inline-flex items-center gap-2 text-xs font-bold text-primary border border-primary/20 bg-primary/5 px-4 py-2 rounded-full hover:bg-primary hover:text-white transition-all duration-200">
+      <Link to={viewAll} className="inline-flex items-center gap-2 text-xs font-bold text-primary border border-primary/20 bg-primary/5 px-4 py-2 rounded-full hover:bg-primary hover:text-white transition-all duration-200">
         View All <ArrowRight size={13} />
       </Link>
     </div>
@@ -415,7 +399,6 @@ const FullWidthProductSection: React.FC<SectionProps> = ({ title, products, load
   </section>
 )
 
-// ── Full-Width Features Bar (Layout 4) ───────────────────────────────────────
 const FullWidthFeaturesBar = () => (
   <div style={{ background: 'linear-gradient(90deg,#fff0f6,#fdf2ff,#fff0f6)', borderTop: '1px solid rgba(233,30,99,0.1)', borderBottom: '1px solid rgba(233,30,99,0.1)' }}>
     <div className="px-6 md:px-14 lg:px-24 py-4">
@@ -427,13 +410,8 @@ const FullWidthFeaturesBar = () => (
           { Icon: RotateCcw, title: 'Easy Returns', desc: '7-day hassle-free', color: '#E91E63' },
         ].map(({ Icon, title, desc, color }) => (
           <div key={title} className="flex items-center gap-3 bg-white rounded-xl px-4 py-3" style={{ boxShadow: '0 2px 10px rgba(233,30,99,0.06)', border: '1px solid rgba(233,30,99,0.07)' }}>
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}15` }}>
-              <Icon size={16} style={{ color }} />
-            </div>
-            <div>
-              <p className="font-bold text-gray-800 text-xs">{title}</p>
-              <p className="text-gray-400 text-[11px]">{desc}</p>
-            </div>
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}15` }}><Icon size={16} style={{ color }} /></div>
+            <div><p className="font-bold text-gray-800 text-xs">{title}</p><p className="text-gray-400 text-[11px]">{desc}</p></div>
           </div>
         ))}
       </div>
@@ -441,185 +419,35 @@ const FullWidthFeaturesBar = () => (
   </div>
 )
 
-// ── Full-Width Categories (Layout 4) ─────────────────────────────────────────
-const FullWidthCategories = () => (
-  <section className="px-6 md:px-14 lg:px-24 py-12" style={{ background: 'linear-gradient(180deg,#fff 0%,#fff5fb 100%)' }}>
-    <div className="flex items-end justify-between mb-7">
-      <div>
-        <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#E91E63' }}>Browse Categories</p>
-        <h2 className="text-2xl md:text-3xl font-heading font-black text-gray-900">Shop by Category</h2>
-        <div className="h-1 w-14 mt-2 rounded-full" style={{ background: 'linear-gradient(90deg,#E91E63,#C77DFF)' }} />
-      </div>
-    </div>
-    <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-      {CATEGORIES.map((cat) => (
-        <Link key={cat.slug} to={`/category/${cat.slug}`}
-          className={`group rounded-2xl text-center p-4 border-2 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg ${cat.bg}`}>
-          <div className="text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">{cat.emoji}</div>
-          <p className="text-xs font-bold text-gray-700 group-hover:text-primary transition-colors">{cat.name}</p>
-        </Link>
-      ))}
-    </div>
-  </section>
-)
-
-// ── Full-Width Promo Banners (Layout 4) ───────────────────────────────────────
-const FullWidthPromoBanners: React.FC<{ sec: any }> = ({ sec }) => (
-  <section className="px-6 md:px-14 lg:px-24 pb-6 grid md:grid-cols-2 gap-6">
-    {sec.underPriceBanner !== false && (
-      <Link to="/products?maxPrice=199"
-        className="relative rounded-3xl p-8 md:p-10 overflow-hidden group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
-        style={{ background: 'linear-gradient(135deg, #E91E63 0%, #FF6B9D 60%, #FF8FAB 100%)' }}>
-        <div className="relative z-10">
-          <span className="inline-block text-xs font-black text-white/70 uppercase tracking-widest border border-white/20 px-3 py-1 rounded-full mb-4">Special Section</span>
-          <h3 className="text-3xl md:text-4xl font-heading font-black text-white mb-2">Under ₹199</h3>
-          <p className="text-white/70 text-sm mb-6">Trending items at micro prices — grab before they sell out!</p>
-          <span className="inline-flex items-center gap-2 bg-white text-primary text-sm font-black px-6 py-2.5 rounded-full group-hover:gap-3 transition-all">
-            Shop Now <ArrowRight size={14} />
-          </span>
-        </div>
-        <div className="absolute -right-12 -top-12 w-52 h-52 bg-white/10 rounded-full transition-transform duration-500 group-hover:scale-110" />
-        <div className="absolute right-8 -bottom-6 w-28 h-28 bg-white/10 rounded-full" />
-        <div className="absolute top-6 right-36 w-4 h-4 bg-white/20 rounded-full" />
-      </Link>
-    )}
-    {sec.giftComboBanner !== false && (
-      <Link to="/category/gifts"
-        className="relative rounded-3xl p-8 md:p-10 overflow-hidden group hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
-        style={{ background: 'linear-gradient(135deg, #FF9F43 0%, #FFBE76 60%, #FFC947 100%)' }}>
-        <div className="relative z-10">
-          <span className="inline-block text-xs font-black text-white/70 uppercase tracking-widest border border-white/20 px-3 py-1 rounded-full mb-4">Most Popular</span>
-          <h3 className="text-3xl md:text-4xl font-heading font-black text-white mb-2">Gift Combos</h3>
-          <p className="text-white/70 text-sm mb-6">Keychain + Earrings sets & more — perfect for every occasion.</p>
-          <span className="inline-flex items-center gap-2 bg-white text-amber-600 text-sm font-black px-6 py-2.5 rounded-full group-hover:gap-3 transition-all">
-            Explore <ArrowRight size={14} />
-          </span>
-        </div>
-        <div className="absolute -right-12 -top-12 w-52 h-52 bg-white/10 rounded-full transition-transform duration-500 group-hover:scale-110" />
-        <div className="absolute right-8 -bottom-6 w-28 h-28 bg-white/10 rounded-full" />
-      </Link>
-    )}
-  </section>
-)
-
-// ── Hanging Keychain Strip ────────────────────────────────────────────────────
-const HangingStrip: React.FC<{ hangingBanners: Banner[] }> = ({ hangingBanners }) => {
-  if (!hangingBanners.length) return null
-  const items = [...hangingBanners, ...hangingBanners, ...hangingBanners, ...hangingBanners]
+const HorizontalCategoryScroll: React.FC<{ categories: Category[]; loading?: boolean }> = ({ categories, loading }) => {
+  if (loading) return <SkeletonCircles />
+  const CIRCLE_PALETTES = [
+    { bg: '#fce4ec', border: '#f48fb1' }, { bg: '#f3e5f5', border: '#ce93d8' }, { bg: '#fff3e0', border: '#ffcc80' },
+    { bg: '#e8f5e9', border: '#a5d6a7' }, { bg: '#e3f2fd', border: '#90caf9' }, { bg: '#fff8e1', border: '#ffe082' }
+  ]
   return (
-    <div className="w-full overflow-hidden border-y border-pink-100"
-      style={{ background: 'linear-gradient(180deg,#fff0f6 0%,#ffffff 100%)', height: '150px' }}>
-      <div className="marquee-track h-full items-end pb-3">
-        {items.map((b, i) => (
-          <div key={i} className="hang-item flex flex-col items-center mx-5" style={{ paddingTop: '6px' }}>
-            {/* String */}
-            <div style={{ width: '2px', height: '22px', background: 'linear-gradient(180deg,#f43f8e,#c084fc)', borderRadius: '1px' }} />
-            {/* Image */}
-            <div className="rounded-2xl overflow-hidden shadow-lg"
-              style={{ width: '80px', height: '80px', border: '2px solid rgba(233,30,99,0.18)' }}>
-              <img src={ik.hanging(b.image)} alt={b.title || 'keychain'} width={80} height={80} loading="lazy" className="w-full h-full object-cover" />
-            </div>
-            {/* Label */}
-            {b.title && (
-              <div style={{ marginTop: '4px', backgroundColor: '#f43f8e', borderRadius: '10px', padding: '2px 8px' }}>
-                <span style={{ color: 'white', fontSize: '10px', fontWeight: 900, letterSpacing: '0.3px' }}>{b.title}</span>
-              </div>
-            )}
-          </div>
-        ))}
+    <section className="px-6 md:px-14 lg:px-24 py-8">
+      <div className="flex items-center justify-between mb-5">
+        <div><p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: '#E91E63' }}>Browse</p><h2 className="text-xl md:text-2xl font-heading font-black text-gray-900">Shop by Category</h2></div>
+        <Link to="/products" className="inline-flex items-center gap-1.5 text-xs font-black px-4 py-2 rounded-full transition-all" style={{ background: 'rgba(233,30,99,0.07)', border: '1.5px solid rgba(233,30,99,0.2)', color: '#E91E63' }}>View All <ArrowRight size={12} /></Link>
       </div>
-    </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 md:gap-12">
+        {categories.slice(0, 15).map((cat, i) => {
+          const p = CIRCLE_PALETTES[i % CIRCLE_PALETTES.length]
+          return (
+            <Link key={cat._id} to={`/category/${cat.slug}`} className="flex flex-col items-center gap-4 group">
+              <div className="w-full aspect-square rounded-[3rem] md:rounded-[4rem] overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl" style={{ background: p.bg, border: `3px solid ${p.border}` }}>
+                {cat.image ? <img src={ik.catCircle(cat.image)} alt={cat.name} width={200} height={200} loading="lazy" className="w-full h-full object-cover" /> : <span className="text-4xl md:text-8xl">{cat.icon || '🛍️'}</span>}
+              </div>
+              <p className="text-sm md:text-lg font-black text-gray-800 group-hover:text-primary transition-colors text-center">{cat.name}</p>
+            </Link>
+          )
+        })}
+      </div>
+    </section>
   )
 }
 
-// ── Pastel palette cycle for circles ─────────────────────────────────────────
-const CIRCLE_PALETTES = [
-  { bg: '#fce4ec', border: '#f48fb1' },
-  { bg: '#f3e5f5', border: '#ce93d8' },
-  { bg: '#fff3e0', border: '#ffcc80' },
-  { bg: '#e8f5e9', border: '#a5d6a7' },
-  { bg: '#e3f2fd', border: '#90caf9' },
-  { bg: '#fff8e1', border: '#ffe082' },
-  { bg: '#fce4ec', border: '#f48fb1' },
-  { bg: '#f3e5f5', border: '#ce93d8' },
-  { bg: '#fff3e0', border: '#ffcc80' },
-  { bg: '#e8f5e9', border: '#a5d6a7' },
-  { bg: '#e3f2fd', border: '#90caf9' },
-  { bg: '#fff8e1', border: '#ffe082' },
-]
-
-// ── Horizontal Circle Categories (Layout 4) ──────────────────────────────────
-const HorizontalCategoryScroll: React.FC<{ categories: Category[] }> = ({ categories }) => (
-  <section className="px-6 md:px-14 lg:px-24 py-8">
-    <div className="flex items-center justify-between mb-5">
-      <div>
-        <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: '#E91E63' }}>Browse</p>
-        <h2 className="text-xl md:text-2xl font-heading font-black text-gray-900">Shop by Category</h2>
-      </div>
-      <Link to="/products"
-        className="inline-flex items-center gap-1.5 text-xs font-black px-4 py-2 rounded-full transition-all"
-        style={{ background: 'rgba(233,30,99,0.07)', border: '1.5px solid rgba(233,30,99,0.2)', color: '#E91E63' }}>
-        View All <ArrowRight size={12} />
-      </Link>
-    </div>
-    {/* Category Grid (instead of horizontal scroll) */}
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 md:gap-12">
-      {categories.slice(0, 15).map((cat, i) => {
-        const p = CIRCLE_PALETTES[i % CIRCLE_PALETTES.length]
-        return (
-          <Link key={cat._id} to={`/category/${cat.slug}`}
-            className="flex flex-col items-center gap-4 group">
-            {/* Square Category Box */}
-            <div className="w-full aspect-square rounded-[3rem] md:rounded-[4rem] overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl"
-              style={{ background: p.bg, border: `3px solid ${p.border}` }}>
-              {cat.image
-                ? <img src={ik.catCircle(cat.image)} alt={cat.name} width={200} height={200} loading="lazy" className="w-full h-full object-cover" />
-                : <span className="text-4xl md:text-8xl">{cat.icon || '🛍️'}</span>
-              }
-            </div>
-            {/* Label */}
-            <p className="text-sm md:text-lg font-black text-gray-800 group-hover:text-primary transition-colors text-center">{cat.name}</p>
-          </Link>
-        )
-      })}
-    </div>
-  </section>
-)
-
-// ── Full-Width Bottom CTA (Layout 4) ─────────────────────────────────────────
-const FullWidthBottomCTA = () => (
-  <section className="px-6 md:px-14 lg:px-24 py-12">
-    <div className="relative rounded-[2.5rem] overflow-hidden text-center px-8 py-14"
-      style={{ background: 'linear-gradient(135deg,#FCE4EC 0%,#F3E5F5 40%,#FFF0F6 70%,#FCE4EC 100%)' }}>
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-14 -left-14 w-56 h-56 rounded-full" style={{ background: 'radial-gradient(circle,rgba(233,30,99,0.1) 0%,transparent 70%)' }} />
-        <div className="absolute -bottom-14 -right-14 w-56 h-56 rounded-full" style={{ background: 'radial-gradient(circle,rgba(156,39,176,0.1) 0%,transparent 70%)' }} />
-        <div className="absolute top-8 right-16 text-4xl opacity-25 select-none">🔑</div>
-        <div className="absolute bottom-8 left-16 text-4xl opacity-20 select-none">👗</div>
-        <div className="absolute top-1/2 -translate-y-1/2 left-8 text-3xl opacity-20 select-none">💕</div>
-        <div className="absolute top-1/2 -translate-y-1/2 right-8 text-3xl opacity-20 select-none">✨</div>
-      </div>
-      <div className="relative z-10">
-        <span className="inline-block text-xs font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full mb-5" style={{ background: 'rgba(233,30,99,0.1)', color: '#E91E63', border: '1px solid rgba(233,30,99,0.2)' }}>💕 Youth Collection</span>
-        <h2 className="font-heading font-black text-gray-900 mb-3" style={{ fontSize: 'clamp(1.8rem,4vw,3.5rem)', letterSpacing: '-0.02em' }}>
-          Under ₹299 Store 🛍️
-        </h2>
-        <p className="text-gray-500 mb-8 max-w-md mx-auto text-base leading-relaxed">
-          Trendy keychains &amp; accessories that won't break your budget. Perfect for gifting!
-        </p>
-        <Link to="/products?maxPrice=299"
-          className="inline-flex items-center gap-3 font-black px-10 py-3.5 rounded-2xl text-sm text-white transition-all duration-300 hover:scale-105 active:scale-95"
-          style={{ background: 'linear-gradient(135deg,#E91E63,#C2185B)', boxShadow: '0 8px 28px rgba(233,30,99,0.3)' }}>
-          <ShoppingBag size={17} /> Shop Under ₹299
-        </Link>
-      </div>
-    </div>
-  </section>
-)
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// BOTTOM CTA (shared)
-// ═══════════════════════════════════════════════════════════════════════════════
 const BottomCTA = () => (
   <section className="max-w-full mx-auto px-4 py-10">
     <div className="bg-gradient-to-r from-gray-900 to-slate-800 rounded-3xl p-10 text-center text-white relative overflow-hidden">
@@ -627,9 +455,7 @@ const BottomCTA = () => (
         <p className="text-sm font-semibold text-gray-400 mb-2">Youth Collection</p>
         <h2 className="text-3xl md:text-4xl font-heading font-bold mb-3">Under ₹299 Store 🛍️</h2>
         <p className="text-gray-400 mb-7 max-w-md mx-auto">Trendy items that won't break your budget. Perfect for gifting!</p>
-        <Link to="/products?maxPrice=299" className="bg-primary text-white font-bold px-10 py-3.5 rounded-full hover:bg-primary-dark transition-colors inline-block shadow-lg shadow-primary/30">
-          Shop Under ₹299
-        </Link>
+        <Link to="/products?maxPrice=299" className="bg-primary text-white font-bold px-10 py-3.5 rounded-full hover:bg-primary-dark transition-colors inline-block shadow-lg shadow-primary/30">Shop Under ₹299</Link>
       </div>
       <div className="absolute -top-20 -left-20 w-64 h-64 bg-primary/10 rounded-full" />
       <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-purple-900/30 rounded-full" />
@@ -637,9 +463,6 @@ const BottomCTA = () => (
   </section>
 )
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// MAIN HOME PAGE
-// ═══════════════════════════════════════════════════════════════════════════════
 const HomePage: React.FC = () => {
   const navigate = useNavigate()
   const { settings } = useSettingsStore()
@@ -654,30 +477,21 @@ const HomePage: React.FC = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Fetch banners
-    api.get('/banners?isActive=true').then(res => {
-      const all: Banner[] = res.data.banners || []
-      setHeroBanners(all.filter(b => b.type !== 'hanging' && b.isActive))
-      setHangingBanners(all.filter(b => b.type === 'hanging' && b.showOnWebsite !== false))
-    }).catch(() => { })
-
-    // Fetch categories
-    api.get('/categories?isActive=true&limit=12').then(res => {
-      setCategories(res.data.categories || [])
-    }).catch(() => { })
-
     Promise.all([
+      api.get('/banners?isActive=true'),
+      api.get('/categories?isActive=true&limit=12'),
       api.get('/products?trending=true&limit=8'),
       api.get('/products?newArrival=true&limit=8'),
       api.get('/products?featured=true&limit=8'),
-    ]).then(([t, n, f]) => {
-      setTrending(t.data.products)
-      setNewArrivals(n.data.products)
-      setFeatured(f.data.products)
+    ]).then(([bnr, cat, t, n, f]) => {
+      const all: Banner[] = bnr.data.banners || []
+      setHeroBanners(all.filter(b => b.type !== 'hanging' && b.isActive))
+      setHangingBanners(all.filter(b => b.type === 'hanging' && b.showOnWebsite !== false))
+      setCategories(cat.data.categories || [])
+      setTrending(t.data.products); setNewArrivals(n.data.products); setFeatured(f.data.products)
     }).catch(console.error).finally(() => setLoading(false))
   }, [])
 
-  // ── Layout 5: Category Dashboard (New Default) ───────────────────────
   if (layout === 5 || !layout) return (
     <div className="bg-gray-50 min-h-screen">
       <div className="bg-white py-10 mb-8 border-b">
@@ -686,12 +500,11 @@ const HomePage: React.FC = () => {
           <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">Premium Quality Wholesale Store</p>
         </div>
       </div>
-      <MainDashboard categories={categories} />
+      <MainDashboard categories={categories} loading={loading} />
       <BottomCTA />
     </div>
   )
 
-  // ── Layout 1: Classic (default) ─────────────────────────────────────────
   if (layout === 1) return (
     <div>
       {sec.heroBanner !== false && <HeroLayout1 />}
@@ -705,7 +518,6 @@ const HomePage: React.FC = () => {
     </div>
   )
 
-  // ── Layout 2: Dark Premium Hero ─────────────────────────────────────────
   if (layout === 2) return (
     <div>
       {sec.heroBanner !== false && <HeroLayout2 />}
@@ -719,7 +531,6 @@ const HomePage: React.FC = () => {
     </div>
   )
 
-  // ── Layout 3: Minimalist Elegant ────────────────────────────────────────
   if (layout === 3) return (
     <div>
       {sec.heroBanner !== false && <HeroLayout3 />}
@@ -733,12 +544,11 @@ const HomePage: React.FC = () => {
     </div>
   )
 
-  // ── Layout 4: Full-Width Professional (default fallback) ───────────────
   return (
     <div>
       {sec.heroBanner !== false && <HeroLayout4 heroBanners={heroBanners} hangingBanners={hangingBanners} />}
       {sec.featuresBar !== false && <FullWidthFeaturesBar />}
-      {sec.categories !== false && <HorizontalCategoryScroll categories={categories} />}
+      {sec.categories !== false && <HorizontalCategoryScroll categories={categories} loading={loading} />}
     </div>
   )
 }
