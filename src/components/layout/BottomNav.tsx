@@ -1,21 +1,25 @@
 import React, { useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import useSettingsStore from '../../store/settingsStore'
 import { Home, Search, ShoppingBag, Heart, User } from 'lucide-react'
 import useCartStore from '../../store/cartStore'
 
 const BottomNav: React.FC = () => {
   const { pathname } = useLocation()
-  const { count, getTotal } = useCartStore()
+  const { count, getTotal, hasNewItem } = useCartStore()
   const { total } = getTotal()
+  const { settings } = useSettingsStore()
+
+  if (pathname.startsWith('/product/')) return null
 
   const links = [
     { to: '/', icon: Home, label: 'Home' },
-    { to: '/search', icon: Search, label: 'Search' },
+    { to: '/wishlist', icon: Heart, label: 'Wishlist' },
     { 
       type: 'whatsapp', 
       icon: ShoppingBag, // Placeholder for icon but logic is different
       label: 'Help',
-      href: `https://wa.me/917550350036?text=${encodeURIComponent('Hello Bafnadaily, I need help with...')}`
+      href: `https://wa.me/91${settings.whatsappNumber || '7550350036'}?text=${encodeURIComponent('Hello Bafnadaily, I need help with...')}`
     },
     { to: '/cart', icon: ShoppingBag, label: 'Cart', badge: total > 0 ? `₹${total}` : null },
     { to: '/profile', icon: User, label: 'Me' },
@@ -39,21 +43,35 @@ const BottomNav: React.FC = () => {
           }
           
           const active = pathname === link.to
+          const isCart = link.to === '/cart'
+          // Raise if it's a new item (any page) OR if on Home and cart is not empty
+          const shouldRaise = isCart && (hasNewItem || (pathname === '/' && count > 0))
           const Icon = link.icon!
           
           return (
             <Link key={i} to={link.to!}
-              className={`flex flex-col items-center gap-1 px-4 py-1.5 relative transition-all duration-300 ${active ? 'text-primary' : 'text-gray-400'}`}>
-              <div className="relative">
-                <Icon size={22} className={`transition-all duration-500 ${active ? 'scale-110' : ''}`} />
+              className={`flex flex-col items-center gap-1 px-4 py-1.5 relative transition-all duration-500 ${active ? 'text-primary' : 'text-gray-400'} ${shouldRaise ? '-translate-y-5 shadow-inner' : ''}`}>
+              
+              <div className={`
+                relative transition-all duration-500
+                ${isCart && hasNewItem ? 'animate-cart-pulse' : ''}
+                ${shouldRaise ? 'w-14 h-14 bg-primary text-white rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center -mt-3' : ''}
+              `}>
+                <Icon size={shouldRaise ? 26 : 22} className={`transition-all duration-500 ${active ? 'scale-110' : ''}`} />
                 {link.badge && (
-                  <span className="absolute -top-2 -right-3 px-1.5 py-0.5 bg-red-500 text-white text-[8px] rounded-full border-2 border-white font-black shadow-sm">
+                  <span className={`absolute -top-2 -right-3 px-1.5 py-0.5 rounded-full border-2 border-white font-black shadow-sm ${shouldRaise ? 'bg-white text-primary text-[9px]' : 'bg-red-500 text-white text-[8px]'}`}>
                     {link.badge}
                   </span>
                 )}
               </div>
-              <span className="text-[9px] font-black uppercase tracking-wider">{link.label}</span>
-              {active && <div className="absolute -bottom-1 w-1 h-1 bg-primary rounded-full shadow-[0_0_8px_rgba(233,30,99,0.8)]" />}
+
+              {!shouldRaise && (
+                <span className="text-[9px] font-black uppercase tracking-wider">{link.label}</span>
+              )}
+              
+              {active && (
+                <div className="absolute -bottom-1 w-1 h-1 bg-primary rounded-full shadow-[0_0_8px_rgba(233,30,99,0.8)]" />
+              )}
             </Link>
           )
         })}

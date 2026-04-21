@@ -261,10 +261,10 @@ const LoadingState = () => (
         <div className="h-4 w-96 skeleton rounded-lg opacity-50" />
       </div>
 
-      {/* Subcategories Skeleton */}
-      <div className="flex flex-wrap gap-5 mb-14 bg-gray-50/50 p-6 rounded-[2.5rem] border border-gray-100">
-        {Array(6).fill(0).map((_, i) => (
-          <div key={i} className="flex flex-col items-center gap-3">
+      {/* Subcategories Skeleton Scroll */}
+      <div className="flex gap-5 mb-14 bg-gray-50/50 p-6 rounded-[2.5rem] border border-gray-100 overflow-x-auto scrollbar-hidden">
+        {Array(8).fill(0).map((_, i) => (
+          <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0">
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full skeleton" />
             <div className="h-3 w-16 skeleton rounded" />
           </div>
@@ -377,16 +377,17 @@ const StandardLayout = ({
         </div>
       )}
 
+      {/* Horizontal Subcategory Scroll */}
       {subCategories.length > 0 && (
-        <div className="flex flex-wrap gap-5 mb-14 bg-gray-50/50 p-6 rounded-[2.5rem] border border-gray-100">
-          <button onClick={() => onSelectSub('SHOW_ALL')} className="flex flex-col items-center gap-2 group">
+        <div className="flex gap-5 mb-14 bg-gray-50/50 p-6 rounded-[2.5rem] border border-gray-100 overflow-x-auto scrollbar-hidden scroll-smooth">
+          <button onClick={() => onSelectSub('SHOW_ALL')} className="flex flex-col items-center gap-2 group flex-shrink-0">
             <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 overflow-hidden flex items-center justify-center transition-all ${selectedSubId === 'SHOW_ALL' ? 'border-primary bg-primary/10' : 'border-primary/20 bg-primary/5'}`}>
               <span className="text-primary font-black text-xs">ALL</span>
             </div>
             <span className="text-[12px] font-bold text-gray-600">View All</span>
           </button>
           {subCategories.map((sub) => (
-            <button key={sub._id} onClick={() => onSelectSub(sub._id)} className="flex flex-col items-center gap-3 group">
+            <button key={sub._id} onClick={() => onSelectSub(sub._id)} className="flex flex-col items-center gap-3 group flex-shrink-0">
               <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 overflow-hidden transition-all ${selectedSubId === sub._id ? 'border-primary scale-110 shadow-lg' : 'border-gray-200'}`}>
                 {sub.image ? <img src={sub.image} alt={sub.name} className="w-full h-full object-cover" /> : <span className="text-3xl">{sub.icon || '🛍️'}</span>}
               </div>
@@ -433,10 +434,9 @@ const DealCard: React.FC<{ deal: DealProduct }> = ({ deal }) => {
   const { product, dealPrice, discountValue, discountType } = deal;
   const savings = product.price - dealPrice;
   const expired = new Date(deal.endTime) < new Date();
-  const { cart, addToCart, updateItem } = useCartStore();
+  const { cart, addToCart, updateItem, removeItem } = useCartStore(); // Added removeItem
   const { user } = useAuthStore();
   const navigate = useNavigate();
-  const [adding, setAdding] = useState(false);
   const cartItem = cart?.items?.find(i => i.product?._id === product._id);
   const qtyInCart = cartItem?.quantity || 0;
   const img = product.images?.[0]?.url ? ik.thumb(product.images[0].url) : `https://placehold.co/300x300/FCE4EC/E91E63?text=${encodeURIComponent(product.name)}`;
@@ -445,16 +445,17 @@ const DealCard: React.FC<{ deal: DealProduct }> = ({ deal }) => {
     e.preventDefault();
     if (!cartItem) return;
     const newQty = cartItem.quantity + delta;
-    if (newQty < (product.minQty || 1)) return;
-    await updateItem(cartItem._id, newQty);
+    if (delta === -1 && cartItem.quantity <= (product.minQty || 1)) {
+      await removeItem(cartItem._id);
+    } else if (newQty >= (product.minQty || 1)) {
+      await updateItem(cartItem._id, newQty);
+    }
   };
 
   const handleCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!user) { navigate('/login'); return; }
-    setAdding(true);
-    await addToCart(product._id, product.minQty || 1);
-    setAdding(false);
+    await addToCart(product, product.minQty || 1);
   };
 
   if (expired) return <ProductCard product={product} />;
@@ -482,8 +483,8 @@ const DealCard: React.FC<{ deal: DealProduct }> = ({ deal }) => {
                 <button onClick={(e) => handleUpdateQty(e, 1)} className="flex-1 bg-gray-50">+</button>
               </div>
             ) : (
-              <button onClick={handleCart} disabled={adding} className="w-full py-1.5 rounded-lg bg-primary text-white text-[10px] font-bold flex items-center justify-center gap-1">
-                <ShoppingCart size={10} /> {adding ? 'Adding...' : 'Add to Cart'}
+              <button onClick={handleCart} className="w-full py-1.5 rounded-lg bg-primary text-white text-[10px] font-bold flex items-center justify-center gap-1">
+                <ShoppingCart size={10} /> Add to Cart
               </button>
             )
           ) : <div className="text-[10px] text-gray-400 font-bold text-center py-1.5 bg-gray-50 rounded-lg">Out of Stock</div>}

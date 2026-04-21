@@ -6,6 +6,7 @@ import { Product, Banner, Category } from '../types'
 import api from '../utils/api'
 import ProductCard from '../components/product/ProductCard'
 import useSettingsStore from '../store/settingsStore'
+import useCartStore from '../store/cartStore'
 
 const CATEGORIES = [
   { name: 'Keychains', slug: 'keychains', emoji: '🔑', bg: 'bg-pink-50 border-pink-200 hover:bg-pink-100' },
@@ -475,6 +476,11 @@ const HomePage: React.FC = () => {
   const [hangingBanners, setHangingBanners] = useState<Banner[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
+  const { count, setHasNewItem } = useCartStore()
+
+  useEffect(() => {
+    if (count > 0) setHasNewItem(true)
+  }, [count, setHasNewItem])
 
   useEffect(() => {
     Promise.all([

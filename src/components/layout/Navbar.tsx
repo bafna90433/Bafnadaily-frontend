@@ -167,14 +167,6 @@ const Navbar: React.FC = () => {
 
               {/* Mobile Actions (Visible only on mobile top-row) */}
               <div className="flex lg:hidden items-center gap-2">
-                <Link to="/cart" className="relative p-2 rounded-xl text-gray-700 bg-gray-50 border border-gray-100">
-                  <ShoppingBag size={22} />
-                  {count > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-white text-[9px] rounded-full flex items-center justify-center font-black">
-                      {count}
-                    </span>
-                  )}
-                </Link>
                 <button onClick={() => setMobileOpen(!mobileOpen)}
                   className="p-2 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors bg-gray-50 border border-gray-100">
                   {mobileOpen ? <X size={22} /> : <Menu size={22} />}

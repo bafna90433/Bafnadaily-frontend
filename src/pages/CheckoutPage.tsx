@@ -30,7 +30,7 @@ const STATES = ['Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chandigarh
 declare global { interface Window { Razorpay: any } }
 
 const CheckoutPage: React.FC = () => {
-  const { cart, getTotal, clearCart } = useCartStore()
+  const { cart, getTotal, clearCart, setHasNewItem } = useCartStore()
   const { user } = useAuthStore()
   const { settings } = useSettingsStore()
   const navigate = useNavigate()
@@ -67,6 +67,9 @@ const CheckoutPage: React.FC = () => {
     if (!user) { navigate('/login'); return }
     loadAddresses()
     if (!codAvailable) setPayMethod('upi')
+    
+    // Stop cart blinking when user lands on checkout
+    setHasNewItem(false)
   }, [user])
 
   const loadAddresses = async () => {

@@ -7,7 +7,7 @@ import api from '../utils/api'
 import toast from 'react-hot-toast'
 
 const CartPage: React.FC = () => {
-  const { cart, fetchCart, updateItem, removeItem, getTotal } = useCartStore()
+  const { cart, fetchCart, updateItem, removeItem, getTotal, setHasNewItem } = useCartStore()
   const { user } = useAuthStore()
   const navigate = useNavigate()
   const [coupon, setCoupon] = useState('')
@@ -15,7 +15,12 @@ const CartPage: React.FC = () => {
   const [couponLoading, setCouponLoading] = useState(false)
   const { subtotal, shipping, total } = getTotal()
 
-  useEffect(() => { if (user) fetchCart() }, [user])
+  useEffect(() => { 
+    if (user) {
+      fetchCart()
+      setHasNewItem(false) 
+    }
+  }, [user])
 
   if (!user) return (
     <div className="max-w-md mx-auto text-center py-24 px-4">

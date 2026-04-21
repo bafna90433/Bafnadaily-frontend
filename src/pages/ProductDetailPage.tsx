@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ShoppingCart, Heart, ChevronLeft, ChevronRight, Package, Shield, Truck, Star, Minus, Plus, ThumbsUp, Tag, Check } from 'lucide-react'
+import { ShoppingCart, ShoppingBag, Heart, ChevronLeft, ChevronRight, Package, Shield, Truck, Star, Minus, Plus, ThumbsUp, Tag, Check } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import api from '../utils/api'
 import { Product } from '../types'
 import useCartStore from '../store/cartStore'
@@ -105,12 +106,12 @@ const ProductDetailPage: React.FC = () => {
   const [qty, setQty] = useState(1)
   const [cartQty, setCartQty] = useState(0)  // 0 = not in cart
   const [cartItemId, setCartItemId] = useState<string | null>(null)
-  const [adding, setAdding] = useState(false)
   const [variant, setVariant] = useState('')
   const [wishlisted, setWishlisted] = useState(false)
   const [tab, setTab] = useState<'reviews'|'shipping'>('reviews')
   const [descOpen, setDescOpen] = useState(false)
-  const { addToCart, cart, updateItem, removeItem } = useCartStore()
+  const { addToCart, cart, updateItem, removeItem, count, getTotal, hasNewItem } = useCartStore()
+  const { total } = getTotal()
   const { user } = useAuthStore()
 
   useEffect(() => {
@@ -136,9 +137,7 @@ const ProductDetailPage: React.FC = () => {
 
   const handleCart = async () => {
     if (!user) { navigate('/login'); return }
-    setAdding(true)
-    await addToCart(product!._id, product!.minQty || 1, variant)
-    setAdding(false)
+    await addToCart(product!, product!.minQty || 1, variant)
   }
 
   const handleIncrease = async () => {
@@ -353,8 +352,8 @@ const ProductDetailPage: React.FC = () => {
                 <button onClick={handleIncrease} disabled={cartQty >= product.stock} className="px-4 py-3 text-primary hover:bg-primary/5 transition-colors font-black text-lg disabled:opacity-30"><Plus size={16}/></button>
               </div>
             ) : (
-              <button onClick={handleCart} disabled={product.stock===0 || adding} className="btn-outline flex-1 flex items-center justify-center gap-2">
-                {adding ? <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"/> : <ShoppingCart size={18}/>}
+              <button onClick={handleCart} disabled={product.stock===0} className="btn-outline flex-1 flex items-center justify-center gap-2">
+                <ShoppingCart size={18}/>
                 Add to Cart
               </button>
             )}
@@ -473,41 +472,43 @@ const ProductDetailPage: React.FC = () => {
         </div>
       )}
 
-      {/* ── Sticky Bottom CTA — mobile only ── */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-gray-100 px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+      <div className="md:hidden fixed bottom-6 inset-x-4 z-50 bg-white/90 backdrop-blur-xl border border-white/20 px-4 py-3 rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.15)]">
         <div className="flex items-center gap-3">
           {/* Price quick view */}
-          <div className="flex-shrink-0">
-            <p className="text-lg font-black text-gray-900">₹{product.price}</p>
-            {product.mrp > product.price && (
-              <p className="text-[10px] text-gray-400 line-through leading-none">₹{product.mrp}</p>
-            )}
+          <div className="flex flex-col flex-shrink-0 min-w-[60px]">
+            <p className="text-xl font-black text-gray-900 leading-none">₹{product.price}</p>
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mt-1">Product Price</p>
           </div>
-          <div className="flex gap-2 flex-1">
+
+          <div className="flex gap-2 flex-1 items-center justify-end">
+            {/* Add to Cart Button */}
             {cartQty > 0 ? (
-              <div className="flex-1 flex items-center border-2 border-primary rounded-xl overflow-hidden">
-                <button onClick={handleDecrease} className="px-4 py-3 text-primary active:bg-primary/10 transition-colors"><Minus size={15}/></button>
-                <span className="flex-1 text-center font-black text-primary text-base">{cartQty}</span>
-                <button onClick={handleIncrease} disabled={cartQty >= product.stock} className="px-4 py-3 text-primary active:bg-primary/10 transition-colors disabled:opacity-30"><Plus size={15}/></button>
+              <div className="flex-1 flex items-center border-2 border-primary rounded-2xl overflow-hidden bg-white h-[48px]">
+                <button onClick={handleDecrease} className="px-3 h-full text-primary active:bg-primary/5 transition-colors"><Minus size={14}/></button>
+                <span className="flex-1 text-center font-black text-primary text-sm">{cartQty}</span>
+                <button onClick={handleIncrease} disabled={cartQty >= product.stock} className="px-3 h-full text-primary active:bg-primary/5 transition-colors disabled:opacity-30"><Plus size={14}/></button>
               </div>
             ) : (
               <button
                 onClick={handleCart}
-                disabled={product.stock === 0 || adding}
-                className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl border-2 border-primary text-primary font-black text-sm active:scale-95 transition-all disabled:opacity-40"
+                disabled={product.stock === 0}
+                className="flex-[1.5] h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-gray-900 text-white font-black text-sm active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-gray-200"
               >
-                {adding ? <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"/> : <ShoppingCart size={16}/>}
-                {adding ? '' : 'Add to Cart'}
+                <ShoppingCart size={18}/>
+                Add to Cart
               </button>
             )}
-            <button
-              onClick={handleBuyNow}
-              disabled={product.stock === 0}
-              className="flex-1 py-3 rounded-xl font-black text-sm text-white active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-primary/30"
-              style={{ background: 'linear-gradient(135deg, #E91E63, #C2185B)' }}
-            >
-              Buy Now
-            </button>
+
+            {/* Home-Style Raised Cart Icon Link with Total Calculation */}
+            {count > 0 && (
+              <Link to="/cart" 
+                className={`w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center relative active:scale-90 transition-all shadow-xl shadow-primary/30 -translate-y-6 border-4 border-white ${hasNewItem ? 'animate-cart-pulse' : ''}`}>
+                <ShoppingBag size={24} />
+                <span className="absolute -top-3 -right-2 px-1.5 py-0.5 bg-red-500 text-white text-[8px] rounded-full border-2 border-white font-black shadow-md">
+                  ₹{total}
+                </span>
+              </Link>
+            )}
           </div>
         </div>
       </div>

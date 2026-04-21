@@ -11,11 +11,10 @@ import { ik } from '../../utils/imagekit'
 interface Props { product: Product, priority?: boolean }
 
 const ProductCard: React.FC<Props> = ({ product, priority }) => {
-  const { cart, addToCart, updateItem } = useCartStore()
+  const { cart, addToCart, updateItem, removeItem } = useCartStore()
   const { user } = useAuthStore()
   const navigate = useNavigate()
   const [wishlisted, setWishlisted] = useState(false)
-  const [adding, setAdding] = useState(false)
 
   const cartItem = cart?.items?.find(i => i.product?._id === product._id)
   const qtyInCart = cartItem?.quantity || 0
@@ -28,9 +27,7 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
     e.preventDefault()
     if (!user) { navigate('/login'); return }
     if (navigator.vibrate) navigator.vibrate(30);
-    setAdding(true)
-    await addToCart(product._id, product.minQty || 1)
-    setAdding(false)
+    await addToCart(product, product.minQty || 1)
   }
 
   const handleUpdateQty = async (e: React.MouseEvent, delta: number) => {
@@ -38,8 +35,12 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
     if (!cartItem) return
     if (navigator.vibrate) navigator.vibrate(30);
     const newQty = cartItem.quantity + delta
-    if (newQty < (product.minQty || 1)) return
-    await updateItem(cartItem._id, newQty)
+    
+    if (delta === -1 && cartItem.quantity <= (product.minQty || 1)) {
+      await removeItem(cartItem._id)
+    } else if (newQty >= (product.minQty || 1)) {
+      await updateItem(cartItem._id, newQty)
+    }
   }
 
   const handleWishlist = async (e: React.MouseEvent) => {
@@ -140,8 +141,7 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
               <div className="flex items-center rounded-xl overflow-hidden border border-primary h-9">
                 <button
                   onClick={(e) => handleUpdateQty(e, -1)}
-                  disabled={qtyInCart <= (product.minQty || 1)}
-                  className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors"
                 >
                   <span className="text-base font-black text-primary leading-none">−</span>
                 </button>
@@ -156,11 +156,11 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
                 </button>
               </div>
             ) : (
-              <button onClick={handleCart} disabled={adding}
+              <button onClick={handleCart}
                 className="w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all"
                 style={{ background: 'linear-gradient(135deg, #E91E63, #C2185B)', color: '#fff', boxShadow: '0 4px 14px rgba(233,30,99,0.25)' }}>
                 <ShoppingCart size={13} />
-                {adding ? 'Adding…' : 'Add to Cart'}
+                Add to Cart
               </button>
             )
           ) : (
