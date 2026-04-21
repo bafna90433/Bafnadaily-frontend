@@ -154,7 +154,7 @@ const ProductDetailPage: React.FC = () => {
     }
   }
 
-  const handleBuyNow = async () => { if (!user) { navigate('/login'); return }; await addToCart(product!._id, qty, variant); navigate('/checkout') }
+  const handleBuyNow = async () => { if (!user) { navigate('/login'); return }; await addToCart(product!, qty, variant); navigate('/checkout') }
   const handleWishlist = async () => {
     if (!user) { navigate('/login'); return }
     const res = await api.post(`/wishlist/toggle/${product!._id}`)
