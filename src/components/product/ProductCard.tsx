@@ -141,7 +141,8 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
               <div className="flex items-center rounded-xl overflow-hidden border border-primary h-9">
                 <button
                   onClick={(e) => handleUpdateQty(e, -1)}
-                  className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors"
+                  disabled={cartItem?._id?.startsWith('temp-')}
+                  className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 disabled:opacity-30 transition-colors"
                 >
                   <span className="text-base font-black text-primary leading-none">−</span>
                 </button>
@@ -150,7 +151,8 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
                 </div>
                 <button
                   onClick={(e) => handleUpdateQty(e, 1)}
-                  className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors"
+                  disabled={cartItem?._id?.startsWith('temp-')}
+                  className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 disabled:opacity-30 transition-colors"
                 >
                   <span className="text-base font-black text-primary leading-none">+</span>
                 </button>

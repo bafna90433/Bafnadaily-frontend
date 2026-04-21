@@ -478,9 +478,9 @@ const DealCard: React.FC<{ deal: DealProduct }> = ({ deal }) => {
           {product.stock !== 0 ? (
             qtyInCart > 0 ? (
               <div className="flex items-center h-8 rounded-lg overflow-hidden border border-primary">
-                <button onClick={(e) => handleUpdateQty(e, -1)} className="flex-1 bg-gray-50">−</button>
+                <button onClick={(e) => handleUpdateQty(e, -1)} disabled={cartItem?._id?.startsWith('temp-')} className="flex-1 bg-gray-50 disabled:opacity-30">−</button>
                 <div className="flex-1 bg-primary text-white text-[10px] font-bold text-center">{qtyInCart}</div>
-                <button onClick={(e) => handleUpdateQty(e, 1)} className="flex-1 bg-gray-50">+</button>
+                <button onClick={(e) => handleUpdateQty(e, 1)} disabled={cartItem?._id?.startsWith('temp-')} className="flex-1 bg-gray-50 disabled:opacity-30">+</button>
               </div>
             ) : (
               <button onClick={handleCart} className="w-full py-1.5 rounded-lg bg-primary text-white text-[10px] font-bold flex items-center justify-center gap-1">

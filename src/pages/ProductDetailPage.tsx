@@ -347,9 +347,9 @@ const ProductDetailPage: React.FC = () => {
           <div className="hidden md:flex gap-3 mt-6">
             {cartQty > 0 ? (
               <div className="flex items-center border-2 border-primary rounded-xl overflow-hidden flex-1">
-                <button onClick={handleDecrease} className="px-4 py-3 text-primary hover:bg-primary/5 transition-colors font-black text-lg"><Minus size={16}/></button>
+                <button onClick={handleDecrease} disabled={cartItemId?.startsWith('temp-')} className="px-4 py-3 text-primary hover:bg-primary/5 transition-colors font-black text-lg disabled:opacity-30"><Minus size={16}/></button>
                 <span className="flex-1 text-center font-black text-primary text-base">{cartQty}</span>
-                <button onClick={handleIncrease} disabled={cartQty >= product.stock} className="px-4 py-3 text-primary hover:bg-primary/5 transition-colors font-black text-lg disabled:opacity-30"><Plus size={16}/></button>
+                <button onClick={handleIncrease} disabled={cartQty >= product.stock || cartItemId?.startsWith('temp-')} className="px-4 py-3 text-primary hover:bg-primary/5 transition-colors font-black text-lg disabled:opacity-30"><Plus size={16}/></button>
               </div>
             ) : (
               <button onClick={handleCart} disabled={product.stock===0} className="btn-outline flex-1 flex items-center justify-center gap-2">
@@ -484,9 +484,9 @@ const ProductDetailPage: React.FC = () => {
             {/* Add to Cart Button */}
             {cartQty > 0 ? (
               <div className="flex-1 flex items-center border-2 border-primary rounded-2xl overflow-hidden bg-white h-[48px]">
-                <button onClick={handleDecrease} className="px-3 h-full text-primary active:bg-primary/5 transition-colors"><Minus size={14}/></button>
+                <button onClick={handleDecrease} disabled={cartItemId?.startsWith('temp-')} className="px-3 h-full text-primary active:bg-primary/5 transition-colors disabled:opacity-30"><Minus size={14}/></button>
                 <span className="flex-1 text-center font-black text-primary text-sm">{cartQty}</span>
-                <button onClick={handleIncrease} disabled={cartQty >= product.stock} className="px-3 h-full text-primary active:bg-primary/5 transition-colors disabled:opacity-30"><Plus size={14}/></button>
+                <button onClick={handleIncrease} disabled={cartQty >= product.stock || cartItemId?.startsWith('temp-')} className="px-3 h-full text-primary active:bg-primary/5 transition-colors disabled:opacity-30"><Plus size={14}/></button>
               </div>
             ) : (
               <button
