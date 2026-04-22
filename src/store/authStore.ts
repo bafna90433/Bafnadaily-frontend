@@ -8,6 +8,7 @@ interface AuthState {
   loading: boolean
   sendOTP: (phone: string) => Promise<{ success: boolean; message?: string }>
   verifyOTP: (phone: string, otp: string, name?: string) => Promise<{ success: boolean; isNew?: boolean; message?: string }>
+  loginWithGoogle: (idToken: string) => Promise<{ success: boolean; message?: string }>
   logout: () => void
   updateUser: (user: User) => void
   fetchMe: () => Promise<void>
@@ -42,6 +43,21 @@ const useAuthStore = create<AuthState>((set) => ({
     } catch (err: any) {
       set({ loading: false })
       return { success: false, message: err.response?.data?.message || 'Invalid OTP' }
+    }
+  },
+
+  loginWithGoogle: async (idToken) => {
+    set({ loading: true })
+    try {
+      const res = await api.post('/auth/google', { idToken })
+      const { token, user } = res.data
+      localStorage.setItem('token', token)
+      localStorage.setItem('user', JSON.stringify(user))
+      set({ token, user, loading: false })
+      return { success: true }
+    } catch (err: any) {
+      set({ loading: false })
+      return { success: false, message: err.response?.data?.message || 'Google Login failed' }
     }
   },
 

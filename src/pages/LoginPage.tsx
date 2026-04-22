@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react'
+import { GoogleLogin } from '@react-oauth/google'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Phone, Shield, ArrowLeft, CheckCircle } from 'lucide-react'
 import useAuthStore from '../store/authStore'
@@ -10,7 +11,7 @@ const LoginPage: React.FC = () => {
   const [phone, setPhone] = useState('')
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [name, setName] = useState('')
-  const { sendOTP, verifyOTP, loading } = useAuthStore()
+  const { sendOTP, verifyOTP, loginWithGoogle, loading } = useAuthStore()
   const { settings } = useSettingsStore()
   const siteName = settings.siteName || 'Reteiler'
   const navigate = useNavigate()
@@ -45,6 +46,16 @@ const LoginPage: React.FC = () => {
     else toast.error(res.message || 'Invalid OTP')
   }
 
+  const handleGoogleSuccess = async (response: any) => {
+    const res = await loginWithGoogle(response.credential)
+    if (res.success) {
+      toast.success(`Welcome to ${siteName}! 🎉`)
+      navigate(from, { replace: true })
+    } else {
+      toast.error(res.message || 'Google login failed')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
@@ -70,6 +81,22 @@ const LoginPage: React.FC = () => {
               <button type="submit" disabled={loading} className="btn-primary w-full py-3.5 text-base">
                 <Phone size={18}/> {loading ? 'Sending…' : 'Get OTP'}
               </button>
+
+              <div className="relative my-8 text-center">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
+                <span className="relative px-4 bg-white text-gray-400 text-[10px] font-black uppercase tracking-widest">Or login with</span>
+              </div>
+
+              <div className="flex justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => toast.error('Google Login Failed')}
+                  useOneTap
+                  theme="outline"
+                  shape="circle"
+                  width="100%"
+                />
+              </div>
             </form>
           ) : (
             <form onSubmit={handleVerify} className="space-y-5">

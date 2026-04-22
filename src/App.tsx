@@ -1,5 +1,6 @@
 import React, { useEffect, Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { GoogleOAuthProvider } from '@react-oauth/google'
 import { Toaster } from 'react-hot-toast'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
@@ -92,7 +93,8 @@ const App: React.FC = () => {
   }, [settings.googleAnalyticsEnabled, settings.googleAnalyticsId])
 
   return (
-    <BrowserRouter>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <BrowserRouter>
       <Toaster position="top-center" toastOptions={{ duration: 2500, style: { fontFamily: 'DM Sans', fontSize: '14px' } }} />
       <TrackerInit />
       <Navbar />
@@ -117,7 +119,8 @@ const App: React.FC = () => {
       </main>
       <Footer />
       <BottomNav />
-    </BrowserRouter>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   )
 }
 
