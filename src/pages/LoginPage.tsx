@@ -5,6 +5,7 @@ import { Phone, Shield, ArrowLeft, CheckCircle, Upload, Trash2, Loader2 } from '
 import useAuthStore from '../store/authStore'
 import useSettingsStore from '../store/settingsStore'
 import toast from 'react-hot-toast'
+import api from '../utils/api'
 
 const LoginPage: React.FC = () => {
   const [step, setStep] = useState<1 | 2>(1)

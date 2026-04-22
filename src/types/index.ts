@@ -53,12 +53,20 @@ export interface User {
   email?: string
   avatar?: string
   addresses: Address[]
+  businessName?: string
+  gstNumber?: string
+  whatsapp?: string
+  visitingCard?: string
+  customerType?: 'retail' | 'wholesale' | 'b2b'
+  createdAt: string
 }
 
 export interface Address {
   _id?: string
   name: string
   phone: string
+  whatsapp?: string
+  shopName?: string
   addressLine1: string
   addressLine2?: string
   city: string
