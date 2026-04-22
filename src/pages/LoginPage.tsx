@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { GoogleLogin } from '@react-oauth/google'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Phone, Shield, ArrowLeft, CheckCircle } from 'lucide-react'
+import { Phone, Shield, ArrowLeft, CheckCircle, Upload, Trash2, Loader2 } from 'lucide-react'
 import useAuthStore from '../store/authStore'
 import useSettingsStore from '../store/settingsStore'
 import toast from 'react-hot-toast'
@@ -11,6 +11,11 @@ const LoginPage: React.FC = () => {
   const [phone, setPhone] = useState('')
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [name, setName] = useState('')
+  const [businessName, setBusinessName] = useState('')
+  const [gstNumber, setGstNumber] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
+  const [visitingCard, setVisitingCard] = useState('')
+  const [upLoading, setUpLoading] = useState(false)
   const { sendOTP, verifyOTP, loginWithGoogle, loading } = useAuthStore()
   const { settings } = useSettingsStore()
   const siteName = settings.siteName || 'Reteiler'
@@ -41,9 +46,22 @@ const LoginPage: React.FC = () => {
     e.preventDefault()
     const otpStr = otp.join('')
     if (otpStr.length !== 6) { toast.error('Enter complete 6-digit OTP'); return }
-    const res = await verifyOTP(phone, otpStr, name)
+    const res = await verifyOTP(phone, otpStr, { name, businessName, gstNumber, whatsapp, visitingCard })
     if (res.success) { toast.success(`Welcome to ${siteName}! 🎉`); navigate(from, { replace: true }) }
     else toast.error(res.message || 'Invalid OTP')
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUpLoading(true)
+    const fd = new FormData()
+    fd.append('image', file)
+    try {
+      const res = await api.post('/upload/visiting-card', fd)
+      setVisitingCard(res.data.url)
+      toast.success('Visiting card uploaded! 📸')
+    } catch { toast.error('Upload failed') } finally { setUpLoading(false) }
   }
 
   const handleGoogleSuccess = async (response: any) => {
@@ -99,13 +117,50 @@ const LoginPage: React.FC = () => {
               </div>
             </form>
           ) : (
-            <form onSubmit={handleVerify} className="space-y-5">
+            <form onSubmit={handleVerify} className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Your Name <span className="text-gray-400 font-normal">(first time only)</span></label>
-                <input value={name} onChange={e => setName(e.target.value)} className="input" placeholder="Enter your full name" />
+                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Full Name *</label>
+                <input value={name} onChange={e => setName(e.target.value)} className="input py-3" placeholder="Enter your full name" required />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-3">6-Digit OTP</label>
+                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Shop / Business Name</label>
+                <input value={businessName} onChange={e => setBusinessName(e.target.value)} className="input py-3" placeholder="Apni dukan ka naam" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">GST (Optional)</label>
+                  <input value={gstNumber} onChange={e => setGstNumber(e.target.value.toUpperCase())} className="input py-3 uppercase" placeholder="GSTIN" maxLength={15} />
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">WhatsApp</label>
+                  <input value={whatsapp} onChange={e => setWhatsapp(e.target.value.replace(/\D/g,''))} className="input py-3" placeholder="WhatsApp No." maxLength={10} />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Visiting Card (Optional)</label>
+                <div className="flex items-center gap-3">
+                  <label className={`flex-1 border-2 border-dashed border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all min-h-[80px] bg-gray-50/50 ${upLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+                    {visitingCard ? (
+                      <img src={visitingCard} className="h-16 w-full object-contain rounded-lg" alt="VC" />
+                    ) : (
+                      <>
+                        {upLoading ? <Loader2 size={20} className="text-primary animate-spin mb-1"/> : <Upload size={20} className="text-gray-400 mb-1" />}
+                        <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">{upLoading ? 'Uploading…' : 'Upload Card Image'}</span>
+                      </>
+                    )}
+                    <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" disabled={upLoading} />
+                  </label>
+                  {visitingCard && (
+                    <button type="button" onClick={() => setVisitingCard('')} className="p-3 bg-red-50 text-red-500 hover:bg-red-100 rounded-xl transition-colors">
+                      <Trash2 size={18}/>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-3 text-center">6-Digit OTP</label>
                 <div className="flex gap-2 justify-center">
                   {otp.map((digit, idx) => (
                     <input key={idx} ref={el => inputRefs.current[idx] = el}

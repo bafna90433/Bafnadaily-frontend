@@ -19,6 +19,7 @@ const OrdersPage = lazy(() => import('./pages/OrdersPage'))
 const OrderDetailPage = lazy(() => import('./pages/OrderDetailPage'))
 const WishlistPage = lazy(() => import('./pages/WishlistPage'))
 const SearchPage = lazy(() => import('./pages/SearchPage'))
+const AddressesPage = lazy(() => import('./pages/AddressesPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 const PageLoader = () => (
@@ -113,6 +114,7 @@ const App: React.FC = () => {
             <Route path="/orders/:id" element={<OrderDetailPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/addresses" element={<AddressesPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>

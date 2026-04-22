@@ -7,8 +7,8 @@ interface AuthState {
   token: string | null
   loading: boolean
   sendOTP: (phone: string) => Promise<{ success: boolean; message?: string }>
-  verifyOTP: (phone: string, otp: string, name?: string) => Promise<{ success: boolean; isNew?: boolean; message?: string }>
-  loginWithGoogle: (idToken: string) => Promise<{ success: boolean; message?: string }>
+  verifyOTP: (phone: string, otp: string, extra?: { name?: string; businessName?: string; gstNumber?: string; whatsapp?: string; visitingCard?: string }) => Promise<{ success: boolean; isNew?: boolean; message?: string }>
+  loginWithGoogle: (idToken: string, extra?: { businessName?: string; gstNumber?: string; whatsapp?: string; visitingCard?: string }) => Promise<{ success: boolean; message?: string }>
   logout: () => void
   updateUser: (user: User) => void
   fetchMe: () => Promise<void>
@@ -31,10 +31,10 @@ const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  verifyOTP: async (phone, otp, name) => {
+  verifyOTP: async (phone, otp, extra) => {
     set({ loading: true })
     try {
-      const res = await api.post('/auth/verify-otp', { phone, otp, name })
+      const res = await api.post('/auth/verify-otp', { phone, otp, ...extra })
       const { token, user, isNew } = res.data
       localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(user))
@@ -46,10 +46,10 @@ const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  loginWithGoogle: async (idToken) => {
+  loginWithGoogle: async (idToken, extra) => {
     set({ loading: true })
     try {
-      const res = await api.post('/auth/google', { idToken })
+      const res = await api.post('/auth/google', { idToken, ...extra })
       const { token, user } = res.data
       localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(user))
