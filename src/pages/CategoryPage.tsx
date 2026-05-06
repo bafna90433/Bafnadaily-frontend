@@ -265,7 +265,7 @@ const LoadingState = () => (
       <div className="flex gap-5 mb-14 bg-gray-50/50 p-6 rounded-[2.5rem] border border-gray-100 overflow-x-auto scrollbar-hidden">
         {Array(8).fill(0).map((_, i) => (
           <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full skeleton" />
+            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full skeleton" />
             <div className="h-3 w-16 skeleton rounded" />
           </div>
         ))}
@@ -381,15 +381,15 @@ const StandardLayout = ({
       {subCategories.length > 0 && (
         <div className="flex gap-5 mb-14 bg-gray-50/50 p-6 rounded-[2.5rem] border border-gray-100 overflow-x-auto scrollbar-hidden scroll-smooth">
           <button onClick={() => onSelectSub('SHOW_ALL')} className="flex flex-col items-center gap-2 group flex-shrink-0">
-            <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 overflow-hidden flex items-center justify-center transition-all ${selectedSubId === 'SHOW_ALL' ? 'border-primary bg-primary/10' : 'border-primary/20 bg-primary/5'}`}>
-              <span className="text-primary font-black text-xs">ALL</span>
+            <div className={`w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 overflow-hidden flex items-center justify-center transition-all ${selectedSubId === 'SHOW_ALL' ? 'border-primary bg-primary/10' : 'border-primary/20 bg-primary/5'}`}>
+              <span className="text-primary font-black text-sm">ALL</span>
             </div>
             <span className="text-[12px] font-bold text-gray-600">View All</span>
           </button>
           {subCategories.map((sub) => (
             <button key={sub._id} onClick={() => onSelectSub(sub._id)} className="flex flex-col items-center gap-3 group flex-shrink-0">
-              <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 overflow-hidden transition-all ${selectedSubId === sub._id ? 'border-primary scale-110 shadow-lg' : 'border-gray-200'}`}>
-                {sub.image ? <img src={sub.image} alt={sub.name} className="w-full h-full object-cover" /> : <span className="text-3xl">{sub.icon || '🛍️'}</span>}
+              <div className={`w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 overflow-hidden transition-all ${selectedSubId === sub._id ? 'border-primary scale-110 shadow-lg' : 'border-gray-200'}`}>
+                {sub.image ? <img src={sub.image} alt={sub.name} className="w-full h-full object-cover" /> : <span className="text-4xl">{sub.icon || '🛍️'}</span>}
               </div>
               <span className={`text-[12px] font-black ${selectedSubId === sub._id ? 'text-primary' : 'text-gray-500'}`}>{sub.name}</span>
             </button>
