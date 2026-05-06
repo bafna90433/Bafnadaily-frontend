@@ -8,7 +8,7 @@ interface AuthState {
   loading: boolean
   sendOTP: (phone: string) => Promise<{ success: boolean; message?: string }>
   verifyOTP: (phone: string, otp: string, extra?: { name?: string; businessName?: string; gstNumber?: string; whatsapp?: string; visitingCard?: string }) => Promise<{ success: boolean; isNew?: boolean; message?: string }>
-  loginWithGoogle: (idToken: string, extra?: { businessName?: string; gstNumber?: string; whatsapp?: string; visitingCard?: string }) => Promise<{ success: boolean; message?: string }>
+  loginWithGoogle: (idToken: string, extra?: { name?: string; businessName?: string; gstNumber?: string; whatsapp?: string; visitingCard?: string }) => Promise<{ success: boolean; isNew?: boolean; message?: string }>
   logout: () => void
   updateUser: (user: User) => void
   fetchMe: () => Promise<void>
