@@ -125,8 +125,7 @@ const useCartStore = create<CartState>((set, get) => ({
     const cart = get().cart
     if (!cart?.items?.length) return { subtotal: 0, shipping: 0, total: 0 }
     const subtotal = cart.items.reduce((a, b) => a + (b.price || b.product?.price || 0) * b.quantity, 0)
-    const shipping = subtotal > 499 ? 0 : 49
-    return { subtotal, shipping, total: subtotal + shipping }
+    return { subtotal, shipping: 0, total: subtotal }
   },
 }))
 

@@ -12,10 +12,10 @@ const AddressesPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   
   const [form, setForm] = useState({
-    name: '',
-    phone: '',
-    whatsapp: '',
-    shopName: '',
+    name: user?.name || '',
+    phone: user?.phone || '',
+    whatsapp: user?.whatsapp || user?.phone || '',
+    shopName: user?.businessName || '',
     addressLine1: '',
     addressLine2: '',
     city: '',

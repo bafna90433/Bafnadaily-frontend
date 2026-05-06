@@ -50,11 +50,11 @@ const useAuthStore = create<AuthState>((set) => ({
     set({ loading: true })
     try {
       const res = await api.post('/auth/google', { idToken, ...extra })
-      const { token, user } = res.data
+      const { token, user, isNew } = res.data
       localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(user))
       set({ token, user, loading: false })
-      return { success: true }
+      return { success: true, isNew }
     } catch (err: any) {
       set({ loading: false })
       return { success: false, message: err.response?.data?.message || 'Google Login failed' }

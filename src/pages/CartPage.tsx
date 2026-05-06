@@ -3,21 +3,29 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, Tag } from 'lucide-react'
 import useCartStore from '../store/cartStore'
 import useAuthStore from '../store/authStore'
+import useSettingsStore from '../store/settingsStore'
 import api from '../utils/api'
 import toast from 'react-hot-toast'
 
 const CartPage: React.FC = () => {
   const { cart, fetchCart, updateItem, removeItem, getTotal, setHasNewItem } = useCartStore()
   const { user } = useAuthStore()
+  const { settings, fetchSettings } = useSettingsStore()
   const navigate = useNavigate()
   const [coupon, setCoupon] = useState('')
   const [couponDiscount, setCouponDiscount] = useState(0)
   const [couponLoading, setCouponLoading] = useState(false)
-  const { subtotal, shipping, total } = getTotal()
+  const { subtotal } = getTotal()
+
+  const freeShippingThreshold = settings.freeShippingAbove ?? 499
+  const standardShipping = settings.standardShippingCharge ?? 49
+  const shipping = subtotal >= freeShippingThreshold ? 0 : standardShipping
+  const total = subtotal + shipping
 
   useEffect(() => { 
     if (user) {
       fetchCart()
+      fetchSettings()
       setHasNewItem(false) 
     }
   }, [user])
@@ -88,7 +96,7 @@ const CartPage: React.FC = () => {
               {couponDiscount > 0 && <div className="flex justify-between text-green-600 font-semibold"><span>Coupon Discount</span><span>-₹{couponDiscount}</span></div>}
               <hr/><div className="flex justify-between font-bold text-base"><span>Total</span><span>₹{finalTotal}</span></div>
             </div>
-            {shipping > 0 && <p className="text-xs text-orange-500 mt-3 bg-orange-50 p-2 rounded-lg">Add ₹{499-subtotal} more for free delivery!</p>}
+            {shipping > 0 && <p className="text-xs text-orange-500 mt-3 bg-orange-50 p-2 rounded-lg">Add ₹{freeShippingThreshold - subtotal} more for free delivery!</p>}
             <button onClick={() => navigate('/checkout', { state: { couponDiscount, coupon } })} className="btn-primary w-full mt-5">
               Proceed to Checkout <ArrowRight size={18}/>
             </button>

@@ -17,8 +17,8 @@ const FloatingCartBar: React.FC = () => {
   if (count === 0) return null
 
   const { subtotal, shipping } = getTotal()
-  const freeShippingAbove = settings.freeShippingAbove || 499
-  const actualShipping = subtotal >= freeShippingAbove ? 0 : (settings.standardShippingCharge || 49)
+  const freeShippingAbove = settings.freeShippingAbove ?? 499
+  const actualShipping = subtotal >= freeShippingAbove ? 0 : (settings.standardShippingCharge ?? 49)
   const total = subtotal + actualShipping
   const remaining = freeShippingAbove - subtotal
 

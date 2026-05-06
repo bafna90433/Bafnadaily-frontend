@@ -9,6 +9,7 @@ import useAuthStore from '../store/authStore'
 import ProductCard from '../components/product/ProductCard'
 import toast from 'react-hot-toast'
 import { ik } from '../utils/imagekit'
+import useSettingsStore from '../store/settingsStore'
 
 // ── Star Rating Display ────────────────────────────────────────────────────────
 function StarRow({ rating, size = 14 }: { rating: number; size?: number }) {
@@ -113,6 +114,7 @@ const ProductDetailPage: React.FC = () => {
   const { addToCart, cart, updateItem, removeItem, count, getTotal, hasNewItem } = useCartStore()
   const { total } = getTotal()
   const { user } = useAuthStore()
+  const { settings } = useSettingsStore()
 
   useEffect(() => {
     setLoading(true); setImgIdx(0); setVariant(''); setTab('reviews'); setCartQty(0); setCartItemId(null)
@@ -417,7 +419,7 @@ const ProductDetailPage: React.FC = () => {
           {/* ── Shipping info inline ── */}
           <div className="mt-5 border-t border-gray-100 pt-5 grid grid-cols-2 gap-2">
             {[
-              { emoji: '✅', text: 'Free delivery above ₹499' },
+              { emoji: '✅', text: `Free delivery above ₹${settings.freeShippingAbove ?? 499}` },
               { emoji: '🚚', text: '3–7 business days' },
               { emoji: '💵', text: 'Cash on Delivery available' },
               { emoji: '↩️', text: '7-day easy returns' },
@@ -449,7 +451,7 @@ const ProductDetailPage: React.FC = () => {
         )}
         {tab==='shipping' && (
           <div className="space-y-3 text-sm text-gray-600">
-            <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl"><span>✅</span><span>Free shipping on orders above ₹499</span></div>
+            <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl"><span>✅</span><span>Free shipping on orders above ₹{settings.freeShippingAbove ?? 499}</span></div>
             <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl"><span>🚚</span><span>Standard delivery: 3–7 business days</span></div>
             <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-xl"><span>💵</span><span>Cash on Delivery available across India</span></div>
             <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-xl"><span>↩️</span><span>Easy 7-day returns</span></div>

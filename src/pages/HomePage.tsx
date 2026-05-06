@@ -17,12 +17,8 @@ const CATEGORIES = [
   { name: 'Cute Items', slug: 'cute-items', emoji: '💕', bg: 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100' },
 ]
 
-const FEATURES = [
-  { icon: Truck, title: 'Free Delivery', desc: 'Orders above ₹499' },
-  { icon: Shield, title: 'Secure Pay', desc: 'COD & UPI available' },
-  { icon: Gift, title: 'Gift Wrap', desc: 'At just ₹29 extra' },
-  { icon: Zap, title: 'Fast Dispatch', desc: 'Ships in 24 hrs' },
-]
+// FEATURES constant removed from global scope to avoid ReferenceError
+
 
 const SkeletonCard = () => (
   <div className="card overflow-hidden">
@@ -235,20 +231,30 @@ const HeroLayout3 = () => (
   </section>
 )
 
-const FeaturesBar = () => (
-  <section className="bg-white border-y border-gray-100">
-    <div className="max-w-full mx-auto px-4 py-5">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {FEATURES.map(({ icon: Icon, title, desc }) => (
-          <div key={title} className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0"><Icon size={20} className="text-primary" /></div>
-            <div><p className="font-bold text-sm">{title}</p><p className="text-xs text-gray-500">{desc}</p></div>
-          </div>
-        ))}
+const FeaturesBar = () => {
+  const { settings } = useSettingsStore()
+  const features = [
+    { icon: Truck, title: 'Free Delivery', desc: `Orders above ₹${settings.freeShippingAbove ?? 499}` },
+    { icon: Shield, title: 'Secure Pay', desc: 'COD & UPI available' },
+    { icon: Gift, title: 'Gift Wrap', desc: 'At just ₹29 extra' },
+    { icon: Zap, title: 'Fast Dispatch', desc: 'Ships in 24 hrs' },
+  ]
+
+  return (
+    <section className="bg-white border-y border-gray-100">
+      <div className="max-w-full mx-auto px-4 py-5">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {features.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0"><Icon size={20} className="text-primary" /></div>
+              <div><p className="font-bold text-sm">{title}</p><p className="text-xs text-gray-500">{desc}</p></div>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-  </section>
-)
+    </section>
+  )
+}
 
 const CategoriesSection = () => (
   <section className="max-w-full mx-auto px-4 py-10">
@@ -400,25 +406,28 @@ const FullWidthProductSection: React.FC<SectionProps> = ({ title, products, load
   </section>
 )
 
-const FullWidthFeaturesBar = () => (
-  <div style={{ background: 'linear-gradient(90deg,#fff0f6,#fdf2ff,#fff0f6)', borderTop: '1px solid rgba(233,30,99,0.1)', borderBottom: '1px solid rgba(233,30,99,0.1)' }}>
-    <div className="px-6 md:px-14 lg:px-24 py-4">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { Icon: Truck, title: 'Free Delivery', desc: 'Orders above ₹499', color: '#E91E63' },
-          { Icon: Shield, title: 'Secure Payment', desc: 'COD & UPI available', color: '#9C27B0' },
-          { Icon: Package, title: 'Gift Wrapping', desc: 'At just ₹29 extra', color: '#FF9800' },
-          { Icon: RotateCcw, title: 'Easy Returns', desc: '7-day hassle-free', color: '#E91E63' },
-        ].map(({ Icon, title, desc, color }) => (
-          <div key={title} className="flex items-center gap-3 bg-white rounded-xl px-4 py-3" style={{ boxShadow: '0 2px 10px rgba(233,30,99,0.06)', border: '1px solid rgba(233,30,99,0.07)' }}>
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}15` }}><Icon size={16} style={{ color }} /></div>
-            <div><p className="font-bold text-gray-800 text-xs">{title}</p><p className="text-gray-400 text-[11px]">{desc}</p></div>
-          </div>
-        ))}
+const FullWidthFeaturesBar = () => {
+  const { settings } = useSettingsStore()
+  return (
+    <div style={{ background: 'linear-gradient(90deg,#fff0f6,#fdf2ff,#fff0f6)', borderTop: '1px solid rgba(233,30,99,0.1)', borderBottom: '1px solid rgba(233,30,99,0.1)' }}>
+      <div className="px-6 md:px-14 lg:px-24 py-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { Icon: Truck, title: 'Free Delivery', desc: `Orders above ₹${settings.freeShippingAbove ?? 499}`, color: '#E91E63' },
+            { Icon: Shield, title: 'Secure Payment', desc: 'COD & UPI available', color: '#9C27B0' },
+            { Icon: Package, title: 'Gift Wrapping', desc: 'At just ₹29 extra', color: '#FF9800' },
+            { Icon: RotateCcw, title: 'Easy Returns', desc: '7-day hassle-free', color: '#E91E63' },
+          ].map(({ Icon, title, desc, color }) => (
+            <div key={title} className="flex items-center gap-3 bg-white rounded-xl px-4 py-3" style={{ boxShadow: '0 2px 10px rgba(233,30,99,0.06)', border: '1px solid rgba(233,30,99,0.07)' }}>
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}15` }}><Icon size={16} style={{ color }} /></div>
+              <div><p className="font-bold text-gray-800 text-xs">{title}</p><p className="text-gray-400 text-[11px]">{desc}</p></div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  </div>
-)
+  )
+}
 
 const HorizontalCategoryScroll: React.FC<{ categories: Category[]; loading?: boolean }> = ({ categories, loading }) => {
   if (loading) return <SkeletonCircles />

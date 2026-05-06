@@ -38,7 +38,7 @@ const CheckoutPage: React.FC = () => {
   const { couponDiscount = 0, coupon: couponCode = '' } = (location.state as any) || {}
 
   const { subtotal, total } = getTotal()
-  const shipping = subtotal >= (settings.freeShippingAbove || 499) ? 0 : (settings.standardShippingCharge || 49)
+  const shipping = subtotal >= (settings.freeShippingAbove ?? 499) ? 0 : (settings.standardShippingCharge ?? 49)
 
   const [loading, setLoading] = useState(false)
   const [payMethod, setPayMethod] = useState<'cod'|'upi'|'online'>('cod')
@@ -54,9 +54,9 @@ const CheckoutPage: React.FC = () => {
   const [form, setForm] = useState<Addr>(BLANK_ADDR)
   const [savingAddr, setSavingAddr] = useState(false)
 
-  const giftWrapCharge = settings.giftWrapCharge || 29
-  const codFlatCharge = settings.codFlatCharge || 0
-  const codAdvancePercent = settings.codAdvancePercent || 0
+  const giftWrapCharge = settings.giftWrapCharge ?? 29
+  const codFlatCharge = settings.codFlatCharge ?? 0
+  const codAdvancePercent = settings.codAdvancePercent ?? 0
   const finalTotal = total + (giftWrap ? giftWrapCharge : 0) - couponDiscount + shipping + (payMethod === 'cod' ? codFlatCharge : 0)
   const advanceAmount = payMethod === 'cod' && codAdvancePercent > 0 ? Math.ceil(finalTotal * codAdvancePercent / 100) : 0
   const onDeliveryAmount = advanceAmount > 0 ? finalTotal - advanceAmount : 0
@@ -107,7 +107,14 @@ const CheckoutPage: React.FC = () => {
 
   const openNewForm = () => {
     setEditAddr(null)
-    setForm({ ...BLANK_ADDR, name: user?.name || '', phone: (user as any)?.phone || '' })
+    setForm({ 
+      ...BLANK_ADDR, 
+      name: user?.name || '', 
+      phone: user?.phone || '', 
+      whatsapp: user?.whatsapp || user?.phone || '',
+      shopName: user?.businessName || '',
+      gstNumber: user?.gstNumber || ''
+    })
     setShowForm(true)
   }
 
@@ -322,8 +329,8 @@ const CheckoutPage: React.FC = () => {
                 {/* WhatsApp + GST */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-bold text-gray-600 block mb-1">WhatsApp Number</label>
-                    <input value={form.whatsapp} onChange={e => setF('whatsapp', e.target.value.replace(/\D/g,''))} maxLength={10} className="input" placeholder="Same as mobile?"/>
+                    <label className="text-xs font-bold text-gray-600 block mb-1">WhatsApp Number *</label>
+                    <input value={form.whatsapp} onChange={e => setF('whatsapp', e.target.value.replace(/\D/g,''))} maxLength={10} required className="input" placeholder="10-digit number"/>
                   </div>
                   <div>
                     <label className="text-xs font-bold text-gray-600 block mb-1">GST Number (Optional)</label>

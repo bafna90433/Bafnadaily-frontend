@@ -115,7 +115,7 @@ const Navbar: React.FC = () => {
   }
 
   const trendingTags = [FIXED_TAGS[0], ...categories.slice(0, 5).map(c => c.name), ...FIXED_TAGS.slice(1)]
-  const promoText = settings.promoText || `✨ Free Delivery on orders above ₹${settings.freeShippingAbove || 499} · COD Available · Gift Wrap at ₹29`
+  const promoText = settings.promoText || `✨ Free Delivery on orders above ₹${settings.freeShippingAbove ?? 499} · COD Available · Gift Wrap at ₹29`
   const siteName = settings.siteName || 'Bafna Daily'
 
   return (

@@ -13,7 +13,7 @@ const ProfilePage: React.FC = () => {
   const [email, setEmail] = useState(user?.email||'')
   const [businessName, setBusinessName] = useState(user?.businessName||'')
   const [gstNumber, setGstNumber] = useState(user?.gstNumber||'')
-  const [whatsapp, setWhatsapp] = useState(user?.whatsapp||'')
+  const [whatsapp, setWhatsapp] = useState(user?.whatsapp || user?.phone || '')
   const [visitingCard, setVisitingCard] = useState(user?.visitingCard||'')
   const [upLoading, setUpLoading] = useState(false)
 

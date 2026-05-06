@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import api from '../utils/api'
 
 const LoginPage: React.FC = () => {
-  const [step, setStep] = useState<1 | 2>(1)
+  const [step, setStep] = useState<1 | 2 | 'google'>(1)
   const [phone, setPhone] = useState('')
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [name, setName] = useState('')
@@ -17,6 +17,7 @@ const LoginPage: React.FC = () => {
   const [whatsapp, setWhatsapp] = useState('')
   const [visitingCard, setVisitingCard] = useState('')
   const [upLoading, setUpLoading] = useState(false)
+  const [googleToken, setGoogleToken] = useState('')
   const { sendOTP, verifyOTP, loginWithGoogle, loading } = useAuthStore()
   const { settings } = useSettingsStore()
   const siteName = settings.siteName || 'Reteiler'
@@ -48,8 +49,23 @@ const LoginPage: React.FC = () => {
     const otpStr = otp.join('')
     if (otpStr.length !== 6) { toast.error('Enter complete 6-digit OTP'); return }
     const res = await verifyOTP(phone, otpStr, { name, businessName, gstNumber, whatsapp, visitingCard })
-    if (res.success) { toast.success(`Welcome to ${siteName}! 🎉`); navigate(from, { replace: true }) }
+    if (res.success) { 
+      toast.success(`Welcome to ${siteName}! 🎉`); 
+      navigate(from, { replace: true }) 
+    }
     else toast.error(res.message || 'Invalid OTP')
+  }
+
+  const handleGoogleFinalize = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!whatsapp || whatsapp.length !== 10) { toast.error('Valid 10-digit WhatsApp number required'); return }
+    const res = await loginWithGoogle(googleToken, { name, businessName, gstNumber, whatsapp, visitingCard })
+    if (res.success) {
+      toast.success(`Welcome to ${siteName}! 🎉`)
+      navigate(from, { replace: true })
+    } else {
+      toast.error(res.message || 'Failed to complete profile')
+    }
   }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,8 +84,19 @@ const LoginPage: React.FC = () => {
   const handleGoogleSuccess = async (response: any) => {
     const res = await loginWithGoogle(response.credential)
     if (res.success) {
-      toast.success(`Welcome to ${siteName}! 🎉`)
-      navigate(from, { replace: true })
+      const user = useAuthStore.getState().user;
+      if (res.isNew || !user?.whatsapp) {
+        setGoogleToken(response.credential)
+        if (user) {
+          setName(user.name || '')
+          setWhatsapp(user.whatsapp || '')
+        }
+        setStep('google')
+        toast.success('Google linked! Please complete your profile.')
+      } else {
+        toast.success(`Welcome back, ${user?.name || siteName}! 🎉`)
+        navigate(from, { replace: true })
+      }
     } else {
       toast.error(res.message || 'Google login failed')
     }
@@ -83,8 +110,12 @@ const LoginPage: React.FC = () => {
             <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/30">
               <span className="text-white font-bold text-3xl font-heading">{siteName[0].toUpperCase()}</span>
             </div>
-            <h1 className="text-2xl font-heading font-bold text-gray-900">{step === 1 ? `Login to ${siteName}` : 'Verify OTP'}</h1>
-            <p className="text-gray-500 text-sm mt-1">{step === 1 ? 'Enter your mobile number' : `Code sent to +91 ${phone}`}</p>
+            <h1 className="text-2xl font-heading font-bold text-gray-900">
+              {step === 1 ? `Login to ${siteName}` : step === 2 ? 'Verify OTP' : 'Complete Profile'}
+            </h1>
+            <p className="text-gray-500 text-sm mt-1">
+              {step === 1 ? 'Enter your mobile number' : step === 2 ? `Code sent to +91 ${phone}` : 'Please provide your details to continue'}
+            </p>
           </div>
 
           {step === 1 ? (
@@ -118,7 +149,7 @@ const LoginPage: React.FC = () => {
               </div>
             </form>
           ) : (
-            <form onSubmit={handleVerify} className="space-y-4">
+            <form onSubmit={step === 2 ? handleVerify : handleGoogleFinalize} className="space-y-4">
               <div>
                 <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Full Name *</label>
                 <input value={name} onChange={e => setName(e.target.value)} className="input py-3" placeholder="Enter your full name" required />
@@ -133,8 +164,8 @@ const LoginPage: React.FC = () => {
                   <input value={gstNumber} onChange={e => setGstNumber(e.target.value.toUpperCase())} className="input py-3 uppercase" placeholder="GSTIN" maxLength={15} />
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">WhatsApp</label>
-                  <input value={whatsapp} onChange={e => setWhatsapp(e.target.value.replace(/\D/g,''))} className="input py-3" placeholder="WhatsApp No." maxLength={10} />
+                  <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">WhatsApp *</label>
+                  <input value={whatsapp} onChange={e => setWhatsapp(e.target.value.replace(/\D/g,''))} className="input py-3" placeholder="10-digit WhatsApp No." maxLength={10} required />
                 </div>
               </div>
 
@@ -160,27 +191,30 @@ const LoginPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-2">
-                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-3 text-center">6-Digit OTP</label>
-                <div className="flex gap-2 justify-center">
-                  {otp.map((digit, idx) => (
-                    <input key={idx} ref={el => inputRefs.current[idx] = el}
-                      type="text" inputMode="numeric" value={digit} maxLength={1}
-                      onChange={e => handleOTPChange(e.target.value, idx)}
-                      onKeyDown={e => handleKeyDown(e, idx)}
-                      className={`w-12 h-12 text-center text-xl font-bold border-2 rounded-xl focus:outline-none transition-colors ${digit ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 focus:border-primary'}`}
-                    />
-                  ))}
+              {step === 2 && (
+                <div className="pt-2">
+                  <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-3 text-center">6-Digit OTP</label>
+                  <div className="flex gap-2 justify-center">
+                    {otp.map((digit, idx) => (
+                      <input key={idx} ref={el => inputRefs.current[idx] = el}
+                        type="text" inputMode="numeric" value={digit} maxLength={1}
+                        onChange={e => handleOTPChange(e.target.value, idx)}
+                        onKeyDown={e => handleKeyDown(e, idx)}
+                        className={`w-12 h-12 text-center text-xl font-bold border-2 rounded-xl focus:outline-none transition-colors ${digit ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 focus:border-primary'}`}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
               <button type="submit" disabled={loading} className="btn-primary w-full py-3.5 text-base">
-                <CheckCircle size={18}/> {loading ? 'Verifying…' : 'Verify & Login'}
+                <CheckCircle size={18}/> {loading ? 'Verifying…' : (step === 2 ? 'Verify & Login' : 'Complete Profile')}
               </button>
               <div className="flex justify-between text-sm">
                 <button type="button" onClick={() => { setStep(1); setOtp(['','','','','','']) }} className="text-gray-500 flex items-center gap-1 hover:text-primary">
-                  <ArrowLeft size={14}/> Change number
+                  <ArrowLeft size={14}/> Change method
                 </button>
-                <button type="button" onClick={handleSend} className="text-primary font-bold hover:underline">Resend OTP</button>
+                {step === 2 && <button type="button" onClick={handleSend} className="text-primary font-bold hover:underline">Resend OTP</button>}
               </div>
             </form>
           )}
