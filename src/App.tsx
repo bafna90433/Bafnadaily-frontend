@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import BottomNav from './components/layout/BottomNav'
+import FloatingCartBar from './components/layout/FloatingCartBar'
 
 // Lazy load all pages — splits JS bundle per route
 const HomePage = lazy(() => import('./pages/HomePage'))
@@ -121,6 +122,7 @@ const App: React.FC = () => {
       </main>
       <Footer />
       <BottomNav />
+      <FloatingCartBar />
       </BrowserRouter>
     </GoogleOAuthProvider>
   )

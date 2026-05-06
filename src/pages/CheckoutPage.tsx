@@ -32,7 +32,7 @@ declare global { interface Window { Razorpay: any } }
 const CheckoutPage: React.FC = () => {
   const { cart, getTotal, clearCart, setHasNewItem } = useCartStore()
   const { user } = useAuthStore()
-  const { settings } = useSettingsStore()
+  const { settings, fetchSettings } = useSettingsStore()
   const navigate = useNavigate()
   const location = useLocation()
   const { couponDiscount = 0, coupon: couponCode = '' } = (location.state as any) || {}
@@ -61,10 +61,11 @@ const CheckoutPage: React.FC = () => {
   const advanceAmount = payMethod === 'cod' && codAdvancePercent > 0 ? Math.ceil(finalTotal * codAdvancePercent / 100) : 0
   const onDeliveryAmount = advanceAmount > 0 ? finalTotal - advanceAmount : 0
   const customerCodEnabled = user ? (user as any).codEnabled !== false : true
-  const codAvailable = settings.codEnabled && customerCodEnabled
+  const codAvailable = settings.codEnabled
 
   useEffect(() => {
     if (!user) { navigate('/login'); return }
+    fetchSettings()
     loadAddresses()
     if (!codAvailable) setPayMethod('upi')
     
@@ -239,7 +240,7 @@ const CheckoutPage: React.FC = () => {
   const paymentOptions = [
     ...(codAvailable ? [{ v:'cod' as const, label:'💵 Cash on Delivery', desc: codAdvancePercent > 0 ? `${codAdvancePercent}% advance required` : 'Pay at doorstep' }] : []),
     ...(settings.upiEnabled ? [{ v:'upi' as const, label:'📱 UPI Payment', desc: settings.upiId || 'PhonePe / GPay / Paytm' }] : []),
-    ...(settings.razorpayEnabled ? [{ v:'online' as const, label:'💳 Card / Netbanking', desc: 'Visa, Mastercard, RuPay' }] : []),
+    ...(settings.razorpayEnabled ? [{ v:'online' as const, label:'💳 Pay Online', desc: 'UPI, Debit Card, Credit Card, Net Banking' }] : []),
   ]
 
   return (
@@ -442,6 +443,25 @@ const CheckoutPage: React.FC = () => {
           <p className="text-xs text-center text-gray-400 mt-2">By ordering you agree to our Terms & Conditions</p>
         </div>
       </div>
+
+      {/* ── Floating Bottom Bar (mobile) ── */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-2xl px-4 py-3 flex items-center gap-3">
+        <div className="flex-1">
+          <p className="text-xs text-gray-500">Total Amount</p>
+          <p className="text-lg font-bold text-gray-900">₹{finalTotal}</p>
+          {shipping === 0 && <p className="text-xs text-green-600 font-medium">Free Shipping ✨</p>}
+        </div>
+        <button
+          onClick={placeOrder}
+          disabled={loading || !selectedAddr || paymentOptions.length === 0}
+          className="btn-primary px-6 py-3.5 text-sm font-bold rounded-xl disabled:opacity-50 flex-shrink-0"
+        >
+          {loading ? 'Processing…' : payMethod==='online' ? `Pay ₹${finalTotal}` : payMethod==='cod' && codAdvancePercent > 0 && settings.razorpayEnabled ? `Pay ₹${advanceAmount} Advance` : 'Place Order →'}
+        </button>
+      </div>
+
+      {/* bottom padding so content isn't hidden behind floating bar on mobile */}
+      <div className="lg:hidden h-20"/>
     </div>
   )
 }
