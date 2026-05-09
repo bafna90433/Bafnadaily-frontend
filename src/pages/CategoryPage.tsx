@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { ik } from '../utils/imagekit';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
@@ -223,25 +224,36 @@ const CategoryPage: React.FC = () => {
   if (error) return <ErrorState message={error} />;
   if (!category) return <ErrorState message="Category could not be found." />;
 
-  return category.layoutType === 'hanging' ? (
-    <HangingLayout category={category} subCategories={subCategories} heroBanners={heroBanners} />
-  ) : (
-    <StandardLayout
-      category={category}
-      subCategories={subCategories}
-      products={products}
-      deals={deals}
-      heroBanners={heroBanners}
-      hangingBanners={hangingBanners}
-      selectedSubId={selectedSubId}
-      onSelectSub={handleSubCategorySelect}
-      productsLoading={productsLoading}
-      isDealsPage={isDealsPage}
-      totalProducts={totalProducts}
-      currentPage={currentPage}
-      totalPages={totalPages}
-      onPageChange={(page) => fetchPage(page, selectedSubId)}
-    />
+  return (
+    <>
+      <Helmet>
+        <title>{`${category.name} | Bafnadaily 🛍️`}</title>
+        <meta name="description" content={`Shop the best ${category.name} at Bafnadaily. Explore our collection of high-quality products in this category.`} />
+        <meta property="og:title" content={`${category.name} | Bafnadaily`} />
+        <meta property="og:description" content={`Discover trending ${category.name} and accessories.`} />
+        {category.image && <meta property="og:image" content={category.image} />}
+      </Helmet>
+      {category.layoutType === 'hanging' ? (
+        <HangingLayout category={category} subCategories={subCategories} heroBanners={heroBanners} />
+      ) : (
+        <StandardLayout
+          category={category}
+          subCategories={subCategories}
+          products={products}
+          deals={deals}
+          heroBanners={heroBanners}
+          hangingBanners={hangingBanners}
+          selectedSubId={selectedSubId}
+          onSelectSub={handleSubCategorySelect}
+          productsLoading={productsLoading}
+          isDealsPage={isDealsPage}
+          totalProducts={totalProducts}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => fetchPage(page, selectedSubId)}
+        />
+      )}
+    </>
   );
 };
 

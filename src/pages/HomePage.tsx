@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { ik } from '../utils/imagekit'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Zap, Gift, Truck, Shield, Tag, Sparkles, Crown, Star, ShoppingBag, TrendingUp, Diamond, Watch, Award, HeartHandshake, Package, RotateCcw, ChevronRight } from 'lucide-react'
+import { Helmet } from 'react-helmet-async'
 import { Product, Banner, Category } from '../types'
 import api from '../utils/api'
 import ProductCard from '../components/product/ProductCard'
@@ -507,64 +508,81 @@ const HomePage: React.FC = () => {
     }).catch(console.error).finally(() => setLoading(false))
   }, [])
 
-  if (layout === 5 || !layout) return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="bg-white py-10 mb-8 border-b">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col items-center text-center">
-          <img src="/logo.png" alt="Bafnadaily" className="h-16 mb-4" onError={e => (e.target as any).src = 'https://placehold.co/200x60?text=Bafnadaily'} />
-          <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">Premium Quality Wholesale Store</p>
+  let content;
+
+  if (layout === 5 || !layout) {
+    content = (
+      <div className="bg-gray-50 min-h-screen">
+        <div className="bg-white py-10 mb-8 border-b">
+          <div className="max-w-7xl mx-auto px-4 flex flex-col items-center text-center">
+            <img src="/logo.png" alt="Bafnadaily" className="h-16 mb-4" onError={e => (e.target as any).src = 'https://placehold.co/200x60?text=Bafnadaily'} />
+            <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">Premium Quality Wholesale Store</p>
+          </div>
         </div>
+        <MainDashboard categories={categories} loading={loading} />
+        <BottomCTA />
       </div>
-      <MainDashboard categories={categories} loading={loading} />
-      <BottomCTA />
-    </div>
-  )
-
-  if (layout === 1) return (
-    <div>
-      {sec.heroBanner !== false && <HeroLayout1 />}
-      {sec.featuresBar !== false && <FeaturesBar />}
-      {sec.categories !== false && <CategoriesSection />}
-      {sec.promoBanners !== false && <PromoBanners sec={sec} />}
-      {sec.trendingProducts !== false && <ProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true" />}
-      {sec.newArrivals !== false && <ProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
-      {sec.featuredProducts !== false && <ProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true" />}
-      <BottomCTA />
-    </div>
-  )
-
-  if (layout === 2) return (
-    <div>
-      {sec.heroBanner !== false && <HeroLayout2 />}
-      {sec.featuresBar !== false && <FeaturesBar />}
-      {sec.trendingProducts !== false && <ProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true" />}
-      {sec.promoBanners !== false && <PromoBanners sec={sec} />}
-      {sec.categories !== false && <CategoriesSection />}
-      {sec.newArrivals !== false && <ProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
-      {sec.featuredProducts !== false && <ProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true" />}
-      <BottomCTA />
-    </div>
-  )
-
-  if (layout === 3) return (
-    <div>
-      {sec.heroBanner !== false && <HeroLayout3 />}
-      {sec.featuresBar !== false && <FeaturesBar />}
-      {sec.newArrivals !== false && <ProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
-      {sec.categories !== false && <CategoriesSection />}
-      {sec.featuredProducts !== false && <ProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true" />}
-      {sec.promoBanners !== false && <PromoBanners sec={sec} />}
-      {sec.trendingProducts !== false && <ProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true" />}
-      <BottomCTA />
-    </div>
-  )
+    )
+  } else if (layout === 1) {
+    content = (
+      <div>
+        {sec.heroBanner !== false && <HeroLayout1 />}
+        {sec.featuresBar !== false && <FeaturesBar />}
+        {sec.categories !== false && <CategoriesSection />}
+        {sec.promoBanners !== false && <PromoBanners sec={sec} />}
+        {sec.trendingProducts !== false && <ProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true" />}
+        {sec.newArrivals !== false && <ProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
+        {sec.featuredProducts !== false && <ProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true" />}
+        <BottomCTA />
+      </div>
+    )
+  } else if (layout === 2) {
+    content = (
+      <div>
+        {sec.heroBanner !== false && <HeroLayout2 />}
+        {sec.featuresBar !== false && <FeaturesBar />}
+        {sec.trendingProducts !== false && <ProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true" />}
+        {sec.promoBanners !== false && <PromoBanners sec={sec} />}
+        {sec.categories !== false && <CategoriesSection />}
+        {sec.newArrivals !== false && <ProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
+        {sec.featuredProducts !== false && <ProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true" />}
+        <BottomCTA />
+      </div>
+    )
+  } else if (layout === 3) {
+    content = (
+      <div>
+        {sec.heroBanner !== false && <HeroLayout3 />}
+        {sec.featuresBar !== false && <FeaturesBar />}
+        {sec.newArrivals !== false && <ProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
+        {sec.categories !== false && <CategoriesSection />}
+        {sec.featuredProducts !== false && <ProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true" />}
+        {sec.promoBanners !== false && <PromoBanners sec={sec} />}
+        {sec.trendingProducts !== false && <ProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true" />}
+        <BottomCTA />
+      </div>
+    )
+  } else {
+    content = (
+      <div>
+        {sec.heroBanner !== false && <HeroLayout4 heroBanners={heroBanners} hangingBanners={hangingBanners} />}
+        {sec.featuresBar !== false && <FullWidthFeaturesBar />}
+        {sec.categories !== false && <HorizontalCategoryScroll categories={categories} loading={loading} />}
+      </div>
+    )
+  }
 
   return (
-    <div>
-      {sec.heroBanner !== false && <HeroLayout4 heroBanners={heroBanners} hangingBanners={hangingBanners} />}
-      {sec.featuresBar !== false && <FullWidthFeaturesBar />}
-      {sec.categories !== false && <HorizontalCategoryScroll categories={categories} loading={loading} />}
-    </div>
+    <>
+      <Helmet>
+        <title>Bafnadaily 🛍️ — Gifts, Accessories & Trending Keychains</title>
+        <meta name="description" content="Explore trending keychains, unique gifts, and stylish accessories at Bafnadaily. Shop high-quality items under ₹299 with fast delivery across India!" />
+        <meta property="og:title" content="Bafnadaily 🛍️ — Gifts & Accessories" />
+        <meta property="og:description" content="Shop trending keychains and unique gifts at the best prices." />
+        <meta property="og:type" content="website" />
+      </Helmet>
+      {content}
+    </>
   )
 }
 

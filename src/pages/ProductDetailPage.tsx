@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ShoppingCart, ShoppingBag, Heart, ChevronLeft, ChevronRight, Package, Shield, Truck, Star, Minus, Plus, ThumbsUp, Tag, Check } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -208,6 +209,17 @@ const ProductDetailPage: React.FC = () => {
 
   return (
     <div className="w-full px-4 md:px-10 lg:px-16 xl:px-24 py-6">
+      <Helmet>
+        <title>{`${product.name} | Bafnadaily 🛍️`}</title>
+        <meta name="description" content={`${product.shortDescription || product.description?.slice(0, 160)}... Buy at ₹${product.price} on Bafnadaily.`} />
+        <meta property="og:title" content={`${product.name} - ₹${product.price}`} />
+        <meta property="og:description" content={product.shortDescription || product.description?.slice(0, 160)} />
+        <meta property="og:image" content={images[0]?.url} />
+        <meta property="og:type" content="product" />
+        <meta property="og:price:amount" content={String(product.price)} />
+        <meta property="og:price:currency" content="INR" />
+      </Helmet>
+
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-xs text-gray-400 mb-6">
         <button onClick={() => navigate('/')} className="hover:text-primary">Home</button><span>/</span>

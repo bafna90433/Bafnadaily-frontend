@@ -7,6 +7,8 @@ import Footer from './components/layout/Footer'
 import BottomNav from './components/layout/BottomNav'
 import FloatingCartBar from './components/layout/FloatingCartBar'
 
+import { HelmetProvider } from 'react-helmet-async'
+
 // Lazy load all pages — splits JS bundle per route
 const HomePage = lazy(() => import('./pages/HomePage'))
 const ProductsPage = lazy(() => import('./pages/ProductsPage'))
@@ -95,36 +97,38 @@ const App: React.FC = () => {
   }, [settings.googleAnalyticsEnabled, settings.googleAnalyticsId])
 
   return (
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-      <BrowserRouter>
-      <Toaster position="top-center" toastOptions={{ duration: 2500, style: { fontFamily: 'DM Sans', fontSize: '14px' } }} />
-      <TrackerInit />
-      <Navbar />
-      <main className="min-h-screen pb-20 md:pb-0">
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/product/:slug" element={<ProductDetailPage />} />
-            <Route path="/category/:slug" element={<CategoryPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/orders/:id" element={<OrderDetailPage />} />
-            <Route path="/wishlist" element={<WishlistPage />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/addresses" element={<AddressesPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </Suspense>
-      </main>
-      <Footer />
-      <BottomNav />
-      <FloatingCartBar />
-      </BrowserRouter>
-    </GoogleOAuthProvider>
+    <HelmetProvider>
+      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+        <BrowserRouter>
+        <Toaster position="top-center" toastOptions={{ duration: 2500, style: { fontFamily: 'DM Sans', fontSize: '14px' } }} />
+        <TrackerInit />
+        <Navbar />
+        <main className="min-h-screen pb-20 md:pb-0">
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/product/:slug" element={<ProductDetailPage />} />
+              <Route path="/category/:slug" element={<CategoryPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/orders" element={<OrdersPage />} />
+              <Route path="/orders/:id" element={<OrderDetailPage />} />
+              <Route path="/wishlist" element={<WishlistPage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/addresses" element={<AddressesPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Suspense>
+        </main>
+        <Footer />
+        <BottomNav />
+        <FloatingCartBar />
+        </BrowserRouter>
+      </GoogleOAuthProvider>
+    </HelmetProvider>
   )
 }
 
