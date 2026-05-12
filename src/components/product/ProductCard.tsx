@@ -35,7 +35,11 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
     if (!cartItem) return
     if (navigator.vibrate) navigator.vibrate(30);
     const newQty = cartItem.quantity + delta
-    
+
+    if (delta === 1 && cartItem.quantity >= (product.stock || 0)) {
+      toast.error(`Only ${product.stock} pcs available in stock!`, { icon: '⚠️', duration: 2500 })
+      return
+    }
     if (delta === -1 && cartItem.quantity <= (product.minQty || 1)) {
       await removeItem(cartItem._id)
     } else if (newQty >= (product.minQty || 1)) {
@@ -73,6 +77,12 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
             {product.isBestSeller && <span className="badge bg-purple-500 text-white">⭐ Best</span>}
             {(product.minQty || 1) > 1 && <span className="badge bg-orange-100 text-orange-700">Min {product.minQty} pcs</span>}
           </div>
+          {/* Out of Stock overlay */}
+          {product.stock === 0 && (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <span className="bg-white text-gray-800 text-xs font-black px-3 py-1.5 rounded-full shadow-lg tracking-wide uppercase">Out of Stock</span>
+            </div>
+          )}
           {/* Wishlist */}
           <button onClick={handleWishlist}
             className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm hover:scale-110 transition-transform">
@@ -138,24 +148,31 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
           {/* ── Cart Controls ── always visible ── */}
           {product.stock !== 0 ? (
             qtyInCart > 0 ? (
-              <div className="flex items-center rounded-xl overflow-hidden border border-primary h-9">
-                <button
-                  onClick={(e) => handleUpdateQty(e, -1)}
-                  disabled={cartItem?._id?.startsWith('temp-')}
-                  className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 disabled:opacity-30 transition-colors"
-                >
-                  <span className="text-base font-black text-primary leading-none">−</span>
-                </button>
-                <div className="flex-[1.5] h-full flex items-center justify-center bg-primary text-white font-black text-sm">
-                  {qtyInCart}
+              <div>
+                <div className="flex items-center rounded-xl overflow-hidden border border-primary h-9">
+                  <button
+                    onClick={(e) => handleUpdateQty(e, -1)}
+                    disabled={cartItem?._id?.startsWith('temp-')}
+                    className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 disabled:opacity-30 transition-colors"
+                  >
+                    <span className="text-base font-black text-primary leading-none">−</span>
+                  </button>
+                  <div className="flex-[1.5] h-full flex items-center justify-center bg-primary text-white font-black text-sm">
+                    {qtyInCart}
+                  </div>
+                  <button
+                    onClick={(e) => handleUpdateQty(e, 1)}
+                    disabled={cartItem?._id?.startsWith('temp-')}
+                    className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 disabled:opacity-30 transition-colors"
+                  >
+                    <span className="text-base font-black text-primary leading-none">+</span>
+                  </button>
                 </div>
-                <button
-                  onClick={(e) => handleUpdateQty(e, 1)}
-                  disabled={cartItem?._id?.startsWith('temp-')}
-                  className="flex-1 h-full flex items-center justify-center bg-gray-50 hover:bg-gray-100 disabled:opacity-30 transition-colors"
-                >
-                  <span className="text-base font-black text-primary leading-none">+</span>
-                </button>
+                {qtyInCart >= (product.stock || 0) && (
+                  <p className="text-[9px] text-orange-500 font-bold text-center mt-1 flex items-center justify-center gap-0.5">
+                    ⚠️ Max {product.stock} pcs available
+                  </p>
+                )}
               </div>
             ) : (
               <button onClick={handleCart}

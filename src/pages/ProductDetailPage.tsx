@@ -145,6 +145,10 @@ const ProductDetailPage: React.FC = () => {
 
   const handleIncrease = async () => {
     if (!cartItemId) return
+    if (cartQty >= (product?.stock || 0)) {
+      toast.error(`Only ${product?.stock} pcs available in stock!`, { icon: '⚠️', duration: 2500 })
+      return
+    }
     await updateItem(cartItemId, cartQty + 1)
   }
 
@@ -315,6 +319,31 @@ const ProductDetailPage: React.FC = () => {
             <p className="text-green-600 text-sm font-semibold mt-1">You save ₹{product.mrp - product.price}!</p>
           )}
 
+          {/* Stock status */}
+          {product.stock === 0 ? (
+            <div className="mt-4 flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
+              <span className="text-2xl">🚫</span>
+              <div>
+                <p className="font-black text-red-600 text-sm">Out of Stock</p>
+                <p className="text-xs text-red-400 mt-0.5">This product is currently unavailable. Check back soon!</p>
+              </div>
+            </div>
+          ) : product.stock > 0 && product.stock <= 10 ? (
+            <div className="mt-4 flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3">
+              <span className="text-2xl">⚠️</span>
+              <div>
+                <p className="font-black text-orange-600 text-sm">Only {product.stock} left in stock!</p>
+                <p className="text-xs text-orange-400 mt-0.5">Order now before it sells out!</p>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-4 flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full">
+                ✅ In Stock
+              </span>
+            </div>
+          )}
+
           {/* Colors */}
           {product.colors?.length > 0 && (
             <div className="mt-5">
@@ -358,22 +387,33 @@ const ProductDetailPage: React.FC = () => {
           )}
 
           {/* CTA — desktop (inline) */}
-          <div className="hidden md:flex gap-3 mt-6">
-            {cartQty > 0 ? (
-              <div className="flex items-center border-2 border-primary rounded-xl overflow-hidden flex-1">
-                <button onClick={handleDecrease} disabled={cartItemId?.startsWith('temp-')} className="px-4 py-3 text-primary hover:bg-primary/5 transition-colors font-black text-lg disabled:opacity-30"><Minus size={16}/></button>
-                <span className="flex-1 text-center font-black text-primary text-base">{cartQty}</span>
-                <button onClick={handleIncrease} disabled={cartQty >= product.stock || cartItemId?.startsWith('temp-')} className="px-4 py-3 text-primary hover:bg-primary/5 transition-colors font-black text-lg disabled:opacity-30"><Plus size={16}/></button>
-              </div>
-            ) : (
-              <button onClick={handleCart} disabled={product.stock===0} className="btn-outline flex-1 flex items-center justify-center gap-2">
-                <ShoppingCart size={18}/>
-                Add to Cart
+          <div className="hidden md:block mt-6">
+            <div className="flex gap-3">
+              {product.stock === 0 ? (
+                <div className="flex-1 flex items-center justify-center gap-3 bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl py-3 text-gray-500 font-bold text-sm">
+                  🚫 Out of Stock
+                </div>
+              ) : cartQty > 0 ? (
+                <div className="flex items-center border-2 border-primary rounded-xl overflow-hidden flex-1">
+                  <button onClick={handleDecrease} disabled={cartItemId?.startsWith('temp-')} className="px-4 py-3 text-primary hover:bg-primary/5 transition-colors font-black text-lg disabled:opacity-30"><Minus size={16}/></button>
+                  <span className="flex-1 text-center font-black text-primary text-base">{cartQty}</span>
+                  <button onClick={handleIncrease} disabled={cartItemId?.startsWith('temp-')} className="px-4 py-3 text-primary hover:bg-primary/5 transition-colors font-black text-lg disabled:opacity-30"><Plus size={16}/></button>
+                </div>
+              ) : (
+                <button onClick={handleCart} className="btn-outline flex-1 flex items-center justify-center gap-2">
+                  <ShoppingCart size={18}/>
+                  Add to Cart
+                </button>
+              )}
+              <button onClick={handleBuyNow} disabled={product.stock===0} className="btn-primary flex-1">
+                Buy Now
               </button>
+            </div>
+            {cartQty > 0 && cartQty >= product.stock && (
+              <p className="text-[11px] text-orange-500 font-bold mt-2 flex items-center gap-1">
+                ⚠️ Max {product.stock} pcs available in stock
+              </p>
             )}
-            <button onClick={handleBuyNow} disabled={product.stock===0} className="btn-primary flex-1">
-              Buy Now
-            </button>
           </div>
 
           {/* Trust badges */}
@@ -496,7 +536,11 @@ const ProductDetailPage: React.FC = () => {
 
           <div className="flex gap-2 flex-1 items-center justify-end">
             {/* Add to Cart Button */}
-            {cartQty > 0 ? (
+            {product.stock === 0 ? (
+              <div className="flex-1 h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-gray-100 text-gray-500 font-black text-xs border-2 border-dashed border-gray-300">
+                🚫 Out of Stock
+              </div>
+            ) : cartQty > 0 ? (
               <div className="flex-1 flex items-center border-2 border-primary rounded-2xl overflow-hidden bg-white h-[48px]">
                 <button onClick={handleDecrease} disabled={cartItemId?.startsWith('temp-')} className="px-3 h-full text-primary active:bg-primary/5 transition-colors disabled:opacity-30"><Minus size={14}/></button>
                 <span className="flex-1 text-center font-black text-primary text-sm">{cartQty}</span>
@@ -505,8 +549,7 @@ const ProductDetailPage: React.FC = () => {
             ) : (
               <button
                 onClick={handleCart}
-                disabled={product.stock === 0}
-                className="flex-[1.5] h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-gray-900 text-white font-black text-sm active:scale-95 transition-all disabled:opacity-40 shadow-lg shadow-gray-200"
+                className="flex-[1.5] h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-gray-900 text-white font-black text-sm active:scale-95 transition-all shadow-lg shadow-gray-200"
               >
                 <ShoppingCart size={18}/>
                 Add to Cart

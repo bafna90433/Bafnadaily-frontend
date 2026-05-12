@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { CheckCircle, MapPin, CreditCard, Gift, AlertCircle, Plus, Pencil, Trash2, X, Check } from 'lucide-react'
+import { CheckCircle, MapPin, CreditCard, AlertCircle, Plus, Pencil, Trash2, X, Check } from 'lucide-react'
 import useCartStore from '../store/cartStore'
 import useAuthStore from '../store/authStore'
 import useSettingsStore from '../store/settingsStore'
@@ -42,8 +42,6 @@ const CheckoutPage: React.FC = () => {
 
   const [loading, setLoading] = useState(false)
   const [payMethod, setPayMethod] = useState<'cod'|'upi'|'online'>('cod')
-  const [giftWrap, setGiftWrap] = useState(false)
-  const [giftMsg, setGiftMsg] = useState('')
   const [placed, setPlaced] = useState<Order|null>(null)
 
   // Addresses
@@ -54,10 +52,9 @@ const CheckoutPage: React.FC = () => {
   const [form, setForm] = useState<Addr>(BLANK_ADDR)
   const [savingAddr, setSavingAddr] = useState(false)
 
-  const giftWrapCharge = settings.giftWrapCharge ?? 29
   const codFlatCharge = settings.codFlatCharge ?? 0
   const codAdvancePercent = settings.codAdvancePercent ?? 0
-  const finalTotal = total + (giftWrap ? giftWrapCharge : 0) - couponDiscount + shipping + (payMethod === 'cod' ? codFlatCharge : 0)
+  const finalTotal = total - couponDiscount + shipping + (payMethod === 'cod' ? codFlatCharge : 0)
   const advanceAmount = payMethod === 'cod' && codAdvancePercent > 0 ? Math.ceil(finalTotal * codAdvancePercent / 100) : 0
   const onDeliveryAmount = advanceAmount > 0 ? finalTotal - advanceAmount : 0
   const customerCodEnabled = user ? (user as any).codEnabled !== false : true
@@ -218,7 +215,7 @@ const CheckoutPage: React.FC = () => {
         pincode: selectedAddr.pincode,
       }
       const items = cart?.items?.map(i => ({ productId: i.product._id, quantity: i.quantity, variant: i.variant })) || []
-      const res = await api.post('/orders', { items, shippingAddress, paymentMethod: payMethod, couponCode, giftWrapping: giftWrap, giftMessage: giftMsg, paymentId, paymentStatus: paymentId ? 'paid' : 'pending' })
+      const res = await api.post('/orders', { items, shippingAddress, paymentMethod: payMethod, couponCode, paymentId, paymentStatus: paymentId ? 'paid' : 'pending' })
       setPlaced(res.data.order)
       clearCart()
     } catch (e: any) {
@@ -403,17 +400,7 @@ const CheckoutPage: React.FC = () => {
             </div>
           </div>
 
-          {/* ── Gift Wrap ── */}
-          <div className="card p-5">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" checked={giftWrap} onChange={e => setGiftWrap(e.target.checked)} className="accent-primary w-4 h-4"/>
-              <div>
-                <p className="font-semibold flex items-center gap-2 text-sm"><Gift size={15} className="text-pink-500"/> Gift Wrapping <span className="text-gray-400 font-normal">(+₹{giftWrapCharge})</span></p>
-                <p className="text-xs text-gray-400 mt-0.5">Beautiful packaging with handwritten message card</p>
-              </div>
-            </label>
-            {giftWrap && <textarea value={giftMsg} onChange={e => setGiftMsg(e.target.value)} className="input mt-3 text-sm resize-none" rows={2} placeholder="Gift message (optional)…"/>}
-          </div>
+
         </div>
 
         {/* ── Order Summary ── */}
@@ -431,7 +418,6 @@ const CheckoutPage: React.FC = () => {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>₹{subtotal}</span></div>
             <div className="flex justify-between"><span className="text-gray-500">Shipping</span><span className={shipping===0?'text-green-600 font-semibold':''}>{shipping===0?'FREE ✨':`₹${shipping}`}</span></div>
-            {giftWrap && <div className="flex justify-between"><span className="text-gray-500">Gift Wrap</span><span>₹{giftWrapCharge}</span></div>}
             {couponDiscount > 0 && <div className="flex justify-between text-green-600 font-semibold"><span>Coupon</span><span>-₹{couponDiscount}</span></div>}
             {payMethod==='cod' && codFlatCharge > 0 && <div className="flex justify-between text-orange-500"><span>COD Charge</span><span>₹{codFlatCharge}</span></div>}
             <hr/>

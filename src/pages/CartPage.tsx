@@ -67,17 +67,46 @@ const CartPage: React.FC = () => {
           {items.map(item => {
             const p = item.product; if (!p) return null
             const img = p.images?.[0]?.url || `https://placehold.co/96x96/FCE4EC/E91E63?text=P`
+            const isOutOfStock = (p.stock ?? 0) === 0
+            const atStockLimit = item.quantity >= (p.stock ?? 0)
             return (
               <div key={item._id} className="card p-4 flex gap-4">
-                <Link to={`/product/${p.slug}`} className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-gray-50"><img src={img} alt={p.name} className="w-full h-full object-cover"/></Link>
+                <Link to={`/product/${p.slug}`} className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-gray-50 relative">
+                  <img src={img} alt={p.name} className="w-full h-full object-cover"/>
+                  {isOutOfStock && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <span className="bg-white text-gray-800 text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-wide">Out of Stock</span>
+                    </div>
+                  )}
+                </Link>
                 <div className="flex-1 min-w-0">
                   <Link to={`/product/${p.slug}`} className="font-semibold text-sm text-gray-900 line-clamp-2 hover:text-primary">{p.name}</Link>
                   {item.variant && <p className="text-xs text-gray-400 mt-0.5">{item.variant}</p>}
+                  {isOutOfStock && (
+                    <p className="text-[11px] text-red-500 font-semibold mt-1 flex items-center gap-1">⚠️ This item is currently out of stock</p>
+                  )}
+                  {!isOutOfStock && atStockLimit && (
+                    <p className="text-[11px] text-orange-500 font-semibold mt-1 flex items-center gap-1">✅ Max stock limit reached ({p.stock} pcs)</p>
+                  )}
                   <div className="flex items-center justify-between mt-3">
-                    <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                      <button onClick={() => updateItem(item._id, Math.max(p.minQty||1, item.quantity - 1))} className="px-3 py-1.5 hover:bg-gray-50"><Minus size={13}/></button>
-                      <span className="px-3 py-1.5 text-sm font-bold">{item.quantity}</span>
-                      <button onClick={() => updateItem(item._id, item.quantity + 1)} className="px-3 py-1.5 hover:bg-gray-50"><Plus size={13}/></button>
+                    <div>
+                      <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                        <button onClick={() => updateItem(item._id, Math.max(p.minQty||1, item.quantity - 1))} className="px-3 py-1.5 hover:bg-gray-50"><Minus size={13}/></button>
+                        <span className="px-3 py-1.5 text-sm font-bold">{item.quantity}</span>
+                        <button
+                          onClick={() => {
+                            if (item.quantity >= (p.stock ?? 0)) {
+                              toast.error(`Only ${p.stock} pcs available in stock!`, { icon: '⚠️', duration: 2500 })
+                              return
+                            }
+                            updateItem(item._id, item.quantity + 1)
+                          }}
+                          className="px-3 py-1.5 hover:bg-gray-50"
+                        ><Plus size={13}/></button>
+                      </div>
+                      {atStockLimit && !isOutOfStock && (
+                        <p className="text-[10px] text-orange-500 font-bold mt-1 flex items-center gap-0.5">⚠️ Max {p.stock} pcs available</p>
+                      )}
                     </div>
                     <div className="text-right"><p className="font-bold text-gray-900">₹{(item.price||p.price)*item.quantity}</p><p className="text-xs text-gray-400">₹{item.price||p.price} each</p></div>
                   </div>

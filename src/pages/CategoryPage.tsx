@@ -8,6 +8,7 @@ import ProductCard from '../components/product/ProductCard';
 import { ShoppingCart, ArrowRight } from 'lucide-react';
 import useCartStore from '../store/cartStore';
 import useAuthStore from '../store/authStore';
+import toast from 'react-hot-toast';
 
 const LIMIT = 24;
 
@@ -457,6 +458,10 @@ const DealCard: React.FC<{ deal: DealProduct }> = ({ deal }) => {
     e.preventDefault();
     if (!cartItem) return;
     const newQty = cartItem.quantity + delta;
+    if (delta === 1 && cartItem.quantity >= (product.stock || 0)) {
+      toast.error(`Only ${product.stock} pcs available in stock!`, { icon: '⚠️', duration: 2500 })
+      return
+    }
     if (delta === -1 && cartItem.quantity <= (product.minQty || 1)) {
       await removeItem(cartItem._id);
     } else if (newQty >= (product.minQty || 1)) {
@@ -472,14 +477,22 @@ const DealCard: React.FC<{ deal: DealProduct }> = ({ deal }) => {
 
   if (expired) return <ProductCard product={product} />;
 
+  const atStockLimit = qtyInCart >= (product.stock || 0)
+  const isOutOfStock = (product.stock ?? 0) === 0
+
   return (
     <Link to={`/product/${product.slug}`} className="block group">
       <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all relative">
         <div className="absolute top-2 left-2 z-10 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
           {discountType === 'percentage' ? `${discountValue}% OFF` : `₹${discountValue} OFF`}
         </div>
-        <div className="aspect-square bg-gray-50 overflow-hidden">
+        <div className="relative aspect-square bg-gray-50 overflow-hidden">
           <img src={img} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-all" />
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <span className="bg-white text-gray-800 text-[9px] font-black px-2 py-1 rounded-full shadow-lg tracking-wide uppercase">Out of Stock</span>
+            </div>
+          )}
         </div>
         <div className="p-3">
           <h3 className="text-xs font-bold text-gray-800 line-clamp-2 min-h-[2.5rem]">{product.name}</h3>
@@ -487,19 +500,27 @@ const DealCard: React.FC<{ deal: DealProduct }> = ({ deal }) => {
             <span className="text-sm font-black text-red-600">₹{dealPrice}</span>
             <span className="text-[10px] text-gray-400 line-through">₹{product.price}</span>
           </div>
-          {product.stock !== 0 ? (
-            qtyInCart > 0 ? (
+          {!isOutOfStock && product.stock > 0 && product.stock <= 5 && (
+            <p className="text-[10px] text-orange-500 font-semibold mb-1">Only {product.stock} left!</p>
+          )}
+          {isOutOfStock ? (
+            <div className="text-[10px] text-red-500 font-black text-center py-1.5 bg-red-50 rounded-lg border border-red-100">🚫 Out of Stock</div>
+          ) : qtyInCart > 0 ? (
+            <div>
               <div className="flex items-center h-8 rounded-lg overflow-hidden border border-primary">
                 <button onClick={(e) => handleUpdateQty(e, -1)} disabled={cartItem?._id?.startsWith('temp-')} className="flex-1 bg-gray-50 disabled:opacity-30">−</button>
                 <div className="flex-1 bg-primary text-white text-[10px] font-bold text-center">{qtyInCart}</div>
                 <button onClick={(e) => handleUpdateQty(e, 1)} disabled={cartItem?._id?.startsWith('temp-')} className="flex-1 bg-gray-50 disabled:opacity-30">+</button>
               </div>
-            ) : (
-              <button onClick={handleCart} className="w-full py-1.5 rounded-lg bg-primary text-white text-[10px] font-bold flex items-center justify-center gap-1">
-                <ShoppingCart size={10} /> Add to Cart
-              </button>
-            )
-          ) : <div className="text-[10px] text-gray-400 font-bold text-center py-1.5 bg-gray-50 rounded-lg">Out of Stock</div>}
+              {atStockLimit && (
+                <p className="text-[9px] text-orange-500 font-bold text-center mt-1">⚠️ Max {product.stock} pcs available</p>
+              )}
+            </div>
+          ) : (
+            <button onClick={handleCart} className="w-full py-1.5 rounded-lg bg-primary text-white text-[10px] font-bold flex items-center justify-center gap-1">
+              <ShoppingCart size={10} /> Add to Cart
+            </button>
+          )}
         </div>
       </div>
     </Link>
