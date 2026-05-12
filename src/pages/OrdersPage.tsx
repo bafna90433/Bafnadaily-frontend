@@ -164,7 +164,6 @@ const printInvoice = (order: Order, settings: any) => {
     <div class="brand">
       ${logo ? `<img src="${logo}" alt="${siteName}"/>` : `<div style="width:48px;height:48px;background:#e91e63;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:20px">${siteName[0]}</div>`}
       <div>
-        <div class="brand-name">${siteName}</div>
         <div class="brand-sub">Tax Invoice / Proforma Invoice</div>
       </div>
     </div>
