@@ -426,10 +426,55 @@ const StandardLayout = ({
           </div>
         ) : (
           <>
-            <div className={`grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-6 ${productsLoading ? 'opacity-40 grayscale' : ''}`}>
-              {products.map((p) => <ProductCard key={p._id} product={p} />)}
-            </div>
-            {totalPages > 1 && (
+            {/* ── Coming Soon / Empty State ── */}
+            {!productsLoading && products.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+                {/* Animated icon */}
+                <div className="relative mb-6">
+                  <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary/10 to-purple-100 flex items-center justify-center">
+                    <span className="text-5xl" style={{ animation: 'bounce 2s infinite' }}>🛍️</span>
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white text-xs font-black">!</span>
+                  </div>
+                </div>
+
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-purple-500 text-white px-5 py-2 rounded-full text-sm font-black uppercase tracking-widest mb-4 shadow-lg">
+                  <span>✨</span> Coming Soon
+                </div>
+
+                {/* Heading */}
+                <h2 className="text-2xl md:text-3xl font-heading font-black text-gray-900 mb-3">
+                  Products Coming Soon!
+                </h2>
+                <p className="text-gray-400 text-base max-w-md leading-relaxed mb-8">
+                  We're curating an amazing collection for <strong className="text-gray-600">{category?.name}</strong>.
+                  Check back soon — great products are on their way! 🚀
+                </p>
+
+                {/* Progress bar decoration */}
+                <div className="w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden mb-8">
+                  <div className="h-full bg-gradient-to-r from-primary to-purple-500 rounded-full" style={{ width: '40%', animation: 'pulse 2s infinite' }} />
+                </div>
+
+                {/* CTA */}
+                <Link to="/products"
+                  className="inline-flex items-center gap-2 bg-primary text-white px-8 py-3 rounded-2xl font-bold text-sm hover:bg-primary/90 transition-all hover:scale-105 shadow-lg shadow-primary/20">
+                  <span>Browse All Products</span>
+                  <ArrowRight size={16}/>
+                </Link>
+              </div>
+            )}
+
+            {/* ── Products Grid ── */}
+            {products.length > 0 && (
+              <div className={`grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-6 ${productsLoading ? 'opacity-40 grayscale' : ''}`}>
+                {products.map((p) => <ProductCard key={p._id} product={p} />)}
+              </div>
+            )}
+
+            {totalPages > 1 && products.length > 0 && (
               <div className="flex justify-center gap-2 mt-16 font-bold">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
                   <button key={p} onClick={() => onPageChange(p)} className={`w-10 h-10 rounded-xl transition-all ${p === currentPage ? 'bg-primary text-white shadow-lg' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary'}`}>{p}</button>
