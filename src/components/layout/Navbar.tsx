@@ -301,7 +301,7 @@ const Navbar: React.FC = () => {
                   <button className="flex items-center gap-2 p-1.5 bg-gray-50 border border-gray-100 rounded-2xl hover:bg-white hover:shadow-md transition-all">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-inner"
                       style={{ background: 'linear-gradient(135deg, #8E2DE2, #4A00E0)' }}>
-                      {user.name[0].toUpperCase()}
+                      {(user.name?.[0] || '?').toUpperCase()}
                     </div>
                     <ChevronDown size={14} className="text-gray-400 group-hover:rotate-180 transition-transform mr-1" />
                   </button>
@@ -370,7 +370,7 @@ const Navbar: React.FC = () => {
                     style={{ background: 'linear-gradient(135deg, #fdf2f8, #f3e8ff)' }}>
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black"
                       style={{ background: 'linear-gradient(135deg, #C77DFF, #7B2FBE)' }}>
-                      {user.name[0].toUpperCase()}
+                      {(user.name?.[0] || '?').toUpperCase()}
                     </div>
                     <div>
                       <p className="font-black text-gray-900 text-sm">{user.name}</p>
