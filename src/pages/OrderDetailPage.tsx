@@ -37,6 +37,7 @@ const printInvoice = (order: Order, settings: any) => {
         ${it.variant ? `<br><span style="font-size:11px;color:#94a3b8">${it.variant}</span>` : ''}
       </td>
       <td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;text-align:center;color:#475569">${it.quantity}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;text-align:right;color:#94a3b8;text-decoration:${(it.mrp && it.mrp > it.price) ? 'line-through' : 'none'}">₹${(it.mrp || it.price).toLocaleString('en-IN')}</td>
       <td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;text-align:right;color:#475569">₹${it.price.toLocaleString('en-IN')}</td>
       <td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:700;color:#1e293b">₹${(it.price * it.quantity).toLocaleString('en-IN')}</td>
     </tr>`).join('')
@@ -128,6 +129,7 @@ const printInvoice = (order: Order, settings: any) => {
         <th>#</th>
         <th>Product</th>
         <th>Qty</th>
+        <th style="text-align:right">MRP</th>
         <th style="text-align:right">Rate</th>
         <th style="text-align:right">Amount</th>
       </tr>
