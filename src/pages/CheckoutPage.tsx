@@ -193,16 +193,17 @@ const CheckoutPage: React.FC = () => {
         catch (e: any) { if (e.message === 'Payment cancelled') { toast.error('Payment cancelled'); return } throw e }
       }
       if (payMethod === 'cod' && codAdvancePercent > 0 && settings.razorpayEnabled) {
-        try { 
-          paymentId = await handleRazorpay(); 
-          toast.success(`Advance ₹${advanceAmount} paid!`) 
-        } catch (e: any) { 
-          if (e.message === 'Payment cancelled') { 
-            toast.error('Payment cancelled. Advance payment is required for COD.')
-            setLoading(false)
-            return 
+        try {
+          paymentId = await handleRazorpay();
+          toast.success(`Advance ₹${advanceAmount} paid!`)
+        } catch (e: any) {
+          if (e.message === 'Payment cancelled') {
+            toast.error('Advance payment cancel kiya — order place nahi hua.')
+          } else {
+            toast.error(`Advance payment failed. Please try again. (${e.message || 'Unknown error'})`)
           }
-          toast('Advance skipped. Full COD.', { icon: 'ℹ️' }) 
+          setLoading(false)
+          return
         }
       }
       const shippingAddress = {
