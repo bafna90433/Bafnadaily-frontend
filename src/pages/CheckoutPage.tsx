@@ -415,11 +415,26 @@ const CheckoutPage: React.FC = () => {
         {/* ── Order Summary ── */}
         <div className="card p-5 h-fit sticky top-24">
           <h3 className="font-bold text-lg mb-4">Order Summary</h3>
-          <div className="space-y-1.5 mb-4 max-h-48 overflow-y-auto">
+          <div className="space-y-2.5 mb-4 max-h-64 overflow-y-auto pr-1">
             {cart?.items?.map(i => (
-              <div key={i._id} className="flex justify-between text-sm">
-                <span className="text-gray-600 line-clamp-1 flex-1 mr-2">{i.product?.name} ×{i.quantity}</span>
-                <span className="font-medium flex-shrink-0">₹{(i.price||i.product?.price||0)*i.quantity}</span>
+              <div key={i._id} className="flex items-center gap-2.5">
+                <div className="relative flex-shrink-0">
+                  <img
+                    src={i.product?.images?.[0]?.url || `https://placehold.co/44x44/FCE4EC/E91E63?text=P`}
+                    alt={i.product?.name}
+                    className="w-11 h-11 rounded-lg object-cover border border-gray-100"
+                  />
+                  {i.quantity > 1 && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-primary text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                      {i.quantity}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-gray-800 line-clamp-1">{i.product?.name}</p>
+                  {i.variant && <p className="text-[10px] text-gray-400">{i.variant}</p>}
+                </div>
+                <span className="text-sm font-bold text-gray-800 flex-shrink-0">₹{(i.price||i.product?.price||0)*i.quantity}</span>
               </div>
             ))}
           </div>
