@@ -60,13 +60,17 @@ const CheckoutPage: React.FC = () => {
   const customerCodEnabled = user ? (user as any).codEnabled !== false : true
   const codAvailable = settings.codEnabled
 
-  // GST
+  // GST — grouped by rate
   const [gstin, setGstin] = useState((user as any)?.gstNumber || '')
-  const gstTotal = cart?.items?.reduce((sum: number, it: any) => {
+  const gstByRate: Record<number, number> = {}
+  cart?.items?.forEach((it: any) => {
     const rate = it.product?.gstRate || 0
+    if (rate === 0) return
     const lineTotal = (it.product?.price || 0) * it.quantity
-    return sum + (rate > 0 ? lineTotal * rate / (100 + rate) : 0)
-  }, 0) || 0
+    const gstAmt = lineTotal * rate / (100 + rate)
+    gstByRate[rate] = (gstByRate[rate] || 0) + gstAmt
+  })
+  const gstTotal = Object.values(gstByRate).reduce((a, b) => a + b, 0)
 
   useEffect(() => {
     if (!user) { navigate('/login'); return }
@@ -453,13 +457,16 @@ const CheckoutPage: React.FC = () => {
             {payMethod==='cod' && codFlatCharge > 0 && <div className="flex justify-between text-orange-500"><span>COD Charge</span><span>₹{codFlatCharge}</span></div>}
             <hr/>
             <div className="flex justify-between font-bold text-base"><span>Total</span><span>₹{finalTotal}</span></div>
-            {gstTotal > 0 && <div className="flex justify-between text-xs text-gray-400"><span>GST included in above price</span><span>₹{gstTotal.toFixed(2)}</span></div>}
+            {gstTotal > 0 && Object.entries(gstByRate).sort(([a],[b]) => Number(a)-Number(b)).map(([rate, amt]) => (
+              <div key={rate} className="flex justify-between text-xs text-gray-400">
+                <span>GST @ {rate}% (included)</span><span>₹{(amt as number).toFixed(2)}</span>
+              </div>
+            ))}
           </div>
 
-          {/* GST Info + GSTIN — always visible */}
+          {/* GSTIN input — always visible */}
           <div className="mt-3 bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs space-y-2">
             <p className="text-blue-700 font-semibold">🧾 GST Invoice</p>
-            {gstTotal > 0 && <p className="text-blue-500">GST included in prices: <strong>₹{gstTotal.toFixed(2)}</strong></p>}
             <p className="text-blue-500">Enter GSTIN for GST invoice (optional):</p>
             <input
               type="text"
