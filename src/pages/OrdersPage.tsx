@@ -153,6 +153,7 @@ const printInvoice = (order: Order, settings: any) => {
     .foot{text-align:center;margin-top:32px;padding-top:20px;border-top:1px solid #f1f5f9;font-size:11px;color:#94a3b8}
     .no-print{text-align:center;margin-top:24px}
     .print-btn{padding:12px 32px;background:#e91e63;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+    .excel-btn{padding:12px 32px;background:#10b981;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-left:10px}
     @media print{
       body{padding:16px}
       .no-print{display:none}
@@ -235,12 +236,76 @@ const printInvoice = (order: Order, settings: any) => {
 </div>
 <div class="no-print">
   <button class="print-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+  <button class="excel-btn" onclick="downloadExcel()">📊 Download Excel</button>
 </div>
+<script>
+  function downloadExcel() {
+    const rows = [${order.gstin?`['Customer GSTIN','${order.gstin}','','','','','',''],['','','','','','','',''],`:''}['#','SKU','Product','Variant','Qty','MRP','Rate','Amount']];
+    ${JSON.stringify((order.items||[]).map((it: any,i: number) => [i+1, it.sku||'', it.name, it.variant||'', it.quantity, it.mrp||it.price, it.price, it.price*it.quantity]))}.forEach(r => rows.push(r));
+    rows.push(['','','','','','','Subtotal', ${order.subtotal||0}]);
+    rows.push(['','','','','','','Shipping', ${order.shippingCharge||0}]);
+    ${(order.discount||0)>0 ? `rows.push(['','','','','','','Discount', -${order.discount}]);` : ''}
+    rows.push(['','','','','','','Grand Total', ${order.total||0}]);
+    ${ order.paymentMethod==='cod' && ((order as any).advanceAmount||0)>0 ? `rows.push(['','','','','','','Advance Paid', -${(order as any).advanceAmount}]);` : '' }
+    ${ order.paymentMethod==='cod' ? `rows.push(['','','','','','','To Collect (COD)', ${Math.max(0,(order.total||0)-((order as any).advanceAmount||0))}]);` : '' }
+    const byRate = {};
+    ${JSON.stringify((order.items||[]).map((it:any) => ({r:it.gstRate||0, p:it.price, q:it.quantity})))}.forEach(it => {
+      if(!it.r) return;
+      byRate[it.r] = (byRate[it.r]||0) + it.p*it.q*it.r/(100+it.r);
+    });
+    Object.entries(byRate).sort((a,b)=>Number(a[0])-Number(b[0])).forEach(e => {
+      rows.push(['','','','','','','GST @ '+e[0]+'% (incl.)', Number(e[1]).toFixed(2)]);
+    });
+    const csv = rows.map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\\n');
+    const blob = new Blob(['\\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'Order_${order.orderNumber}.csv';
+    a.click();
+  }
+</script>
 </body>
 </html>`
 
   win.document.write(html)
   win.document.close()
+}
+
+const exportExcel = (order: Order) => {
+  const orderDt = new Date(order.createdAt)
+  const orderDate = orderDt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+  const orderTime = orderDt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+  const sa = order.shippingAddress as any
+  const customerName = sa?.name || '—'
+  const rows: any[][] = [
+    ['Order Number', order.orderNumber, '', '', '', '', '', ''],
+    ['Customer', customerName, '', '', '', '', '', ''],
+    ['Order Date & Time', `${orderDate} ${orderTime}`, '', '', '', '', '', ''],
+    ...(sa?.gstNumber ? [['Customer GSTIN', sa.gstNumber, '', '', '', '', '', '']] : []),
+    ['', '', '', '', '', '', '', ''],
+    ['#', 'SKU', 'Product', 'Variant', 'Qty', 'MRP (₹)', 'Rate (₹)', 'Amount (₹)'],
+  ]
+  ;(order.items || []).forEach((it: any, i: number) => {
+    rows.push([i + 1, it.sku || '', it.name, it.variant || '', it.quantity, it.mrp || it.price, it.price, it.price * it.quantity])
+  })
+  rows.push(['', '', '', '', '', '', '', ''])
+  rows.push(['', '', '', '', '', '', 'Subtotal', order.subtotal || 0])
+  rows.push(['', '', '', '', '', '', 'Shipping', order.shippingCharge || 0])
+  if ((order.discount || 0) > 0) rows.push(['', '', '', '', '', '', 'Discount', -(order.discount)])
+  rows.push(['', '', '', '', '', '', 'Grand Total', order.total || 0])
+  if (order.paymentMethod === 'cod' && ((order as any).advanceAmount || 0) > 0) rows.push(['', '', '', '', '', '', 'Advance Paid', -((order as any).advanceAmount)])
+  if (order.paymentMethod === 'cod') rows.push(['', '', '', '', '', '', 'To Collect (COD)', Math.max(0, (order.total || 0) - ((order as any).advanceAmount || 0))])
+  const gstByRateExcel: Record<number,number> = {}
+  ;(order.items||[]).forEach((it:any) => { const r=it.gstRate||0; if(!r) return; gstByRateExcel[r]=(gstByRateExcel[r]||0)+it.price*it.quantity*r/(100+r) })
+  Object.entries(gstByRateExcel).sort(([a],[b])=>Number(a)-Number(b)).forEach(([r,a]) => rows.push(['','','','','','',`GST @ ${r}% (incl.)`, Number((a as number).toFixed(2))]))
+  
+  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n')
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = `Order_${order.orderNumber}.csv`
+  a.click()
+  URL.revokeObjectURL(a.href)
 }
 
 const OrdersPage: React.FC = () => {
@@ -318,12 +383,20 @@ const OrdersPage: React.FC = () => {
               <Link to={`/orders/${order._id}`} className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
                 View Details <ChevronRight size={14}/>
               </Link>
-              <button
-                onClick={() => printInvoice(order, settings)}
-                className="flex items-center gap-1.5 text-xs bg-gray-50 hover:bg-primary hover:text-white text-gray-600 px-3 py-1.5 rounded-lg font-semibold transition-colors"
-              >
-                <FileText size={13}/> Download Invoice
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => exportExcel(order)}
+                  className="flex items-center gap-1.5 text-xs bg-green-50 hover:bg-green-600 hover:text-white text-green-700 px-3 py-1.5 rounded-lg font-semibold transition-colors"
+                >
+                  <FileText size={13}/> Excel
+                </button>
+                <button
+                  onClick={() => printInvoice(order, settings)}
+                  className="flex items-center gap-1.5 text-xs bg-gray-50 hover:bg-primary hover:text-white text-gray-600 px-3 py-1.5 rounded-lg font-semibold transition-colors"
+                >
+                  <FileText size={13}/> Download Invoice
+                </button>
+              </div>
             </div>
           </div>
         ))}
