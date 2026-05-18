@@ -216,7 +216,7 @@ const CheckoutPage: React.FC = () => {
         pincode: selectedAddr.pincode,
       }
       const items = cart?.items?.map(i => ({ productId: i.product._id, quantity: i.quantity, variant: i.variant })) || []
-      const res = await api.post('/orders', { items, shippingAddress, paymentMethod: payMethod, couponCode, paymentId, paymentStatus: paymentId ? 'paid' : 'pending' })
+      const res = await api.post('/orders', { items, shippingAddress, paymentMethod: payMethod, couponCode, paymentId, paymentStatus: paymentId ? 'paid' : 'pending', advanceAmount: paymentId && payMethod === 'cod' ? advanceAmount : 0 })
       setPlaced(res.data.order)
       clearCart()
     } catch (e: any) {
