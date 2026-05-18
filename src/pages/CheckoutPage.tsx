@@ -61,7 +61,7 @@ const CheckoutPage: React.FC = () => {
   const codAvailable = settings.codEnabled
 
   // GST
-  const [gstin, setGstin] = useState('')
+  const [gstin, setGstin] = useState((user as any)?.gstNumber || '')
   const gstTotal = cart?.items?.reduce((sum: number, it: any) => {
     const rate = it.product?.gstRate || 0
     const lineTotal = (it.product?.price || 0) * it.quantity
@@ -72,6 +72,8 @@ const CheckoutPage: React.FC = () => {
     if (!user) { navigate('/login'); return }
     fetchSettings()
     loadAddresses()
+    // Auto-fill GSTIN from user profile
+    if ((user as any)?.gstNumber) setGstin((user as any).gstNumber)
     if (!codAvailable) setPayMethod('upi')
     
     // Stop cart blinking when user lands on checkout
@@ -224,7 +226,12 @@ const CheckoutPage: React.FC = () => {
         pincode: selectedAddr.pincode,
       }
       const items = cart?.items?.map(i => ({ productId: i.product._id, quantity: i.quantity, variant: i.variant })) || []
-      const res = await api.post('/orders', { items, shippingAddress, paymentMethod: payMethod, couponCode, paymentId, paymentStatus: paymentId ? 'paid' : 'pending', advanceAmount: paymentId && payMethod === 'cod' ? advanceAmount : 0, gstin: gstin.trim() })
+      const cleanGstin = gstin.trim().toUpperCase()
+      const res = await api.post('/orders', { items, shippingAddress, paymentMethod: payMethod, couponCode, paymentId, paymentStatus: paymentId ? 'paid' : 'pending', advanceAmount: paymentId && payMethod === 'cod' ? advanceAmount : 0, gstin: cleanGstin })
+      // Save GSTIN to user profile if new/changed
+      if (cleanGstin && cleanGstin !== (user as any)?.gstNumber) {
+        api.put('/auth/me', { gstNumber: cleanGstin }).catch(() => {})
+      }
       setPlaced(res.data.order)
       clearCart()
     } catch (e: any) {
@@ -449,21 +456,21 @@ const CheckoutPage: React.FC = () => {
             {gstTotal > 0 && <div className="flex justify-between text-xs text-gray-400"><span>GST included in above price</span><span>₹{gstTotal.toFixed(2)}</span></div>}
           </div>
 
-          {/* GST Info + GSTIN */}
-          {gstTotal > 0 && (
-            <div className="mt-3 bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs space-y-2">
-              <p className="text-blue-700 font-semibold">🧾 GST already included in prices</p>
-              <p className="text-blue-500">Want GST invoice? Enter your GSTIN below:</p>
-              <input
-                type="text"
-                value={gstin}
-                onChange={e => setGstin(e.target.value.toUpperCase())}
-                placeholder="e.g. 27AAPFU0939F1ZV"
-                maxLength={15}
-                className="w-full border border-blue-200 rounded-lg px-3 py-1.5 text-xs font-mono bg-white focus:outline-none focus:border-blue-400 uppercase"
-              />
-            </div>
-          )}
+          {/* GST Info + GSTIN — always visible */}
+          <div className="mt-3 bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs space-y-2">
+            <p className="text-blue-700 font-semibold">🧾 GST Invoice</p>
+            {gstTotal > 0 && <p className="text-blue-500">GST included in prices: <strong>₹{gstTotal.toFixed(2)}</strong></p>}
+            <p className="text-blue-500">Enter GSTIN for GST invoice (optional):</p>
+            <input
+              type="text"
+              value={gstin}
+              onChange={e => setGstin(e.target.value.toUpperCase())}
+              placeholder="e.g. 27AAPFU0939F1ZV"
+              maxLength={15}
+              className="w-full border border-blue-200 rounded-lg px-3 py-1.5 text-xs font-mono bg-white focus:outline-none focus:border-blue-400 uppercase"
+            />
+            {gstin.length === 15 && <p className="text-green-600 font-semibold">✓ GSTIN saved to your profile</p>}
+          </div>
 
           {payMethod==='cod' && codAdvancePercent > 0 && finalTotal > 0 && (
             <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-1.5 text-xs">
