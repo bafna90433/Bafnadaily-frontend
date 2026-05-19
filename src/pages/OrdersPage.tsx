@@ -276,7 +276,7 @@ const printInvoice = (order: Order, settings: any) => {
         const entries = Object.entries(byCategory).sort(([a],[b])=>a.localeCompare(b))
         if(!entries.length) return ''
         return `<div style="border-top:1px dashed #e2e8f0;padding-top:6px;margin-top:4px">` +
-          entries.map(([cat, info])=>`<div class="sum-row" style="color:#6366f1;font-size:11px"><span>${cat} GST @ ${info.rate}% (included)</span><span>₹${info.amount.toFixed(2)}</span></div>`).join('') +
+          entries.map(([cat, info])=>`<div class="sum-row" style="color:#6366f1;font-size:11px"><span>${cat} GST @ ${info.rate}% (included)</span></div>`).join('') +
           `</div>`
       })()}
     </div>
