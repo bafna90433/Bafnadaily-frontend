@@ -60,17 +60,58 @@ const CheckoutPage: React.FC = () => {
   const customerCodEnabled = user ? (user as any).codEnabled !== false : true
   const codAvailable = settings.codEnabled
 
-  // GST — grouped by rate
+  // GST — grouped by rate and category
   const [gstin, setGstin] = useState((user as any)?.gstNumber || '')
-  const gstByRate: Record<number, number> = {}
-  cart?.items?.forEach((it: any) => {
+
+  const getGstRate = (it: any) => {
     const rate = it.product?.gstRate || 0
+    if (rate > 0) return rate
+    const name = (it.product?.name || '').toLowerCase()
+    const sku = (it.product?.sku || '').toUpperCase()
+    if (sku.startsWith('KEY') || name.includes('keychain') || name.includes('ring')) {
+      return 18
+    }
+    return 5
+  }
+
+  const getItemCategory = (it: any) => {
+    let catName = ''
+    if (it.product?.category?.name) {
+      catName = it.product.category.name.toLowerCase()
+    } else {
+      const name = (it.product?.name || '').toLowerCase()
+      const sku = (it.product?.sku || '').toUpperCase()
+      if (sku.startsWith('KEY') || name.includes('keychain') || name.includes('ring')) {
+        return 'keychain'
+      }
+      return 'toys'
+    }
+
+    if (catName.includes('keychain') || catName.includes('keyring') || catName.includes('key')) {
+      return 'keychain'
+    }
+    if (catName.includes('plush')) {
+      return 'plushies'
+    }
+    if (catName.includes('toy')) {
+      return 'toys'
+    }
+    return catName
+  }
+
+  const gstByCategory: Record<string, { rate: number; amount: number }> = {}
+  cart?.items?.forEach((it: any) => {
+    const rate = getGstRate(it)
     if (rate === 0) return
-    const lineTotal = (it.product?.price || 0) * it.quantity
+    const cat = getItemCategory(it)
+    const lineTotal = (it.price || it.product?.price || 0) * it.quantity
     const gstAmt = lineTotal * rate / (100 + rate)
-    gstByRate[rate] = (gstByRate[rate] || 0) + gstAmt
+    if (!gstByCategory[cat]) {
+      gstByCategory[cat] = { rate, amount: 0 }
+    }
+    gstByCategory[cat].amount += gstAmt
   })
-  const gstTotal = Object.values(gstByRate).reduce((a, b) => a + b, 0)
+  const gstTotal = Object.values(gstByCategory).reduce((a, b) => a + b.amount, 0)
 
   useEffect(() => {
     if (!user) { navigate('/login'); return }
@@ -457,9 +498,9 @@ const CheckoutPage: React.FC = () => {
             {payMethod==='cod' && codFlatCharge > 0 && <div className="flex justify-between text-orange-500"><span>COD Charge</span><span>₹{codFlatCharge}</span></div>}
             <hr/>
             <div className="flex justify-between font-bold text-base"><span>Total</span><span>₹{finalTotal}</span></div>
-            {gstTotal > 0 && Object.entries(gstByRate).sort(([a],[b]) => Number(a)-Number(b)).map(([rate, amt]) => (
-              <div key={rate} className="flex justify-between text-xs text-gray-400">
-                <span>GST @ {rate}% (included)</span><span>₹{(amt as number).toFixed(2)}</span>
+            {gstTotal > 0 && Object.entries(gstByCategory).sort(([a],[b]) => a.localeCompare(b)).map(([cat, info]) => (
+              <div key={cat} className="flex justify-between text-xs text-indigo-500 font-medium">
+                <span>{cat} GST @ {info.rate}% (included)</span>
               </div>
             ))}
           </div>
