@@ -6,7 +6,7 @@ interface AuthState {
   user: User | null
   token: string | null
   loading: boolean
-  sendOTP: (phone: string) => Promise<{ success: boolean; message?: string }>
+  sendOTP: (phone: string) => Promise<{ success: boolean; isNew?: boolean; message?: string }>
   verifyOTP: (phone: string, otp: string, extra?: { name?: string; businessName?: string; gstNumber?: string; whatsapp?: string; visitingCard?: string }) => Promise<{ success: boolean; isNew?: boolean; message?: string }>
   loginWithGoogle: (idToken: string, extra?: { name?: string; businessName?: string; gstNumber?: string; whatsapp?: string; visitingCard?: string }) => Promise<{ success: boolean; isNew?: boolean; message?: string }>
   logout: () => void
@@ -22,9 +22,9 @@ const useAuthStore = create<AuthState>((set) => ({
   sendOTP: async (phone) => {
     set({ loading: true })
     try {
-      await api.post('/auth/send-otp', { phone })
+      const res = await api.post('/auth/send-otp', { phone })
       set({ loading: false })
-      return { success: true }
+      return { success: true, isNew: res.data?.isNew }
     } catch (err: any) {
       set({ loading: false })
       return { success: false, message: err.response?.data?.message || 'Failed to send OTP' }

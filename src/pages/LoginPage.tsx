@@ -17,6 +17,7 @@ const LoginPage: React.FC = () => {
   const [whatsapp, setWhatsapp] = useState('')
   const [visitingCard, setVisitingCard] = useState('')
   const [upLoading, setUpLoading] = useState(false)
+  const [isNewUser, setIsNewUser] = useState(false)
   const [googleToken, setGoogleToken] = useState('')
   const { sendOTP, verifyOTP, loginWithGoogle, loading } = useAuthStore()
   const { settings } = useSettingsStore()
@@ -30,7 +31,7 @@ const LoginPage: React.FC = () => {
     e.preventDefault()
     if (!/^\d{10}$/.test(phone)) { toast.error('Enter valid 10-digit number'); return }
     const res = await sendOTP(phone)
-    if (res.success) { toast.success('OTP sent! 📱'); setStep(2) }
+    if (res.success) { toast.success('OTP sent! 📱'); setIsNewUser(res.isNew || false); setStep(2) }
     else toast.error(res.message || 'Failed to send OTP')
   }
 
@@ -150,46 +151,50 @@ const LoginPage: React.FC = () => {
             </form>
           ) : (
             <form onSubmit={step === 2 ? handleVerify : handleGoogleFinalize} className="space-y-4">
-              <div>
-                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Full Name *</label>
-                <input value={name} onChange={e => setName(e.target.value)} className="input py-3" placeholder="Enter your full name" required />
-              </div>
-              <div>
-                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Shop / Business Name</label>
-                <input value={businessName} onChange={e => setBusinessName(e.target.value)} className="input py-3" placeholder="Apni dukan ka naam" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">GST (Optional)</label>
-                  <input value={gstNumber} onChange={e => setGstNumber(e.target.value.toUpperCase())} className="input py-3 uppercase" placeholder="GSTIN" maxLength={15} />
-                </div>
-                <div>
-                  <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">WhatsApp *</label>
-                  <input value={whatsapp} onChange={e => setWhatsapp(e.target.value.replace(/\D/g,''))} className="input py-3" placeholder="10-digit WhatsApp No." maxLength={10} required />
-                </div>
-              </div>
+              {(step === 'google' || isNewUser) && (
+                <>
+                  <div>
+                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Full Name *</label>
+                    <input value={name} onChange={e => setName(e.target.value)} className="input py-3" placeholder="Enter your full name" required />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Shop / Business Name</label>
+                    <input value={businessName} onChange={e => setBusinessName(e.target.value)} className="input py-3" placeholder="Apni dukan ka naam" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">GST (Optional)</label>
+                      <input value={gstNumber} onChange={e => setGstNumber(e.target.value.toUpperCase())} className="input py-3 uppercase" placeholder="GSTIN" maxLength={15} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">WhatsApp *</label>
+                      <input value={whatsapp} onChange={e => setWhatsapp(e.target.value.replace(/\D/g,''))} className="input py-3" placeholder="10-digit WhatsApp No." maxLength={10} required />
+                    </div>
+                  </div>
 
-              <div>
-                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Visiting Card (Optional)</label>
-                <div className="flex items-center gap-3">
-                  <label className={`flex-1 border-2 border-dashed border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all min-h-[80px] bg-gray-50/50 ${upLoading ? 'opacity-50 pointer-events-none' : ''}`}>
-                    {visitingCard ? (
-                      <img src={visitingCard} className="h-16 w-full object-contain rounded-lg" alt="VC" />
-                    ) : (
-                      <>
-                        {upLoading ? <Loader2 size={20} className="text-primary animate-spin mb-1"/> : <Upload size={20} className="text-gray-400 mb-1" />}
-                        <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">{upLoading ? 'Uploading…' : 'Upload Card Image'}</span>
-                      </>
-                    )}
-                    <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" disabled={upLoading} />
-                  </label>
-                  {visitingCard && (
-                    <button type="button" onClick={() => setVisitingCard('')} className="p-3 bg-red-50 text-red-500 hover:bg-red-100 rounded-xl transition-colors">
-                      <Trash2 size={18}/>
-                    </button>
-                  )}
-                </div>
-              </div>
+                  <div>
+                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-1.5">Visiting Card (Optional)</label>
+                    <div className="flex items-center gap-3">
+                      <label className={`flex-1 border-2 border-dashed border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all min-h-[80px] bg-gray-50/50 ${upLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+                        {visitingCard ? (
+                          <img src={visitingCard} className="h-16 w-full object-contain rounded-lg" alt="VC" />
+                        ) : (
+                          <>
+                            {upLoading ? <Loader2 size={20} className="text-primary animate-spin mb-1"/> : <Upload size={20} className="text-gray-400 mb-1" />}
+                            <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">{upLoading ? 'Uploading…' : 'Upload Card Image'}</span>
+                          </>
+                        )}
+                        <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" disabled={upLoading} />
+                      </label>
+                      {visitingCard && (
+                        <button type="button" onClick={() => setVisitingCard('')} className="p-3 bg-red-50 text-red-500 hover:bg-red-100 rounded-xl transition-colors">
+                          <Trash2 size={18}/>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
 
               {step === 2 && (
                 <div className="pt-2">
