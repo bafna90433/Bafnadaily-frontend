@@ -92,8 +92,11 @@ export interface OrderItem {
   name: string
   image?: string
   price: number
+  mrp?: number
   quantity: number
   variant?: string
+  sku?: string
+  gstRate?: number
 }
 
 export interface Order {
@@ -111,9 +114,12 @@ export interface Order {
   discount: number
   couponCode?: string
   total: number
+  advanceAmount?: number
   giftWrapping: boolean
   giftMessage?: string
   trackingNumber?: string
+  courierName?: string
+  gstin?: string
   createdAt: string
 }
 
