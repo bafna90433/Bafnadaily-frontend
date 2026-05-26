@@ -32,7 +32,7 @@ const Navbar: React.FC = () => {
   const { user, logout } = useAuthStore()
   const { count, getTotal } = useCartStore()
   const { total } = getTotal()
-  const { settings } = useSettingsStore()
+  const { settings, loaded: settingsLoaded } = useSettingsStore()
   const [categories, setCategories] = useState<{ name: string; slug: string }[]>([])
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchQ, setSearchQ] = useState('')
@@ -146,10 +146,12 @@ const Navbar: React.FC = () => {
             }`}>
               {/* Logo */}
               <Link to="/" className="flex items-center group transition-transform active:scale-95">
-                {settings.siteLogo ? (
-                  <img 
-                    src={settings.siteLogo} 
-                    alt={siteName} 
+                {!settingsLoaded ? (
+                  <div className="h-10 w-28 rounded-xl bg-gray-100 animate-pulse"/>
+                ) : settings.siteLogo ? (
+                  <img
+                    src={settings.siteLogo}
+                    alt={siteName}
                     className="h-10 lg:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                   />
                 ) : (
