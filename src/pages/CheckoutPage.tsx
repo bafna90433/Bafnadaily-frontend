@@ -216,7 +216,7 @@ const CheckoutPage: React.FC = () => {
     } catch { toast.error('Delete failed') }
   }
 
-  const handleRazorpay = async () => {
+  const handleRazorpay = async (): Promise<{ paymentId: string; rzOrderId: string }> => {
     const rzRes = await api.post('/settings/razorpay/create-order', { amount: advanceAmount > 0 ? advanceAmount : finalTotal })
     const { order: rzOrder, keyId } = rzRes.data
     if (!window.Razorpay) {
@@ -225,13 +225,13 @@ const CheckoutPage: React.FC = () => {
       document.body.appendChild(script)
       await new Promise(resolve => script.onload = resolve)
     }
-    return new Promise<string>((resolve, reject) => {
+    return new Promise<{ paymentId: string; rzOrderId: string }>((resolve, reject) => {
       const rz = new window.Razorpay({
         key: keyId, amount: rzOrder.amount, currency: 'INR',
         name: settings.siteName || 'Store', order_id: rzOrder.id,
         prefill: { name: selectedAddr?.name, contact: selectedAddr?.phone },
         theme: { color: '#E91E63' },
-        handler: (r: any) => resolve(r.razorpay_payment_id),
+        handler: (r: any) => resolve({ paymentId: r.razorpay_payment_id, rzOrderId: rzOrder.id }),
         modal: { ondismiss: () => reject(new Error('Payment cancelled')) },
       })
       rz.open()
@@ -243,13 +243,18 @@ const CheckoutPage: React.FC = () => {
     setLoading(true)
     try {
       let paymentId = ''
+      let rzOrderId = ''
       if (payMethod === 'online' && settings.razorpayEnabled) {
-        try { paymentId = await handleRazorpay() }
+        try {
+          const r = await handleRazorpay()
+          paymentId = r.paymentId; rzOrderId = r.rzOrderId
+        }
         catch (e: any) { if (e.message === 'Payment cancelled') { toast.error('Payment cancelled'); return } throw e }
       }
       if (payMethod === 'cod' && codAdvancePercent > 0 && settings.razorpayEnabled) {
         try {
-          paymentId = await handleRazorpay();
+          const r = await handleRazorpay()
+          paymentId = r.paymentId; rzOrderId = r.rzOrderId
           toast.success(`Advance ₹${advanceAmount} paid!`)
         } catch (e: any) {
           if (e.message === 'Payment cancelled') {
@@ -272,7 +277,7 @@ const CheckoutPage: React.FC = () => {
       }
       const items = cart?.items?.map(i => ({ productId: i.product._id, quantity: i.quantity, variant: i.variant })) || []
       const cleanGstin = gstin.trim().toUpperCase()
-      const res = await api.post('/orders', { items, shippingAddress, paymentMethod: payMethod, couponCode, paymentId, paymentStatus: paymentId ? 'paid' : 'pending', advanceAmount: paymentId && payMethod === 'cod' ? advanceAmount : 0, gstin: cleanGstin })
+      const res = await api.post('/orders', { items, shippingAddress, paymentMethod: payMethod, couponCode, paymentId, rzOrderId, paymentStatus: paymentId ? 'paid' : 'pending', advanceAmount: paymentId && payMethod === 'cod' ? advanceAmount : 0, gstin: cleanGstin })
       // Save GSTIN to user profile if new/changed
       if (cleanGstin && cleanGstin !== (user as any)?.gstNumber) {
         api.put('/auth/me', { gstNumber: cleanGstin }).catch(() => {})
