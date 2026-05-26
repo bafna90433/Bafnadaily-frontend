@@ -50,6 +50,19 @@ const App: React.FC = () => {
     return () => document.body.removeAttribute('data-layout')
   }, [settings.homeLayout])
 
+  // ── Dynamic Favicon from Settings ─────────────────────────────────────────
+  useEffect(() => {
+    if (!settings.favicon) return
+    let link = document.getElementById('dynamic-favicon') as HTMLLinkElement
+    if (!link) {
+      link = document.createElement('link')
+      link.id = 'dynamic-favicon'
+      link.rel = 'icon'
+      document.head.appendChild(link)
+    }
+    link.href = settings.favicon
+  }, [settings.favicon])
+
   // ── Meta Pixel ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!settings.metaPixelEnabled || !settings.metaPixelId) return
