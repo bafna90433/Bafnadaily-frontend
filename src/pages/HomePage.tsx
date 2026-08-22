@@ -191,9 +191,8 @@ const CampaignBanner: React.FC<{ banners: Banner[] }> = ({ banners }) => {
   if (!banners.length) return null
 
   return (
-    <section className="bg-white py-5 md:py-8">
-      <div className="d2c-shell">
-        <div className="relative overflow-hidden rounded-[1.5rem] bg-rose-100 shadow-[0_18px_55px_rgba(190,24,93,0.16)] md:aspect-[1920/532] md:rounded-[2rem]">
+    <section className="w-full bg-white py-5 md:py-0">
+      <div className="relative w-full overflow-hidden bg-rose-100 shadow-[0_18px_55px_rgba(190,24,93,0.16)] md:aspect-[1920/532]">
           <div className="relative aspect-[16/7] md:absolute md:inset-0 md:aspect-auto">
             {banners.map((banner, index) => (
               <Link
@@ -223,7 +222,6 @@ const CampaignBanner: React.FC<{ banners: Banner[] }> = ({ banners }) => {
               ))}
             </div>
           )}
-        </div>
       </div>
     </section>
   )
@@ -405,7 +403,7 @@ const HomePage: React.FC = () => {
 
       {sectionSettings.newArrivals !== false && <ProductShelf eyebrow={content.newArrivalsEyebrow} title={content.newArrivalsTitle} products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
 
-      {sectionSettings.trustSection !== false && sectionSettings.promoBanners !== false && <CampaignBanner banners={promoBanners} />}
+      {sectionSettings.promoBanners !== false && <CampaignBanner banners={promoBanners} />}
 
       {sectionSettings.featuredProducts !== false && <ProductShelf eyebrow={content.featuredEyebrow} title={content.featuredTitle} products={featured} loading={loading} viewAll="/products?featured=true" />}
 
