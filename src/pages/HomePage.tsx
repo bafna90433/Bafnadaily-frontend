@@ -137,6 +137,78 @@ const HeroSlider: React.FC<{ banners: Banner[]; fullWidth?: boolean }> = ({ bann
   )
 }
 
+const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ banners, mobile }) => {
+  const [active, setActive] = useState(0)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    if (banners.length <= 1) return
+    timerRef.current = setInterval(() => setActive(index => (index + 1) % banners.length), 3500)
+    return () => { if (timerRef.current) clearInterval(timerRef.current) }
+  }, [banners.length])
+
+  return (
+    <div className="relative w-full overflow-hidden bg-white shadow-2xl"
+      style={{ borderRadius: mobile ? '1.5rem' : '3.5rem', aspectRatio: mobile ? '16/9' : '2/1', boxShadow: mobile ? '0 10px 30px rgba(0,0,0,0.1)' : '0 25px 60px rgba(0,0,0,0.12)' }}>
+      {banners.length === 0 ? (
+        <div className="absolute inset-0 skeleton" />
+      ) : banners.map((banner, index) => (
+        <Link key={banner._id} to={banner.link || '/products'}
+          className={`absolute inset-0 transition-opacity duration-700 ${index === active ? 'scale-100 opacity-100' : 'pointer-events-none scale-105 opacity-0'}`}>
+          {banner.image ? (
+            <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
+              <img src={ik.banner(banner.image)} alt="" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-2xl" aria-hidden="true" />
+              <img src={mobile ? ik.mobileBanner(banner.image) : ik.banner(banner.image)} alt={banner.title || 'Banner'} loading={index === 0 ? 'eager' : 'lazy'} fetchPriority={index === 0 ? 'high' : 'auto'} className="relative z-10 h-full w-full object-contain" />
+            </div>
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary to-violet-500">
+              <p className="px-6 text-center text-xl font-black text-white">{banner.title}</p>
+            </div>
+          )}
+        </Link>
+      ))}
+      {banners.length > 1 && (
+        <div className="absolute bottom-4 right-5 z-20 flex gap-1.5">
+          {banners.map((_, index) => <button key={index} onClick={() => setActive(index)} aria-label={`Go to banner ${index + 1}`} className={`rounded-full transition-all duration-300 ${index === active ? 'h-1.5 w-5 bg-white' : 'h-1.5 w-1.5 bg-white/50'}`} />)}
+        </div>
+      )}
+      <Link to={banners[active]?.link || '/products'} className="absolute right-4 top-4 z-20 flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-black text-primary shadow-lg backdrop-blur-sm" style={{ background: 'rgba(255,255,255,0.92)' }}>
+        Shop <ArrowRight size={11} />
+      </Link>
+    </div>
+  )
+}
+
+const HeroLayout4: React.FC<{ heroBanners: Banner[]; hangingBanners: Banner[] }> = ({ heroBanners, hangingBanners }) => (
+  <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fff0f6 0%, #fdf2ff 40%, #fff8f0 70%, #fefffe 100%)' }}>
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute -left-20 -top-20 h-80 w-80 rounded-full" style={{ background: 'radial-gradient(circle, rgba(233,30,99,0.07) 0%, transparent 70%)' }} />
+      <div className="absolute right-10 top-10 h-64 w-64 rounded-full" style={{ background: 'radial-gradient(circle, rgba(199,125,255,0.08) 0%, transparent 70%)' }} />
+      <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,139,90,0.06) 0%, transparent 70%)' }} />
+    </div>
+    <div className="absolute left-0 right-0 top-0 h-0.5" style={{ background: 'linear-gradient(90deg, transparent, rgba(233,30,99,0.25), rgba(199,125,255,0.25), transparent)' }} />
+    {heroBanners.length > 0 && <div className="relative z-10 block w-full px-3 pb-1 pt-3 lg:hidden"><HeroBannerCard banners={heroBanners} mobile /></div>}
+    <div className="relative z-10 hidden w-full items-stretch px-14 py-12 lg:flex xl:px-24" style={{ minHeight: '60vh' }}>
+      <div className="flex w-full flex-row items-stretch gap-16">
+        <div className="flex flex-1 flex-row items-start justify-center gap-6 overflow-visible" style={{ alignSelf: 'stretch', marginTop: '-45px' }}>
+          <style>{`@keyframes sway-hero { 0%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} 100%{transform:rotate(-6deg)} } .hero-kc { transform-origin: top center; animation: sway-hero 3.5s ease-in-out infinite; }`}</style>
+          {hangingBanners.slice(0, 6).map((banner, index) => (
+            <Link key={banner._id} to={banner.link || '/products'} className="hero-kc group/item flex flex-col items-center" style={{ animationDelay: `${index * 0.6}s` }}>
+              <div className="h-[60px] w-0.5 rounded-sm bg-gradient-to-b from-pink-500 to-pink-300" />
+              <div className="z-[2] -mb-1 h-3 w-3 rounded-full border-2 border-slate-300 bg-white" />
+              <div className="rounded-[30px] border-[2.5px] border-pink-500/15 bg-white p-2 shadow-[0_15px_45px_rgba(244,63,142,0.22)] transition-all duration-300 group-hover/item:border-primary">
+                <img src={ik.hanging(banner.image)} alt={banner.title || 'keychain'} width={165} height={250} loading="lazy" className="h-[250px] w-[165px] rounded-3xl object-cover" />
+                {banner.title && <div className="mt-2.5 rounded-[14px] bg-gradient-to-br from-pink-500 to-pink-400 px-3.5 py-1.5 text-center shadow-[0_4px_12px_rgba(244,63,142,0.4)]"><span className="whitespace-nowrap text-[13px] font-black tracking-wide text-white">{banner.title}</span></div>}
+              </div>
+            </Link>
+          ))}
+        </div>
+        {heroBanners.length > 0 && <div className="flex flex-[1.5] flex-col justify-center"><HeroBannerCard banners={heroBanners} /></div>}
+      </div>
+    </div>
+  </section>
+)
+
 const ProductShelf: React.FC<{
   eyebrow: string
   title: string
@@ -167,6 +239,7 @@ const HomePage: React.FC = () => {
   const [newArrivals, setNewArrivals] = useState<Product[]>([])
   const [featured, setFeatured] = useState<Product[]>([])
   const [heroBanners, setHeroBanners] = useState<Banner[]>([])
+  const [hangingBanners, setHangingBanners] = useState<Banner[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -187,6 +260,7 @@ const HomePage: React.FC = () => {
       const arrivalProducts: Product[] = newResponse.data.products || []
       const featuredProducts: Product[] = featuredResponse.data.products || []
       setHeroBanners(allBanners.filter(banner => banner.type !== 'hanging' && banner.isActive && banner.showOnWebsite !== false))
+      setHangingBanners(allBanners.filter(banner => banner.type === 'hanging' && banner.isActive && banner.showOnWebsite !== false))
       setCategories(categoryResponse.data.categories || [])
       setTrending(trendingProducts.length ? trendingProducts : allProducts.slice(0, 8))
       setNewArrivals(arrivalProducts.length ? arrivalProducts : allProducts.slice(6, 14))
@@ -210,41 +284,7 @@ const HomePage: React.FC = () => {
         <meta property="og:type" content="website" />
       </Helmet>
 
-      {sectionSettings.heroBanner !== false && (
-        <section className="relative border-b border-rose-100/70 bg-[radial-gradient(circle_at_12%_10%,rgba(244,63,94,0.12),transparent_30%),radial-gradient(circle_at_90%_20%,rgba(249,115,22,0.10),transparent_28%),linear-gradient(135deg,#fff7f4_0%,#fffdf9_48%,#fdf4ff_100%)]">
-          <div className="relative px-4 pt-10 md:px-0 md:pt-0">
-            <HeroSlider banners={heroBanners} fullWidth />
-            <div className="absolute bottom-5 left-10 hidden items-center gap-3 rounded-2xl border border-white/70 bg-white/90 p-3 pr-5 shadow-xl backdrop-blur md:flex">
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><BadgeCheck size={20} /></div>
-              <div><p className="text-xs font-black text-slate-900">Bafna quality checked</p><p className="text-[10px] text-stone-500">Chosen and packed with care</p></div>
-            </div>
-          </div>
-          <div className="d2c-shell relative py-10 md:hidden">
-            <div className="relative z-10 mx-auto min-w-0 max-w-[calc(100vw-2rem)] md:max-w-5xl md:text-center">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/85 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-primary shadow-sm backdrop-blur">
-                <Sparkles size={14} /> {content.heroEyebrow}
-              </div>
-              <h1 className="max-w-full break-words font-heading text-[2.2rem] font-black leading-[1.01] tracking-[-0.055em] text-slate-950 sm:text-5xl md:text-6xl md:leading-[0.98] lg:text-[4.25rem]">
-                {content.heroTitle}<br /><span className="d2c-gradient-text">{content.heroHighlight}</span>
-              </h1>
-              <p className="mt-6 max-w-xl text-sm font-medium leading-7 text-slate-600 md:mx-auto md:text-base md:leading-8">{content.heroSubtitle}</p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row md:justify-center">
-                <Link to={content.primaryCtaLink} className="group inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-7 py-4 text-sm font-black text-white shadow-xl shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-primary">
-                  <ShoppingBag size={17} /> {content.primaryCtaLabel} <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                </Link>
-                <Link to={content.secondaryCtaLink} className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white/80 px-7 py-4 text-sm font-black text-slate-800 shadow-sm backdrop-blur transition hover:border-primary/30 hover:text-primary">
-                  {content.secondaryCtaLabel}
-                </Link>
-              </div>
-              <div className="mt-9 grid max-w-lg grid-cols-3 divide-x divide-stone-200 border-t border-stone-200 pt-6 md:mx-auto md:text-left">
-                <div className="pr-4"><p className="text-xl font-black text-slate-950">500+</p><p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-400">Happy finds</p></div>
-                <div className="px-4"><p className="flex items-center gap-1 text-xl font-black text-slate-950">4.8 <Star size={15} className="fill-amber-400 text-amber-400" /></p><p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-400">Customer love</p></div>
-                <div className="pl-4"><p className="text-xl font-black text-slate-950">100%</p><p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-400">Secure pay</p></div>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
+      {sectionSettings.heroBanner !== false && <HeroLayout4 heroBanners={heroBanners} hangingBanners={hangingBanners} />}
 
       {sectionSettings.featuresBar !== false && (
         <section className="border-b border-stone-100 bg-white">
