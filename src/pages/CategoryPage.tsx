@@ -9,6 +9,7 @@ import { ShoppingCart, ArrowRight } from 'lucide-react';
 import useCartStore from '../store/cartStore';
 import useAuthStore from '../store/authStore';
 import toast from 'react-hot-toast';
+import useSettingsStore from '../store/settingsStore';
 
 const LIMIT = 24;
 
@@ -494,9 +495,11 @@ const DealCard: React.FC<{ deal: DealProduct }> = ({ deal }) => {
   const expired = new Date(deal.endTime) < new Date();
   const { cart, addToCart, updateItem, removeItem } = useCartStore(); // Added removeItem
   const { user } = useAuthStore();
+  const { settings } = useSettingsStore();
   const navigate = useNavigate();
   const cartItem = cart?.items?.find(i => i.product?._id === product._id);
   const qtyInCart = cartItem?.quantity || 0;
+  const minimumQty = settings.b2bEnabled ? (product.minQty || 1) : 1;
   const img = product.images?.[0]?.url ? ik.thumb(product.images[0].url) : `https://placehold.co/300x300/FCE4EC/E91E63?text=${encodeURIComponent(product.name)}`;
 
   const handleUpdateQty = async (e: React.MouseEvent, delta: number) => {
@@ -507,9 +510,9 @@ const DealCard: React.FC<{ deal: DealProduct }> = ({ deal }) => {
       toast.error(`Only ${product.stock} pcs available in stock!`, { icon: '⚠️', duration: 2500 })
       return
     }
-    if (delta === -1 && cartItem.quantity <= (product.minQty || 1)) {
+    if (delta === -1 && cartItem.quantity <= minimumQty) {
       await removeItem(cartItem._id);
-    } else if (newQty >= (product.minQty || 1)) {
+    } else if (newQty >= minimumQty) {
       await updateItem(cartItem._id, newQty);
     }
   };
@@ -517,7 +520,7 @@ const DealCard: React.FC<{ deal: DealProduct }> = ({ deal }) => {
   const handleCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!user) { navigate('/login'); return; }
-    await addToCart(product, product.minQty || 1);
+    await addToCart(product, minimumQty);
   };
 
   if (expired) return <ProductCard product={product} />;

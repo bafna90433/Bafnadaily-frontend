@@ -18,7 +18,7 @@
 
   html, body {
     font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-[#fffdf9] text-gray-900 antialiased;
     touch-action: manipulation;
   }
 
@@ -60,11 +60,26 @@
   .section {
     @apply max-w-full mx-auto px-4;
   }
+
+  .d2c-shell {
+    @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-10 xl:px-14;
+  }
+
+  .d2c-gradient-text {
+    @apply bg-gradient-to-r from-primary via-rose-500 to-violet-600 bg-clip-text text-transparent;
+  }
+}
+
+.scrollbar-hidden {
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
 }
 
 /* ── Global Full-Width Overrides ── */
 .max-w-7xl,
-.max-w-[1440px],
 .max-w-6xl,
 .max-w-5xl,
 .max-w-4xl {
@@ -74,7 +89,6 @@
 @media (min-width: 768px) {
 
   .max-w-7xl,
-  .max-w-[1440px],
   .max-w-6xl,
   .max-w-5xl,
   .max-w-4xl {
@@ -86,7 +100,6 @@
 @media (min-width: 1280px) {
 
   .max-w-7xl,
-  .max-w-[1440px],
   .max-w-6xl,
   .max-w-5xl,
   .max-w-4xl {
@@ -204,4 +217,4 @@
 
 .animate-cart-pulse {
   animation: cart-pulse 1s infinite ease-in-out !important;
-}
+}

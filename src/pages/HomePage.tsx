@@ -1,496 +1,176 @@
-import React, { useEffect, useState, useRef } from 'react'
-import { ik } from '../utils/imagekit'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, Zap, Gift, Truck, Shield, Tag, Sparkles, Crown, Star, ShoppingBag, TrendingUp, Diamond, Watch, Award, HeartHandshake, Package, RotateCcw, ChevronRight } from 'lucide-react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { Product, Banner, Category } from '../types'
+import {
+  ArrowRight, BadgeCheck, ChevronLeft, ChevronRight, Gift, Heart,
+  PackageCheck, RotateCcw, ShieldCheck, ShoppingBag, Sparkles, Star,
+  Truck, WalletCards, Zap,
+} from 'lucide-react'
 import api from '../utils/api'
+import { ik } from '../utils/imagekit'
+import { Banner, Category, Product } from '../types'
 import ProductCard from '../components/product/ProductCard'
-import useSettingsStore from '../store/settingsStore'
 import useCartStore from '../store/cartStore'
+import useSettingsStore from '../store/settingsStore'
 
-const CATEGORIES = [
-  { name: 'Keychains', slug: 'keychains', emoji: '🔑', bg: 'bg-pink-50 border-pink-200 hover:bg-pink-100' },
-  { name: 'Women', slug: 'women-accessories', emoji: '👗', bg: 'bg-purple-50 border-purple-200 hover:bg-purple-100' },
-  { name: 'Fashion', slug: 'fashion', emoji: '👜', bg: 'bg-blue-50 border-blue-200 hover:bg-blue-100' },
-  { name: 'Beauty', slug: 'beauty', emoji: '💄', bg: 'bg-rose-50 border-rose-200 hover:bg-rose-100' },
-  { name: 'Gifts', slug: 'gifts', emoji: '🎁', bg: 'bg-green-50 border-green-200 hover:bg-green-100' },
-  { name: 'Cute Items', slug: 'cute-items', emoji: '💕', bg: 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100' },
-]
-
-// FEATURES constant removed from global scope to avoid ReferenceError
-
+const HOME_DEFAULTS = {
+  heroEyebrow: 'Made for your everyday moments',
+  heroTitle: 'Little things that make life',
+  heroHighlight: 'more delightful.',
+  heroSubtitle: 'Discover playful accessories, thoughtful gifts and everyday finds—curated to feel special and priced to make you smile.',
+  primaryCtaLabel: 'Shop new arrivals',
+  primaryCtaLink: '/products?newArrival=true',
+  secondaryCtaLabel: 'Explore all products',
+  secondaryCtaLink: '/products',
+  categoryEyebrow: 'Find your favourite',
+  categoryTitle: 'Shop by category',
+  trendingEyebrow: 'Loved right now',
+  trendingTitle: 'Trending picks',
+  newArrivalsEyebrow: 'Just landed',
+  newArrivalsTitle: 'Fresh arrivals',
+  featuredEyebrow: 'Handpicked for you',
+  featuredTitle: 'Bafna favourites',
+  promoOneEyebrow: 'Small price, big joy',
+  promoOneTitle: 'Cute finds under ₹199',
+  promoOneSubtitle: 'Easy gifts and everyday treats without stretching your budget.',
+  promoOneCta: 'Shop under ₹199',
+  promoOneLink: '/products?maxPrice=199',
+  promoTwoEyebrow: 'Gift-ready favourites',
+  promoTwoTitle: 'Make their day special',
+  promoTwoSubtitle: 'Thoughtful picks for birthdays, surprises and just-because moments.',
+  promoTwoCta: 'Explore gifts',
+  promoTwoLink: '/category/gifts',
+  trustTitle: 'Shopping that feels simple',
+  trustSubtitle: 'From secure checkout to careful packing, we make every order feel effortless.',
+  closingEyebrow: 'A little joy is one click away',
+  closingTitle: 'Find something you’ll love today.',
+  closingSubtitle: 'New drops, giftable finds and happy prices—all in one cheerful place.',
+  closingCta: 'Start shopping',
+  closingLink: '/products',
+}
 
 const SkeletonCard = () => (
-  <div className="card overflow-hidden">
+  <div className="overflow-hidden rounded-[1.35rem] border border-stone-100 bg-white">
     <div className="aspect-square skeleton" />
-    <div className="p-3 space-y-2">
-      <div className="h-3 skeleton rounded w-1/2" /><div className="h-4 skeleton rounded" />
-      <div className="h-4 skeleton rounded w-3/4" /><div className="h-5 skeleton rounded w-1/3" />
+    <div className="space-y-2 p-3.5">
+      <div className="h-3 w-1/3 rounded skeleton" />
+      <div className="h-4 rounded skeleton" />
+      <div className="h-4 w-2/3 rounded skeleton" />
+      <div className="h-9 rounded-xl skeleton" />
     </div>
   </div>
 )
 
-const SkeletonBanner = ({ mobile }: { mobile?: boolean }) => (
-  <div className="w-full bg-white skeleton" 
-    style={{ borderRadius: mobile ? '1.5rem' : '3.5rem', aspectRatio: mobile ? '16/9' : '2/1' }} />
-)
-
-const SkeletonCircles = () => (
-  <section className="px-6 md:px-14 lg:px-24 py-8">
-    <div className="flex items-center justify-between mb-5">
-      <div className="space-y-2"><div className="h-3 w-20 skeleton rounded" /><div className="h-6 w-48 skeleton rounded" /></div>
-      <div className="h-10 w-28 skeleton rounded-full" />
+const SectionHeading: React.FC<{
+  eyebrow: string
+  title: string
+  link?: string
+  align?: 'left' | 'center'
+  dark?: boolean
+}> = ({ eyebrow, title, link, align = 'left', dark = false }) => (
+  <div className={`mb-6 flex items-end gap-4 md:mb-8 ${align === 'center' ? 'flex-col items-center text-center' : 'justify-between'}`}>
+    <div>
+      <p className="mb-2 text-[11px] font-black uppercase tracking-[0.22em] text-primary">{eyebrow}</p>
+      <h2 className={`font-heading text-2xl font-black tracking-[-0.035em] md:text-4xl ${dark ? 'text-white' : 'text-slate-950'}`}>{title}</h2>
     </div>
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 md:gap-12">
-      {Array(10).fill(0).map((_, i) => (
-        <div key={i} className="flex flex-col items-center gap-4">
-          <div className="w-full aspect-square rounded-[3rem] md:rounded-[4rem] skeleton" />
-          <div className="h-4 w-20 skeleton rounded" />
-        </div>
-      ))}
-    </div>
-  </section>
-)
-
-interface SectionProps { title: string; products: Product[]; loading: boolean; viewAll: string }
-const ProductSection: React.FC<SectionProps> = ({ title, products, loading, viewAll }) => (
-  <section className="max-w-full mx-auto px-4 py-8">
-    <div className="flex items-center justify-between mb-5">
-      <h2 className="text-2xl md:text-3xl font-heading font-bold">{title}</h2>
-      <Link to={viewAll} className="text-primary text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">View All <ArrowRight size={15} /></Link>
-    </div>
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
-      {loading ? Array(8).fill(0).map((_, i) => <SkeletonCard key={i} />) : products.map(p => <ProductCard key={p._id} product={p} />)}
-    </div>
-    {!loading && products.length === 0 && (
-      <div className="text-center py-14 text-gray-400"><p className="text-4xl mb-3">🛍️</p><p>No products yet — add from admin panel</p></div>
-    )}
-  </section>
-)
-
-const HeroLayout1 = () => (
-  <section className="relative overflow-hidden bg-gradient-to-br from-pink-50 via-white to-purple-50">
-    <div className="max-w-full mx-auto px-4 py-14 md:py-24 flex flex-col md:flex-row items-center gap-10">
-      <div className="flex-1 text-center md:text-left">
-        <span className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-bold px-4 py-2 rounded-full mb-5">
-          <Zap size={14} className="fill-primary" /> New Collection 2024
-        </span>
-        <h1 className="text-4xl md:text-6xl font-heading font-bold text-gray-900 leading-tight mb-4">
-          Trendy Gifts &<br /><span className="text-primary">Cute Accessories</span>
-        </h1>
-        <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto md:mx-0">
-          Keychains, jewelry, fashion & gift items — starting at just <strong className="text-primary">₹99!</strong>
-        </p>
-        <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-          <Link to="/products" className="btn-primary text-base px-8 py-4">Shop Now <ArrowRight size={18} /></Link>
-          <Link to="/products?maxPrice=299" className="btn-outline text-base px-8 py-4"><Tag size={16} /> Under ₹299</Link>
-        </div>
-      </div>
-      <div className="flex-1 grid grid-cols-2 gap-3 max-w-sm w-full">
-        {CATEGORIES.slice(0, 4).map(cat => (
-          <Link key={cat.slug} to={`/category/${cat.slug}`} className={`p-5 rounded-2xl border-2 text-center transition-all hover:-translate-y-1 hover:shadow-md ${cat.bg}`}>
-            <div className="text-3xl mb-2">{cat.emoji}</div>
-            <p className="text-sm font-bold text-gray-700">{cat.name}</p>
-          </Link>
-        ))}
-      </div>
-    </div>
-    <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full pointer-events-none" />
-    <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-purple-100/40 rounded-full pointer-events-none" />
-  </section>
-)
-
-const HeroLayout2 = () => (
-  <section className="relative overflow-hidden bg-gradient-to-r from-gray-900 via-slate-800 to-gray-900">
-    <div className="max-w-full mx-auto px-4 py-16 md:py-28 text-center relative z-10">
-      <div className="flex items-center justify-center gap-2 mb-6">
-        <Crown size={18} className="text-amber-400" />
-        <span className="text-amber-400 text-sm font-black uppercase tracking-[0.2em]">Premium Collection</span>
-        <Crown size={18} className="text-amber-400" />
-      </div>
-      <h1 className="text-4xl md:text-7xl font-heading font-black text-white leading-tight mb-5">
-        Your Style,<br /><span className="bg-gradient-to-r from-primary via-pink-400 to-purple-400 bg-clip-text text-transparent">Your Story</span>
-      </h1>
-      <p className="text-gray-400 text-lg md:text-xl mb-8 max-w-2xl mx-auto">
-        Discover handpicked accessories, unique gifts & trending fashion. Every item tells a story.
-      </p>
-      <div className="flex flex-wrap gap-4 justify-center mb-12">
-        <Link to="/products" className="bg-primary text-white font-bold px-10 py-4 rounded-2xl text-base hover:shadow-xl hover:shadow-primary/30 active:scale-95 transition-all flex items-center gap-2">
-          <ShoppingBag size={18} /> Explore Collection
-        </Link>
-        <Link to="/products?trending=true" className="bg-white/10 backdrop-blur text-white font-bold px-10 py-4 rounded-2xl text-base border border-white/20 hover:bg-white/20 active:scale-95 transition-all flex items-center gap-2">
-          <TrendingUp size={18} /> Trending Now
-        </Link>
-      </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
-        {[
-          { emoji: '🔑', label: 'Keychains', count: '500+' },
-          { emoji: '💍', label: 'Accessories', count: '300+' },
-          { emoji: '🎁', label: 'Gift Sets', count: '200+' },
-          { emoji: '🔥', label: 'Trending', count: '100+' },
-        ].map(s => (
-          <div key={s.label} className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all">
-            <p className="text-2xl mb-1">{s.emoji}</p>
-            <p className="text-white font-black text-lg">{s.count}</p>
-            <p className="text-gray-400 text-xs font-semibold">{s.label}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-    <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-900/20 rounded-full pointer-events-none" />
-    <div className="absolute -top-40 -right-40 w-96 h-96 bg-pink-900/20 rounded-full pointer-events-none" />
-  </section>
-)
-
-const MainDashboard = ({ categories, loading }: { categories: any[]; loading?: boolean }) => {
-  const navigate = useNavigate()
-
-  if (loading) return (
-    <section className="max-w-full mx-auto px-4 py-8">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-        {Array(16).fill(0).map((_, i) => (
-          <div key={i} className="aspect-square rounded-3xl skeleton" />
-        ))}
-      </div>
-    </section>
-  )
-
-  const focusSlugs = ['belt', 'keychains', 'hand-bags', 'women-kit', 'men']
-  const slots = Array(16).fill({ name: 'Coming Soon', emoji: '📦', soon: true })
-  const focusMap: Record<string, string> = {
-    'belt': 'BELT',
-    'keychains': 'ALL KEYCHAIN',
-    'hand-bags': 'HAND BAG',
-    'women-kit': 'WOMEN KIT',
-    'men': 'MEN'
-  }
-
-  const items = slots.map((s, i) => {
-    const slug = focusSlugs[i]
-    if (slug) {
-      const cat = categories.find(c => c.slug === slug || c.name.toLowerCase() === focusMap[slug].toLowerCase())
-      if (cat) return { ...cat, soon: false }
-      return { name: focusMap[slug], slug, emoji: '⚡', soon: false }
-    }
-    return s
-  })
-
-  return (
-    <section className="max-w-full mx-auto px-4 py-8">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-        {items.map((cat, i) => (
-          <Link
-            key={i}
-            to={cat.soon ? '#' : `/category/${cat.slug}`}
-            className={`aspect-square rounded-3xl border-2 flex flex-col items-center justify-center p-6 transition-all duration-300 ${cat.soon
-              ? 'bg-gray-50 border-gray-100 opacity-40 grayscale cursor-not-allowed'
-              : 'bg-white border-primary/20 hover:border-primary hover:shadow-xl hover:-translate-y-1'
-              }`}
-          >
-            <div className="text-4xl mb-3">{cat.emoji || (cat.soon ? '📦' : '✨')}</div>
-            <p className="text-xs font-black text-gray-800 text-center uppercase tracking-wider">{cat.name}</p>
-            {cat.soon && <span className="text-[8px] bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full mt-2 font-bold">SOON</span>}
-          </Link>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-const HeroLayout3 = () => (
-  <section className="relative overflow-hidden bg-white">
-    <div className="max-w-full mx-auto px-4 py-12 md:py-20">
-      <div className="text-center mb-10">
-        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/10 to-purple-100 text-primary text-xs font-black px-5 py-2 rounded-full mb-6 uppercase tracking-wider">
-          <Sparkles size={14} /> Curated with Love
-        </div>
-        <h1 className="text-3xl md:text-5xl font-heading font-black text-gray-900 leading-tight mb-4">
-          Discover <span className="text-primary">Beautiful</span> Things
-        </h1>
-        <p className="text-gray-400 text-base md:text-lg max-w-lg mx-auto mb-8">
-          Handpicked gifts, accessories & fashion — brought to you with love & care ✨
-        </p>
-        <div className="flex flex-wrap gap-3 justify-center">
-          <Link to="/products" className="btn-primary text-sm px-8 py-3.5">Shop All Products</Link>
-          <Link to="/products?newArrival=true" className="btn-outline text-sm px-8 py-3.5 flex items-center gap-2"><Sparkles size={14} /> New Arrivals</Link>
-        </div>
-      </div>
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hidden -mx-4 px-4 md:justify-center">
-        {CATEGORIES.map(cat => (
-          <Link key={cat.slug} to={`/category/${cat.slug}`}
-            className="flex items-center gap-2.5 px-5 py-3 bg-gray-50 border-2 border-gray-100 rounded-2xl flex-shrink-0 hover:border-primary/30 hover:bg-primary/5 transition-all group">
-            <span className="text-xl">{cat.emoji}</span>
-            <span className="text-sm font-bold text-gray-700 group-hover:text-primary whitespace-nowrap">{cat.name}</span>
-          </Link>
-        ))}
-      </div>
-    </div>
-    <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/3 rounded-full pointer-events-none" />
-    <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-purple-50 rounded-full pointer-events-none" />
-  </section>
-)
-
-const FeaturesBar = () => {
-  const { settings } = useSettingsStore()
-  const features = [
-    { icon: Truck, title: 'Free Delivery', desc: `Orders above ₹${settings.freeShippingAbove ?? 499}` },
-    { icon: Shield, title: 'Secure Pay', desc: 'COD & UPI available' },
-    { icon: Gift, title: 'Gift Wrap', desc: 'At just ₹29 extra' },
-    { icon: Zap, title: 'Fast Dispatch', desc: 'Ships in 24 hrs' },
-  ]
-
-  return (
-    <section className="bg-white border-y border-gray-100">
-      <div className="max-w-full mx-auto px-4 py-5">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {features.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0"><Icon size={20} className="text-primary" /></div>
-              <div><p className="font-bold text-sm">{title}</p><p className="text-xs text-gray-500">{desc}</p></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-const CategoriesSection = () => (
-  <section className="max-w-full mx-auto px-4 py-10">
-    <h2 className="text-2xl md:text-3xl font-heading font-bold mb-5">Shop by Category</h2>
-    <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-      {CATEGORIES.map(cat => (
-        <Link key={cat.slug} to={`/category/${cat.slug}`} className={`p-4 rounded-2xl border-2 text-center transition-all hover:shadow-md hover:-translate-y-1 ${cat.bg}`}>
-          <div className="text-3xl mb-2">{cat.emoji}</div>
-          <p className="text-xs font-bold text-gray-700">{cat.name}</p>
-        </Link>
-      ))}
-    </div>
-  </section>
-)
-
-const PromoBanners: React.FC<{ sec: any }> = ({ sec }) => (
-  <section className="max-w-7xl mx-auto px-4 pb-4 grid md:grid-cols-2 gap-4">
-    {sec.underPriceBanner !== false && (
-      <Link to="/products?maxPrice=199" className="relative bg-gradient-to-r from-primary to-pink-400 rounded-3xl p-7 text-white overflow-hidden group hover:shadow-xl transition-shadow">
-        <div className="relative z-10">
-          <p className="text-sm font-semibold opacity-80 mb-1">Special Section</p>
-          <h3 className="text-3xl font-heading font-bold mb-2">Under ₹199 🛍️</h3>
-          <p className="text-white/80 text-sm mb-5">Trending items at micro prices</p>
-          <span className="bg-white text-primary text-sm font-bold px-5 py-2 rounded-full inline-block">Shop Now →</span>
-        </div>
-        <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/10 rounded-full" />
-        <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full" />
+    {link && (
+      <Link to={link} className="group hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 shadow-sm transition hover:border-primary/30 hover:text-primary md:inline-flex">
+        View all <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
       </Link>
     )}
-    {sec.giftComboBanner !== false && (
-      <Link to="/category/gifts" className="relative bg-gradient-to-r from-secondary to-amber-400 rounded-3xl p-7 text-white overflow-hidden group hover:shadow-xl transition-shadow">
-        <div className="relative z-10">
-          <p className="text-sm font-semibold opacity-80 mb-1">Most Popular</p>
-          <h3 className="text-3xl font-heading font-bold mb-2">Gift Combos 🎁</h3>
-          <p className="text-white/80 text-sm mb-5">Keychain + Earrings sets & more</p>
-          <span className="bg-white text-secondary text-sm font-bold px-5 py-2 rounded-full inline-block">Explore →</span>
-        </div>
-        <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/10 rounded-full" />
-      </Link>
-    )}
-  </section>
+  </div>
 )
 
-const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ banners, mobile }) => {
+const HeroSlider: React.FC<{ banners: Banner[]; fullWidth?: boolean }> = ({ banners, fullWidth = false }) => {
   const [active, setActive] = useState(0)
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    if (banners.length <= 1) return
-    timerRef.current = setInterval(() => setActive(i => (i + 1) % banners.length), 3500)
-    return () => { if (timerRef.current) clearInterval(timerRef.current) }
+    if (banners.length < 2) return
+    timer.current = setInterval(() => setActive(value => (value + 1) % banners.length), 4500)
+    return () => { if (timer.current) clearInterval(timer.current) }
   }, [banners.length])
 
+  if (!banners.length) {
+    return (
+      <div className={`relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-rose-100 via-orange-50 to-violet-100 ${fullWidth ? 'rounded-[2rem] md:aspect-[1920/620] md:rounded-none' : 'rounded-[2rem] md:aspect-[6/5]'}`}>
+        <div className="absolute inset-0 grid place-items-center">
+          <div className="text-center text-primary/70">
+            <Gift className="mx-auto mb-3" size={52} />
+            <p className="font-black">Your next favourite is here</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const previous = () => setActive(value => (value - 1 + banners.length) % banners.length)
+  const next = () => setActive(value => (value + 1) % banners.length)
+
   return (
-    <div className="relative w-full overflow-hidden bg-white shadow-2xl"
-      style={{ borderRadius: mobile ? '1.5rem' : '3.5rem', aspectRatio: mobile ? '16/9' : '2/1', boxShadow: mobile ? '0 10px 30px rgba(0,0,0,0.1)' : '0 25px 60px rgba(0,0,0,0.12)' }}>
-      {banners.length === 0 ? (
-        <div className="absolute inset-0 skeleton" />
-      ) : banners.map((bn, i) => (
-        <Link key={bn._id} to={bn.link || '/products'}
-          className={`absolute inset-0 transition-opacity duration-700 ${i === active ? 'opacity-100 scale-100' : 'opacity-0 scale-105 pointer-events-none'}`}>
-          {bn.image ? (
-            <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-              <img src={ik.banner(bn.image)} alt="" className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110" aria-hidden="true" />
-              <img src={mobile ? ik.mobileBanner(bn.image) : ik.banner(bn.image)} alt={bn.title || 'Banner'} loading={i === 0 ? 'eager' : 'lazy'} fetchPriority={i === 0 ? 'high' : 'auto'} className="relative z-10 w-full h-full object-contain" />
-            </div>
+    <div className={`relative aspect-[16/10] overflow-hidden bg-stone-100 shadow-[0_24px_70px_rgba(58,30,35,0.16)] ${fullWidth ? 'rounded-[2rem] md:aspect-[1920/620] md:rounded-none' : 'rounded-[2rem] md:aspect-[6/5] md:rounded-[2.75rem]'}`}>
+      {banners.map((banner, index) => (
+        <Link key={banner._id} to={banner.link || '/products'} className={`absolute inset-0 transition-all duration-700 ${index === active ? 'scale-100 opacity-100' : 'pointer-events-none scale-105 opacity-0'}`}>
+          {banner.image ? (
+            <img src={ik.banner(banner.image)} alt={banner.title || 'Bafnadaily collection'} className="h-full w-full object-cover" fetchPriority={index === 0 ? 'high' : 'auto'} loading={index === 0 ? 'eager' : 'lazy'} />
           ) : (
-            <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#E91E63,#C77DFF)' }}>
-              <p className="text-white font-black text-xl text-center px-6">{bn.title}</p>
+            <div className="h-full w-full bg-gradient-to-br from-primary to-violet-600" />
+          )}
+          {(banner.title || banner.subtitle) && (
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent p-6 pt-20 text-white md:p-9 md:pt-28">
+              {banner.title && <p className="text-xl font-black md:text-3xl">{banner.title}</p>}
+              {banner.subtitle && <p className="mt-1 max-w-md text-sm text-white/80">{banner.subtitle}</p>}
             </div>
           )}
         </Link>
       ))}
       {banners.length > 1 && (
-        <div className="absolute bottom-4 right-5 flex gap-1.5 z-20">
-          {banners.map((_, i) => (
-            <button key={i} onClick={() => setActive(i)}
-              className={`rounded-full transition-all duration-300 ${i === active ? 'bg-white w-5 h-1.5' : 'bg-white/50 w-1.5 h-1.5'}`} />
-          ))}
-        </div>
+        <>
+          <button onClick={previous} aria-label="Previous banner" className="absolute left-4 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-slate-900 shadow-lg backdrop-blur transition hover:scale-105"><ChevronLeft size={18} /></button>
+          <button onClick={next} aria-label="Next banner" className="absolute right-4 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-slate-900 shadow-lg backdrop-blur transition hover:scale-105"><ChevronRight size={18} /></button>
+          <div className="absolute bottom-4 right-4 flex gap-1.5 rounded-full bg-slate-950/20 p-2 backdrop-blur">
+            {banners.map((_, index) => <button key={index} onClick={() => setActive(index)} aria-label={`Go to banner ${index + 1}`} className={`h-1.5 rounded-full transition-all ${index === active ? 'w-6 bg-white' : 'w-1.5 bg-white/55'}`} />)}
+          </div>
+        </>
       )}
-      <Link to={banners[active]?.link || '/products'}
-        className="absolute top-4 right-4 z-20 flex items-center gap-1.5 text-xs font-black px-4 py-2 rounded-full backdrop-blur-sm"
-        style={{ background: 'rgba(255,255,255,0.92)', color: '#E91E63', boxShadow: '0 2px 12px rgba(233,30,99,0.2)' }}>
-        Shop <ArrowRight size={11} />
-      </Link>
     </div>
   )
 }
 
-const HeroLayout4: React.FC<{ heroBanners: Banner[]; hangingBanners: Banner[] }> = ({ heroBanners, hangingBanners }) => (
-  <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fff0f6 0%, #fdf2ff 40%, #fff8f0 70%, #fefffe 100%)' }}>
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div className="absolute -top-20 -left-20 w-80 h-80 rounded-full" style={{ background: 'radial-gradient(circle, rgba(233,30,99,0.07) 0%, transparent 70%)' }} />
-      <div className="absolute top-10 right-10 w-64 h-64 rounded-full" style={{ background: 'radial-gradient(circle, rgba(199,125,255,0.08) 0%, transparent 70%)' }} />
-      <div className="absolute bottom-0 left-1/3 w-72 h-72 rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,139,90,0.06) 0%, transparent 70%)' }} />
-    </div>
-    <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: 'linear-gradient(90deg, transparent, rgba(233,30,99,0.25), rgba(199,125,255,0.25), transparent)' }} />
-    {heroBanners.length > 0 && (
-      <div className="block lg:hidden w-full relative z-10 px-3 pt-3 pb-1">
-        <HeroBannerCard banners={heroBanners} mobile />
-      </div>
-    )}
-    <div className="hidden lg:flex w-full px-14 xl:px-24 py-12 relative z-10 items-stretch" style={{ minHeight: '60vh' }}>
-      <div className="w-full flex flex-row items-stretch gap-16">
-        <div className="flex-1 flex flex-row items-start justify-center gap-6 overflow-visible" style={{ alignSelf: 'stretch', marginTop: '-45px' }}>
-          <style>{`
-            @keyframes sway-hero { 0%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} 100%{transform:rotate(-6deg)} }
-            .hero-kc { transform-origin: top center; animation: sway-hero 3.5s ease-in-out infinite; }
-          `}</style>
-          {hangingBanners.slice(0, 6).map((b, i) => (
-            <a key={i} href={b.link || '/products'} className="hero-kc flex flex-col items-center group/item" style={{ animationDelay: `${i * 0.6}s` }}>
-              <div style={{ width: '2px', height: '60px', background: 'linear-gradient(180deg,#f43f8e,#e879a0)', borderRadius: '1px' }} />
-              <div style={{ width: '12px', height: '12px', borderRadius: '50%', border: '2px solid #cbd5e1', background: 'white', marginBottom: '-3px', zIndex: 2 }} />
-              <div style={{ background: 'white', padding: '8px', borderRadius: '30px', boxShadow: '0 15px 45px rgba(244,63,142,0.22)', border: '2.5px solid rgba(244,63,142,0.15)' }} className="group-hover/item:border-primary transition-all duration-300">
-                <img src={ik.hanging(b.image)} alt={b.title || 'keychain'} width={165} height={250} loading="lazy" style={{ width: '165px', height: '250px', borderRadius: '24px', objectFit: 'cover' }} />
-                {b.title && (
-                  <div style={{ marginTop: '10px', background: 'linear-gradient(135deg,#f43f8e,#ec4899)', borderRadius: '14px', padding: '6px 14px', textAlign: 'center', boxShadow: '0 4px 12px rgba(244,63,142,0.4)' }}>
-                    <span style={{ color: 'white', fontSize: '13px', fontWeight: 900, letterSpacing: '0.6px', whiteSpace: 'nowrap' }}>{b.title}</span>
-                  </div>
-                )}
-              </div>
-            </a>
-          ))}
-        </div>
-        {heroBanners.length > 0 && <div className="flex-[1.5] flex flex-col justify-center"><HeroBannerCard banners={heroBanners} /></div>}
-      </div>
-    </div>
-  </section>
-)
-
-const FullWidthProductSection: React.FC<SectionProps> = ({ title, products, loading, viewAll }) => (
-  <section className="px-6 md:px-14 lg:px-24 py-14">
-    <div className="flex items-end justify-between mb-8">
-      <div>
-        <h2 className="text-2xl md:text-3xl font-heading font-black text-gray-900 leading-tight">{title}</h2>
-        <div className="h-1 w-16 mt-2 rounded-full" style={{ background: 'linear-gradient(90deg, #E91E63, #C77DFF)' }} />
-      </div>
-      <Link to={viewAll} className="inline-flex items-center gap-2 text-xs font-bold text-primary border border-primary/20 bg-primary/5 px-4 py-2 rounded-full hover:bg-primary hover:text-white transition-all duration-200">
-        View All <ArrowRight size={13} />
-      </Link>
-    </div>
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-      {loading ? Array(10).fill(0).map((_, i) => <SkeletonCard key={i} />) : products.map((p, i) => <ProductCard key={p._id} product={p} priority={i < 4} />)}
+const ProductShelf: React.FC<{
+  eyebrow: string
+  title: string
+  products: Product[]
+  loading: boolean
+  viewAll: string
+}> = ({ eyebrow, title, products, loading, viewAll }) => (
+  <section className="d2c-shell py-10 md:py-16">
+    <SectionHeading eyebrow={eyebrow} title={title} link={viewAll} />
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-5 lg:grid-cols-4 xl:grid-cols-6">
+      {loading
+        ? Array.from({ length: 6 }).map((_, index) => <SkeletonCard key={index} />)
+        : products.slice(0, 6).map((product, index) => <ProductCard key={product._id} product={product} priority={index < 3} />)}
     </div>
     {!loading && products.length === 0 && (
-      <div className="text-center py-16 text-gray-400"><p className="text-5xl mb-4">🛍️</p><p className="font-medium">No products yet — add from admin panel</p></div>
+      <div className="rounded-3xl border border-dashed border-stone-200 bg-white py-14 text-center text-sm font-bold text-stone-400">Products will appear here when they are enabled from admin.</div>
     )}
-  </section>
-)
-
-const FullWidthFeaturesBar = () => {
-  const { settings } = useSettingsStore()
-  return (
-    <div style={{ background: 'linear-gradient(90deg,#fff0f6,#fdf2ff,#fff0f6)', borderTop: '1px solid rgba(233,30,99,0.1)', borderBottom: '1px solid rgba(233,30,99,0.1)' }}>
-      <div className="px-6 md:px-14 lg:px-24 py-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { Icon: Truck, title: 'Free Delivery', desc: `Orders above ₹${settings.freeShippingAbove ?? 499}`, color: '#E91E63' },
-            { Icon: Shield, title: 'Secure Payment', desc: 'COD & UPI available', color: '#9C27B0' },
-            { Icon: Package, title: 'Gift Wrapping', desc: 'At just ₹29 extra', color: '#FF9800' },
-            { Icon: RotateCcw, title: 'Easy Returns', desc: '7-day hassle-free', color: '#E91E63' },
-          ].map(({ Icon, title, desc, color }) => (
-            <div key={title} className="flex items-center gap-3 bg-white rounded-xl px-4 py-3" style={{ boxShadow: '0 2px 10px rgba(233,30,99,0.06)', border: '1px solid rgba(233,30,99,0.07)' }}>
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}15` }}><Icon size={16} style={{ color }} /></div>
-              <div><p className="font-bold text-gray-800 text-xs">{title}</p><p className="text-gray-400 text-[11px]">{desc}</p></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const HorizontalCategoryScroll: React.FC<{ categories: Category[]; loading?: boolean }> = ({ categories, loading }) => {
-  if (loading) return <SkeletonCircles />
-  const CIRCLE_PALETTES = [
-    { bg: '#fce4ec', border: '#f48fb1' }, { bg: '#f3e5f5', border: '#ce93d8' }, { bg: '#fff3e0', border: '#ffcc80' },
-    { bg: '#e8f5e9', border: '#a5d6a7' }, { bg: '#e3f2fd', border: '#90caf9' }, { bg: '#fff8e1', border: '#ffe082' }
-  ]
-  return (
-    <section className="px-6 md:px-14 lg:px-24 py-8">
-      <div className="flex items-center justify-between mb-5">
-        <div><p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: '#E91E63' }}>Browse</p><h2 className="text-xl md:text-2xl font-heading font-black text-gray-900">Shop by Category</h2></div>
-        <Link to="/products" className="inline-flex items-center gap-1.5 text-xs font-black px-4 py-2 rounded-full transition-all" style={{ background: 'rgba(233,30,99,0.07)', border: '1.5px solid rgba(233,30,99,0.2)', color: '#E91E63' }}>View All <ArrowRight size={12} /></Link>
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 md:gap-12">
-        {categories.slice(0, 15).map((cat, i) => {
-          const p = CIRCLE_PALETTES[i % CIRCLE_PALETTES.length]
-          return (
-            <Link key={cat._id} to={`/category/${cat.slug}`} className="flex flex-col items-center gap-4 group">
-              <div className="w-full aspect-square rounded-[3rem] md:rounded-[4rem] overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl" style={{ background: p.bg, border: `3px solid ${p.border}` }}>
-                {cat.image ? <img src={ik.catCircle(cat.image)} alt={cat.name} width={200} height={200} loading="lazy" className="w-full h-full object-cover" /> : <span className="text-4xl md:text-8xl">{cat.icon || '🛍️'}</span>}
-              </div>
-              <p className="text-sm md:text-lg font-black text-gray-800 group-hover:text-primary transition-colors text-center">{cat.name}</p>
-            </Link>
-          )
-        })}
-      </div>
-    </section>
-  )
-}
-
-const BottomCTA = () => (
-  <section className="max-w-full mx-auto px-4 py-10">
-    <div className="bg-gradient-to-r from-gray-900 to-slate-800 rounded-3xl p-10 text-center text-white relative overflow-hidden">
-      <div className="relative z-10">
-        <p className="text-sm font-semibold text-gray-400 mb-2">Youth Collection</p>
-        <h2 className="text-3xl md:text-4xl font-heading font-bold mb-3">Under ₹299 Store 🛍️</h2>
-        <p className="text-gray-400 mb-7 max-w-md mx-auto">Trendy items that won't break your budget. Perfect for gifting!</p>
-        <Link to="/products?maxPrice=299" className="bg-primary text-white font-bold px-10 py-3.5 rounded-full hover:bg-primary-dark transition-colors inline-block shadow-lg shadow-primary/30">Shop Under ₹299</Link>
-      </div>
-      <div className="absolute -top-20 -left-20 w-64 h-64 bg-primary/10 rounded-full" />
-      <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-purple-900/30 rounded-full" />
-    </div>
+    <Link to={viewAll} className="mx-auto mt-6 flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-xs font-black text-slate-700 md:hidden">View all <ArrowRight size={14} /></Link>
   </section>
 )
 
 const HomePage: React.FC = () => {
-  const navigate = useNavigate()
   const { settings } = useSettingsStore()
-  const sec = settings.homepageSections
-  const layout = settings.websiteLayout || settings.homeLayout || 4
+  const { count, setHasNewItem } = useCartStore()
+  const sectionSettings = settings.homepageSections || ({} as any)
+  const content = useMemo(() => ({ ...HOME_DEFAULTS, ...sectionSettings }), [sectionSettings])
   const [trending, setTrending] = useState<Product[]>([])
   const [newArrivals, setNewArrivals] = useState<Product[]>([])
   const [featured, setFeatured] = useState<Product[]>([])
   const [heroBanners, setHeroBanners] = useState<Banner[]>([])
-  const [hangingBanners, setHangingBanners] = useState<Banner[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
-  const { count, setHasNewItem } = useCartStore()
 
-  useEffect(() => {
-    if (count > 0) setHasNewItem(true)
-  }, [count, setHasNewItem])
+  useEffect(() => { if (count > 0) setHasNewItem(true) }, [count, setHasNewItem])
 
   useEffect(() => {
     Promise.all([
@@ -499,90 +179,173 @@ const HomePage: React.FC = () => {
       api.get('/products?trending=true&limit=8'),
       api.get('/products?newArrival=true&limit=8'),
       api.get('/products?featured=true&limit=8'),
-    ]).then(([bnr, cat, t, n, f]) => {
-      const all: Banner[] = bnr.data.banners || []
-      setHeroBanners(all.filter(b => b.type !== 'hanging' && b.isActive))
-      setHangingBanners(all.filter(b => b.type === 'hanging' && b.showOnWebsite !== false))
-      setCategories(cat.data.categories || [])
-      setTrending(t.data.products); setNewArrivals(n.data.products); setFeatured(f.data.products)
+      api.get('/products?limit=18'),
+    ]).then(([bannerResponse, categoryResponse, trendingResponse, newResponse, featuredResponse, allResponse]) => {
+      const allBanners: Banner[] = bannerResponse.data.banners || []
+      const allProducts: Product[] = allResponse.data.products || []
+      const trendingProducts: Product[] = trendingResponse.data.products || []
+      const arrivalProducts: Product[] = newResponse.data.products || []
+      const featuredProducts: Product[] = featuredResponse.data.products || []
+      setHeroBanners(allBanners.filter(banner => banner.type !== 'hanging' && banner.isActive && banner.showOnWebsite !== false))
+      setCategories(categoryResponse.data.categories || [])
+      setTrending(trendingProducts.length ? trendingProducts : allProducts.slice(0, 8))
+      setNewArrivals(arrivalProducts.length ? arrivalProducts : allProducts.slice(6, 14))
+      setFeatured(featuredProducts.length ? featuredProducts : [...allProducts].reverse().slice(0, 8))
     }).catch(console.error).finally(() => setLoading(false))
   }, [])
 
-  let content;
-
-  if (layout === 5 || !layout) {
-    content = (
-      <div className="bg-gray-50 min-h-screen">
-        <div className="bg-white py-10 mb-8 border-b">
-          <div className="max-w-7xl mx-auto px-4 flex flex-col items-center text-center">
-            <img src="/logo.png" alt="Bafnadaily" className="h-16 mb-4" onError={e => (e.target as any).src = 'https://placehold.co/200x60?text=Bafnadaily'} />
-            <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">Premium Quality Wholesale Store</p>
-          </div>
-        </div>
-        <MainDashboard categories={categories} loading={loading} />
-        <BottomCTA />
-      </div>
-    )
-  } else if (layout === 1) {
-    content = (
-      <div>
-        {sec.heroBanner !== false && <HeroLayout1 />}
-        {sec.featuresBar !== false && <FeaturesBar />}
-        {sec.categories !== false && <CategoriesSection />}
-        {sec.promoBanners !== false && <PromoBanners sec={sec} />}
-        {sec.trendingProducts !== false && <ProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true" />}
-        {sec.newArrivals !== false && <ProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
-        {sec.featuredProducts !== false && <ProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true" />}
-        <BottomCTA />
-      </div>
-    )
-  } else if (layout === 2) {
-    content = (
-      <div>
-        {sec.heroBanner !== false && <HeroLayout2 />}
-        {sec.featuresBar !== false && <FeaturesBar />}
-        {sec.trendingProducts !== false && <ProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true" />}
-        {sec.promoBanners !== false && <PromoBanners sec={sec} />}
-        {sec.categories !== false && <CategoriesSection />}
-        {sec.newArrivals !== false && <ProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
-        {sec.featuredProducts !== false && <ProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true" />}
-        <BottomCTA />
-      </div>
-    )
-  } else if (layout === 3) {
-    content = (
-      <div>
-        {sec.heroBanner !== false && <HeroLayout3 />}
-        {sec.featuresBar !== false && <FeaturesBar />}
-        {sec.newArrivals !== false && <ProductSection title="✨ New Arrivals" products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
-        {sec.categories !== false && <CategoriesSection />}
-        {sec.featuredProducts !== false && <ProductSection title="⭐ Featured Products" products={featured} loading={loading} viewAll="/products?featured=true" />}
-        {sec.promoBanners !== false && <PromoBanners sec={sec} />}
-        {sec.trendingProducts !== false && <ProductSection title="🔥 Trending Now" products={trending} loading={loading} viewAll="/products?trending=true" />}
-        <BottomCTA />
-      </div>
-    )
-  } else {
-    content = (
-      <div>
-        {sec.heroBanner !== false && <HeroLayout4 heroBanners={heroBanners} hangingBanners={hangingBanners} />}
-        {sec.featuresBar !== false && <FullWidthFeaturesBar />}
-        {sec.categories !== false && <HorizontalCategoryScroll categories={categories} loading={loading} />}
-      </div>
-    )
-  }
+  const trustItems = [
+    { icon: Truck, title: `Free delivery above ₹${settings.freeShippingAbove ?? 499}`, text: 'Delivered across India' },
+    { icon: ShieldCheck, title: 'Secure checkout', text: 'UPI, online payment & COD' },
+    { icon: PackageCheck, title: 'Packed with care', text: 'Quality checked before dispatch' },
+    { icon: RotateCcw, title: 'Easy support', text: 'Friendly help when you need it' },
+  ]
 
   return (
-    <>
+    <div className="overflow-hidden bg-[#fffdf9]">
       <Helmet>
-        <title>Bafnadaily 🛍️ — Gifts, Accessories & Trending Keychains</title>
-        <meta name="description" content="Explore trending keychains, unique gifts, and stylish accessories at Bafnadaily. Shop high-quality items under ₹299 with fast delivery across India!" />
-        <meta property="og:title" content="Bafnadaily 🛍️ — Gifts & Accessories" />
-        <meta property="og:description" content="Shop trending keychains and unique gifts at the best prices." />
+        <title>{settings.siteName || 'Bafnadaily'} — Gifts, Accessories & Everyday Joy</title>
+        <meta name="description" content={`${settings.siteName || 'Bafnadaily'} brings you trending accessories, thoughtful gifts and everyday finds with secure checkout and delivery across India.`} />
+        <meta property="og:title" content={`${settings.siteName || 'Bafnadaily'} — Everyday finds, made delightful`} />
         <meta property="og:type" content="website" />
       </Helmet>
-      {content}
-    </>
+
+      {sectionSettings.heroBanner !== false && (
+        <section className="relative border-b border-rose-100/70 bg-[radial-gradient(circle_at_12%_10%,rgba(244,63,94,0.12),transparent_30%),radial-gradient(circle_at_90%_20%,rgba(249,115,22,0.10),transparent_28%),linear-gradient(135deg,#fff7f4_0%,#fffdf9_48%,#fdf4ff_100%)]">
+          <div className="relative px-4 pt-10 md:px-0 md:pt-0">
+            <HeroSlider banners={heroBanners} fullWidth />
+            <div className="absolute bottom-5 left-10 hidden items-center gap-3 rounded-2xl border border-white/70 bg-white/90 p-3 pr-5 shadow-xl backdrop-blur md:flex">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><BadgeCheck size={20} /></div>
+              <div><p className="text-xs font-black text-slate-900">Bafna quality checked</p><p className="text-[10px] text-stone-500">Chosen and packed with care</p></div>
+            </div>
+          </div>
+          <div className="d2c-shell relative py-10 md:hidden">
+            <div className="relative z-10 mx-auto min-w-0 max-w-[calc(100vw-2rem)] md:max-w-5xl md:text-center">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/85 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-primary shadow-sm backdrop-blur">
+                <Sparkles size={14} /> {content.heroEyebrow}
+              </div>
+              <h1 className="max-w-full break-words font-heading text-[2.2rem] font-black leading-[1.01] tracking-[-0.055em] text-slate-950 sm:text-5xl md:text-6xl md:leading-[0.98] lg:text-[4.25rem]">
+                {content.heroTitle}<br /><span className="d2c-gradient-text">{content.heroHighlight}</span>
+              </h1>
+              <p className="mt-6 max-w-xl text-sm font-medium leading-7 text-slate-600 md:mx-auto md:text-base md:leading-8">{content.heroSubtitle}</p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row md:justify-center">
+                <Link to={content.primaryCtaLink} className="group inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-7 py-4 text-sm font-black text-white shadow-xl shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-primary">
+                  <ShoppingBag size={17} /> {content.primaryCtaLabel} <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                </Link>
+                <Link to={content.secondaryCtaLink} className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white/80 px-7 py-4 text-sm font-black text-slate-800 shadow-sm backdrop-blur transition hover:border-primary/30 hover:text-primary">
+                  {content.secondaryCtaLabel}
+                </Link>
+              </div>
+              <div className="mt-9 grid max-w-lg grid-cols-3 divide-x divide-stone-200 border-t border-stone-200 pt-6 md:mx-auto md:text-left">
+                <div className="pr-4"><p className="text-xl font-black text-slate-950">500+</p><p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-400">Happy finds</p></div>
+                <div className="px-4"><p className="flex items-center gap-1 text-xl font-black text-slate-950">4.8 <Star size={15} className="fill-amber-400 text-amber-400" /></p><p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-400">Customer love</p></div>
+                <div className="pl-4"><p className="text-xl font-black text-slate-950">100%</p><p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-400">Secure pay</p></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {sectionSettings.featuresBar !== false && (
+        <section className="border-b border-stone-100 bg-white">
+          <div className="d2c-shell grid grid-cols-2 gap-x-4 gap-y-5 py-5 md:grid-cols-4 md:py-6">
+            {trustItems.map(({ icon: Icon, title, text }) => (
+              <div key={title} className="flex items-center gap-3">
+                <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-2xl bg-rose-50 text-primary"><Icon size={19} /></div>
+                <div><p className="text-[11px] font-black text-slate-900 md:text-xs">{title}</p><p className="mt-0.5 hidden text-[10px] text-stone-400 sm:block">{text}</p></div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {sectionSettings.trendingProducts !== false && <ProductShelf eyebrow={content.trendingEyebrow} title={content.trendingTitle} products={trending} loading={loading} viewAll="/products" />}
+
+      {sectionSettings.categories !== false && (
+        <section className="d2c-shell py-10 md:py-16">
+          <SectionHeading eyebrow={content.categoryEyebrow} title={content.categoryTitle} link="/products" />
+          <div className="scrollbar-hidden -mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-3 sm:grid sm:grid-cols-3 sm:overflow-visible md:grid-cols-4 lg:grid-cols-6 lg:gap-5">
+            {loading ? Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-44 w-36 flex-shrink-0 rounded-[1.5rem] skeleton sm:h-auto sm:w-auto sm:aspect-[4/5]" />) : categories.slice(0, 12).map((category, index) => (
+              <Link key={category._id} to={`/category/${category.slug}`} className="group relative h-44 w-36 flex-shrink-0 snap-start overflow-hidden rounded-[1.5rem] bg-stone-100 sm:h-auto sm:w-auto sm:aspect-[4/5] md:rounded-[1.8rem]">
+                {category.image ? <img src={ik.catCircle(category.image)} alt={category.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-110" loading="lazy" /> : <div className={`grid h-full place-items-center text-5xl ${index % 2 ? 'bg-violet-100' : 'bg-rose-100'}`}>{category.icon || '🛍️'}</div>}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-4 text-white">
+                  <p className="text-sm font-black leading-tight">{category.name}</p>
+                  <span className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full bg-white/20 backdrop-blur transition group-hover:bg-white group-hover:text-primary"><ArrowRight size={12} /></span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {sectionSettings.promoBanners !== false && (
+        <section className="d2c-shell grid gap-4 py-8 md:grid-cols-2 md:gap-6 md:py-14">
+          {sectionSettings.underPriceBanner !== false && (
+            <Link to={content.promoOneLink} className="group relative min-h-[300px] overflow-hidden rounded-[2rem] bg-[#f9d7df] p-7 md:min-h-[360px] md:p-10">
+              <div className="absolute -bottom-20 -right-14 h-64 w-64 rounded-full bg-white/45" />
+              <div className="absolute right-8 top-8 grid h-28 w-28 rotate-6 place-items-center rounded-[2rem] bg-white/65 text-5xl shadow-xl transition duration-500 group-hover:-rotate-3 group-hover:scale-105">💝</div>
+              <div className="relative z-10 flex h-full max-w-[68%] flex-col justify-end">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-rose-700">{content.promoOneEyebrow}</p>
+                <h3 className="mt-3 font-heading text-3xl font-black leading-[1.05] tracking-[-0.04em] text-slate-950 md:text-4xl">{content.promoOneTitle}</h3>
+                <p className="mt-3 text-xs font-medium leading-5 text-slate-600 md:text-sm">{content.promoOneSubtitle}</p>
+                <span className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-xs font-black text-white">{content.promoOneCta} <ArrowRight size={13} /></span>
+              </div>
+            </Link>
+          )}
+          {sectionSettings.giftComboBanner !== false && (
+            <Link to={content.promoTwoLink} className="group relative min-h-[300px] overflow-hidden rounded-[2rem] bg-[#dcd6ff] p-7 md:min-h-[360px] md:p-10">
+              <div className="absolute -right-12 -top-16 h-60 w-60 rounded-full bg-white/35" />
+              <div className="absolute right-8 top-8 grid h-28 w-28 -rotate-6 place-items-center rounded-[2rem] bg-white/65 text-5xl shadow-xl transition duration-500 group-hover:rotate-3 group-hover:scale-105">🎁</div>
+              <div className="relative z-10 flex h-full max-w-[68%] flex-col justify-end">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-700">{content.promoTwoEyebrow}</p>
+                <h3 className="mt-3 font-heading text-3xl font-black leading-[1.05] tracking-[-0.04em] text-slate-950 md:text-4xl">{content.promoTwoTitle}</h3>
+                <p className="mt-3 text-xs font-medium leading-5 text-slate-600 md:text-sm">{content.promoTwoSubtitle}</p>
+                <span className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-xs font-black text-white">{content.promoTwoCta} <ArrowRight size={13} /></span>
+              </div>
+            </Link>
+          )}
+        </section>
+      )}
+
+      {sectionSettings.newArrivals !== false && <ProductShelf eyebrow={content.newArrivalsEyebrow} title={content.newArrivalsTitle} products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
+
+      {sectionSettings.trustSection !== false && <section className="bg-slate-950 py-14 text-white md:py-20">
+        <div className="d2c-shell">
+          <SectionHeading eyebrow="The Bafna promise" title={content.trustTitle} align="center" dark />
+          <p className="mx-auto -mt-3 mb-10 max-w-2xl text-center text-sm leading-6 text-slate-400 md:text-base">{content.trustSubtitle}</p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { icon: Heart, title: 'Curated with heart', text: 'Useful, giftable and delightful products chosen for real life.' },
+              { icon: WalletCards, title: 'Happy prices', text: 'Everyday value without making quality feel like a compromise.' },
+              { icon: Zap, title: 'Quick dispatch', text: 'Orders move fast so your favourites reach you sooner.' },
+              { icon: Gift, title: 'Ready to delight', text: 'Thoughtful finds for celebrations, surprises and self-gifting.' },
+            ].map(({ icon: Icon, title, text }) => (
+              <div key={title} className="rounded-3xl border border-white/10 bg-white/[0.055] p-6 transition hover:-translate-y-1 hover:border-primary/50 hover:bg-white/[0.08]">
+                <div className="mb-5 grid h-11 w-11 place-items-center rounded-2xl bg-primary text-white"><Icon size={20} /></div>
+                <h3 className="text-base font-black">{title}</h3>
+                <p className="mt-2 text-xs leading-5 text-slate-400">{text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>}
+
+      {sectionSettings.featuredProducts !== false && <ProductShelf eyebrow={content.featuredEyebrow} title={content.featuredTitle} products={featured} loading={loading} viewAll="/products?featured=true" />}
+
+      {sectionSettings.closingCta !== false && <section className="d2c-shell py-10 md:py-16">
+        <div className="relative overflow-hidden rounded-[2.2rem] bg-gradient-to-br from-primary via-[#dd315c] to-[#7c3aed] px-6 py-12 text-center text-white shadow-[0_30px_90px_rgba(225,29,72,0.24)] md:px-12 md:py-16">
+          <div className="absolute -left-16 -top-16 h-52 w-52 rounded-full border-[32px] border-white/10" />
+          <div className="absolute -bottom-20 -right-10 h-64 w-64 rounded-full bg-white/10" />
+          <div className="relative z-10 mx-auto max-w-2xl">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/70">{content.closingEyebrow}</p>
+            <h2 className="mt-4 font-heading text-3xl font-black tracking-[-0.04em] md:text-5xl">{content.closingTitle}</h2>
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-white/75 md:text-base">{content.closingSubtitle}</p>
+            <Link to={content.closingLink} className="mt-7 inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-black text-slate-950 shadow-xl transition hover:-translate-y-1">{content.closingCta} <ArrowRight size={16} /></Link>
+          </div>
+        </div>
+      </section>}
+    </div>
   )
 }
 

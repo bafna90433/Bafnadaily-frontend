@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import api from '../utils/api'
 
 interface HomepageSections {
+  [key: string]: boolean | string
   heroBanner: boolean
   categories: boolean
   featuresBar: boolean
@@ -78,7 +79,7 @@ const DEFAULT: SiteSettings = {
   standardShippingCharge: 49,
   giftWrapCharge: 29,
   promoText: '🚚 Free Delivery on orders above ₹499 | COD Available 🎁',
-  b2bEnabled: true,
+  b2bEnabled: false,
   moqPolicy: { belowPrice: 60, belowPriceQty: 3, abovePriceQty: 2 },
   maintenanceMode: false,
   maintenanceMessage: '',

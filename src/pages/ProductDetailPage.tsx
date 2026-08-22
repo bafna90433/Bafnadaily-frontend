@@ -116,19 +116,20 @@ const ProductDetailPage: React.FC = () => {
   const { total } = getTotal()
   const { user } = useAuthStore()
   const { settings } = useSettingsStore()
+  const minimumQty = settings.b2bEnabled ? (product?.minQty || 1) : 1
 
   useEffect(() => {
     setLoading(true); setImgIdx(0); setVariant(''); setTab('reviews'); setCartQty(0); setCartItemId(null)
     api.get(`/products/${slug}`).then(async r => {
       const p = r.data.product
       setProduct(p)
-      setQty(p.minQty || 1)
+      setQty(settings.b2bEnabled ? (p.minQty || 1) : 1)
       if (p.category?._id) {
         const rel = await api.get(`/products?category=${p.category._id}&limit=7`)
         setRelated(rel.data.products.filter((x: Product) => x.slug !== slug).slice(0, 6))
       }
     }).catch(() => navigate('/')).finally(() => setLoading(false))
-  }, [slug])
+  }, [slug, settings.b2bEnabled])
 
   // Sync cartQty from cart store
   useEffect(() => {
@@ -140,7 +141,7 @@ const ProductDetailPage: React.FC = () => {
 
   const handleCart = async () => {
     if (!user) { navigate('/login'); return }
-    await addToCart(product!, product!.minQty || 1, variant)
+    await addToCart(product!, minimumQty, variant)
   }
 
   const handleIncrease = async () => {
@@ -154,7 +155,7 @@ const ProductDetailPage: React.FC = () => {
 
   const handleDecrease = async () => {
     if (!cartItemId) return
-    if (cartQty <= (product?.minQty || 1)) {
+    if (cartQty <= minimumQty) {
       await removeItem(cartItemId)
     } else {
       await updateItem(cartItemId, cartQty - 1)

@@ -7,17 +7,20 @@ import useAuthStore from '../../store/authStore'
 import api from '../../utils/api'
 import toast from 'react-hot-toast'
 import { ik } from '../../utils/imagekit'
+import useSettingsStore from '../../store/settingsStore'
 
 interface Props { product: Product, priority?: boolean }
 
 const ProductCard: React.FC<Props> = ({ product, priority }) => {
   const { cart, addToCart, updateItem, removeItem } = useCartStore()
   const { user } = useAuthStore()
+  const { settings } = useSettingsStore()
   const navigate = useNavigate()
   const [wishlisted, setWishlisted] = useState(false)
 
   const cartItem = cart?.items?.find(i => i.product?._id === product._id)
   const qtyInCart = cartItem?.quantity || 0
+  const minimumQty = settings.b2bEnabled ? (product.minQty || 1) : 1
 
   const rawImg = product.images?.[0]?.url || ''
   // Use gridThumb for mobile-optimized grid
@@ -27,7 +30,7 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
     e.preventDefault()
     if (!user) { navigate('/login'); return }
     if (navigator.vibrate) navigator.vibrate(30);
-    await addToCart(product, product.minQty || 1)
+    await addToCart(product, minimumQty)
   }
 
   const handleUpdateQty = async (e: React.MouseEvent, delta: number) => {
@@ -40,9 +43,9 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
       toast.error(`Only ${product.stock} pcs available in stock!`, { icon: '⚠️', duration: 2500 })
       return
     }
-    if (delta === -1 && cartItem.quantity <= (product.minQty || 1)) {
+    if (delta === -1 && cartItem.quantity <= minimumQty) {
       await removeItem(cartItem._id)
-    } else if (newQty >= (product.minQty || 1)) {
+    } else if (newQty >= minimumQty) {
       await updateItem(cartItem._id, newQty)
     }
   }
@@ -59,9 +62,9 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
 
   return (
     <Link to={`/product/${product.slug}`} className="group block">
-      <div className="card overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1" style={{ borderRadius: '1rem' }}>
+      <div className="overflow-hidden rounded-[1.35rem] border border-stone-100 bg-white shadow-[0_5px_24px_rgba(15,23,42,0.05)] transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/15 hover:shadow-[0_20px_50px_rgba(15,23,42,0.11)]">
         {/* Image */}
-        <div className="relative overflow-hidden bg-gray-50" style={{ aspectRatio: '1/1' }}>
+        <div className="relative overflow-hidden bg-[#f8f6f3]" style={{ aspectRatio: '1/1' }}>
           <img src={img} alt={product.name} 
             loading={priority ? 'eager' : 'lazy'}
             fetchPriority={priority ? 'high' : 'auto'}
@@ -75,7 +78,7 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
             {product.isTrending && <span className="badge bg-orange-500 text-white">🔥 Hot</span>}
             {product.isNewArrival && <span className="badge bg-green-500 text-white">New ✨</span>}
             {product.isBestSeller && <span className="badge bg-purple-500 text-white">⭐ Best</span>}
-            {(product.minQty || 1) > 1 && <span className="badge bg-orange-100 text-orange-700">Min {product.minQty} pcs</span>}
+            {minimumQty > 1 && <span className="badge bg-orange-100 text-orange-700">Min {minimumQty} pcs</span>}
           </div>
           {/* Out of Stock overlay */}
           {product.stock === 0 && (
@@ -92,18 +95,18 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
         </div>
 
         {/* Info */}
-        <div className="p-3">
+        <div className="p-3.5 md:p-4">
           <div className="flex items-center justify-between gap-1 mb-0.5">
             <p className="text-[11px] text-gray-400 font-medium truncate">{product.category?.name}</p>
-            {(product.sku || product.barcode) && (
+            {settings.b2bEnabled && (product.sku || product.barcode) && (
               <span className="text-[9px] bg-gray-100 text-gray-500 font-bold px-1.5 py-0.5 rounded flex-shrink-0">#{product.sku || product.barcode}</span>
             )}
           </div>
-          <h3 className="font-semibold text-sm text-gray-800 line-clamp-2 leading-snug mb-1.5">{product.name}</h3>
+          <h3 className="mb-2 line-clamp-2 min-h-[2.5rem] text-sm font-bold leading-snug text-slate-800 transition-colors group-hover:text-primary">{product.name}</h3>
           
           {/* Price */}
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-base font-black text-primary">₹{product.price}</span>
+            <span className="text-lg font-black tracking-tight text-slate-950">₹{product.price}</span>
             {product.mrp > product.price && (
               <span className="text-xs text-gray-400 line-through font-medium">₹{product.mrp}</span>
             )}
@@ -121,7 +124,7 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
             </div>
           )}
           
-          {(product.perPiecePrice || product.perPacketText) && (
+          {settings.b2bEnabled && (product.perPiecePrice || product.perPacketText) && (
             <div className="flex flex-col gap-1.5 mb-2">
               {product.perPiecePrice && (
                 <div className="inline-flex items-center gap-1.5 bg-purple-50 border border-purple-100 text-purple-600 text-[10px] font-black px-2.5 py-1 rounded-full w-fit">
@@ -136,9 +139,9 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
             </div>
           )}
 
-          {(product.minQty || 1) > 1 && (
+          {minimumQty > 1 && (
             <div className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-lg mb-1.5">
-              📦 Min {product.minQty} pcs
+              📦 Min {minimumQty} pcs
             </div>
           )}
           {product.stock > 0 && product.stock < 5 && (
@@ -176,8 +179,7 @@ const ProductCard: React.FC<Props> = ({ product, priority }) => {
               </div>
             ) : (
               <button onClick={handleCart}
-                className="w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all"
-                style={{ background: 'linear-gradient(135deg, #E91E63, #C2185B)', color: '#fff', boxShadow: '0 4px 14px rgba(233,30,99,0.25)' }}>
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-slate-950 py-2.5 text-xs font-black text-white shadow-sm transition-all hover:bg-primary active:scale-95">
                 <ShoppingCart size={13} />
                 Add to Cart
               </button>

@@ -91,7 +91,7 @@ const CartPage: React.FC = () => {
                   <div className="flex items-center justify-between mt-3">
                     <div>
                       <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                        <button onClick={() => updateItem(item._id, Math.max(p.minQty||1, item.quantity - 1))} className="px-3 py-1.5 hover:bg-gray-50"><Minus size={13}/></button>
+                        <button onClick={() => updateItem(item._id, Math.max(settings.b2bEnabled ? (p.minQty || 1) : 1, item.quantity - 1))} className="px-3 py-1.5 hover:bg-gray-50"><Minus size={13}/></button>
                         <span className="px-3 py-1.5 text-sm font-bold">{item.quantity}</span>
                         <button
                           onClick={() => {
