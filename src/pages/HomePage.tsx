@@ -299,25 +299,28 @@ const HomePage: React.FC = () => {
         </section>
       )}
 
-      {sectionSettings.trendingProducts !== false && <ProductShelf eyebrow={content.trendingEyebrow} title={content.trendingTitle} products={trending} loading={loading} viewAll="/products" />}
-
       {sectionSettings.categories !== false && (
-        <section className="d2c-shell py-10 md:py-16">
-          <SectionHeading eyebrow={content.categoryEyebrow} title={content.categoryTitle} link="/products" />
-          <div className="scrollbar-hidden -mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-3 sm:grid sm:grid-cols-3 sm:overflow-visible md:grid-cols-4 lg:grid-cols-6 lg:gap-5">
-            {loading ? Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-44 w-36 flex-shrink-0 rounded-[1.5rem] skeleton sm:h-auto sm:w-auto sm:aspect-[4/5]" />) : categories.slice(0, 12).map((category, index) => (
-              <Link key={category._id} to={`/category/${category.slug}`} className="group relative h-44 w-36 flex-shrink-0 snap-start overflow-hidden rounded-[1.5rem] bg-stone-100 sm:h-auto sm:w-auto sm:aspect-[4/5] md:rounded-[1.8rem]">
-                {category.image ? <img src={ik.catCircle(category.image)} alt={category.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-110" loading="lazy" /> : <div className={`grid h-full place-items-center text-5xl ${index % 2 ? 'bg-violet-100' : 'bg-rose-100'}`}>{category.icon || '🛍️'}</div>}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-4 text-white">
-                  <p className="text-sm font-black leading-tight">{category.name}</p>
-                  <span className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full bg-white/20 backdrop-blur transition group-hover:bg-white group-hover:text-primary"><ArrowRight size={12} /></span>
-                </div>
-              </Link>
-            ))}
+        <section className="border-b border-rose-100 bg-white">
+          <div className="d2c-shell py-8 md:py-11">
+            <div className="mb-6 flex items-end justify-between">
+              <div><p className="mb-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-primary">{content.categoryEyebrow}</p><h2 className="font-heading text-2xl font-black tracking-[-0.035em] text-slate-950 md:text-3xl">{content.categoryTitle}</h2></div>
+              <Link to="/products" className="hidden items-center gap-1.5 text-xs font-black text-primary sm:flex">View all <ArrowRight size={13} /></Link>
+            </div>
+            <div className="scrollbar-hidden -mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-6 lg:gap-6">
+              {loading ? Array.from({ length: 6 }).map((_, index) => <div key={index} className="w-[132px] flex-shrink-0 sm:w-auto"><div className="aspect-square rounded-t-full rounded-b-3xl skeleton" /><div className="mx-auto mt-3 h-3 w-24 rounded skeleton" /></div>) : categories.slice(0, 6).map((category, index) => (
+                <Link key={category._id} to={`/category/${category.slug}`} className="group w-[132px] flex-shrink-0 snap-start text-center sm:w-auto">
+                  <div className="relative aspect-square overflow-hidden rounded-t-[999px] rounded-b-[1.6rem] border border-rose-100 bg-[#fdebf1] shadow-[0_8px_24px_rgba(225,29,72,0.08)] transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/30 group-hover:shadow-[0_16px_36px_rgba(225,29,72,0.16)]">
+                    {category.image ? <img src={ik.catCircle(category.image)} alt={category.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" /> : <div className={`grid h-full place-items-center text-5xl ${index % 2 ? 'bg-violet-100' : 'bg-rose-100'}`}>{category.icon || '🛍️'}</div>}
+                  </div>
+                  <p className="mt-3 line-clamp-2 text-xs font-black leading-4 text-slate-800 transition-colors group-hover:text-primary md:text-sm">{category.name}</p>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
       )}
+
+      {sectionSettings.trendingProducts !== false && <ProductShelf eyebrow={content.trendingEyebrow} title={content.trendingTitle} products={trending} loading={loading} viewAll="/products" />}
 
       {sectionSettings.promoBanners !== false && (
         <section className="d2c-shell grid gap-4 py-8 md:grid-cols-2 md:gap-6 md:py-14">
