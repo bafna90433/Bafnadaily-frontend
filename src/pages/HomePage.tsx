@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import {
-  ArrowRight, BadgeCheck, ChevronLeft, ChevronRight, Gift, Heart,
+  ArrowRight, BadgeCheck, ChevronLeft, ChevronRight, Gift,
   PackageCheck, RotateCcw, ShieldCheck, ShoppingBag, Sparkles, Star,
-  Truck, WalletCards, Zap,
+  Truck,
 } from 'lucide-react'
 import api from '../utils/api'
 import { ik } from '../utils/imagekit'
@@ -372,8 +372,6 @@ const HomePage: React.FC = () => {
         </section>
       )}
 
-      {sectionSettings.promoBanners !== false && <CampaignBanner banners={promoBanners} />}
-
       {sectionSettings.trendingProducts !== false && <ProductShelf eyebrow={content.trendingEyebrow} title={content.trendingTitle} products={trending} loading={loading} viewAll="/products" />}
 
       {sectionSettings.promoBanners !== false && (
@@ -407,26 +405,7 @@ const HomePage: React.FC = () => {
 
       {sectionSettings.newArrivals !== false && <ProductShelf eyebrow={content.newArrivalsEyebrow} title={content.newArrivalsTitle} products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
 
-      {sectionSettings.trustSection !== false && <section className="bg-slate-950 py-14 text-white md:py-20">
-        <div className="d2c-shell">
-          <SectionHeading eyebrow="The Bafna promise" title={content.trustTitle} align="center" dark />
-          <p className="mx-auto -mt-3 mb-10 max-w-2xl text-center text-sm leading-6 text-slate-400 md:text-base">{content.trustSubtitle}</p>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { icon: Heart, title: 'Curated with heart', text: 'Useful, giftable and delightful products chosen for real life.' },
-              { icon: WalletCards, title: 'Happy prices', text: 'Everyday value without making quality feel like a compromise.' },
-              { icon: Zap, title: 'Quick dispatch', text: 'Orders move fast so your favourites reach you sooner.' },
-              { icon: Gift, title: 'Ready to delight', text: 'Thoughtful finds for celebrations, surprises and self-gifting.' },
-            ].map(({ icon: Icon, title, text }) => (
-              <div key={title} className="rounded-3xl border border-white/10 bg-white/[0.055] p-6 transition hover:-translate-y-1 hover:border-primary/50 hover:bg-white/[0.08]">
-                <div className="mb-5 grid h-11 w-11 place-items-center rounded-2xl bg-primary text-white"><Icon size={20} /></div>
-                <h3 className="text-base font-black">{title}</h3>
-                <p className="mt-2 text-xs leading-5 text-slate-400">{text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>}
+      {sectionSettings.trustSection !== false && sectionSettings.promoBanners !== false && <CampaignBanner banners={promoBanners} />}
 
       {sectionSettings.featuredProducts !== false && <ProductShelf eyebrow={content.featuredEyebrow} title={content.featuredTitle} products={featured} loading={loading} viewAll="/products?featured=true" />}
 
