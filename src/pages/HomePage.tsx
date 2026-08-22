@@ -68,13 +68,13 @@ const SectionHeading: React.FC<{
   align?: 'left' | 'center'
   dark?: boolean
 }> = ({ eyebrow, title, link, align = 'left', dark = false }) => (
-  <div className={`mb-6 flex items-end gap-4 md:mb-8 ${align === 'center' ? 'flex-col items-center text-center' : 'justify-between'}`}>
+  <div className={`relative z-10 mb-7 flex items-end gap-4 md:mb-10 ${align === 'center' ? 'flex-col items-center text-center' : 'justify-between'}`}>
     <div>
-      <p className="mb-2 text-[11px] font-black uppercase tracking-[0.22em] text-primary">{eyebrow}</p>
-      <h2 className={`font-heading text-2xl font-black tracking-[-0.035em] md:text-4xl ${dark ? 'text-white' : 'text-slate-950'}`}>{title}</h2>
+      <div className={`mb-2.5 flex items-center gap-2.5 ${align === 'center' ? 'justify-center' : ''}`}><span className="h-px w-7 bg-primary/55" /><p className="text-[10px] font-black uppercase tracking-[0.28em] text-primary">{eyebrow}</p></div>
+      <h2 className={`font-heading text-[1.7rem] font-black leading-none tracking-[-0.045em] md:text-[2.65rem] ${dark ? 'text-white' : 'text-[#15111b]'}`}>{title}</h2>
     </div>
     {link && (
-      <Link to={link} className="group hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 shadow-sm transition hover:border-primary/30 hover:text-primary md:inline-flex">
+      <Link to={link} className="group hidden items-center gap-2 rounded-full border border-stone-200/80 bg-white/90 px-5 py-3 text-xs font-black text-slate-700 shadow-[0_8px_30px_rgba(51,30,39,0.07)] backdrop-blur transition duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:text-primary hover:shadow-[0_12px_34px_rgba(225,29,72,0.13)] md:inline-flex">
         View all <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
       </Link>
     )}
@@ -263,20 +263,30 @@ const ProductShelf: React.FC<{
   products: Product[]
   loading: boolean
   viewAll: string
-}> = ({ eyebrow, title, products, loading, viewAll }) => (
-  <section className="d2c-shell py-10 md:py-16">
-    <SectionHeading eyebrow={eyebrow} title={title} link={viewAll} />
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-5 lg:grid-cols-4 xl:grid-cols-6">
-      {loading
-        ? Array.from({ length: 6 }).map((_, index) => <SkeletonCard key={index} />)
-        : products.slice(0, 6).map((product, index) => <ProductCard key={product._id} product={product} priority={index < 3} />)}
-    </div>
-    {!loading && products.length === 0 && (
-      <div className="rounded-3xl border border-dashed border-stone-200 bg-white py-14 text-center text-sm font-bold text-stone-400">Products will appear here when they are enabled from admin.</div>
-    )}
-    <Link to={viewAll} className="mx-auto mt-6 flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-xs font-black text-slate-700 md:hidden">View all <ArrowRight size={14} /></Link>
-  </section>
-)
+  tone?: 'ivory' | 'rose' | 'pearl'
+}> = ({ eyebrow, title, products, loading, viewAll, tone = 'ivory' }) => {
+  const toneClass = tone === 'rose'
+    ? 'bg-[radial-gradient(circle_at_8%_12%,rgba(251,207,220,0.48),transparent_25%),linear-gradient(135deg,#fff8f8_0%,#fffdf9_56%,#fff4f7_100%)]'
+    : tone === 'pearl'
+      ? 'bg-[radial-gradient(circle_at_88%_8%,rgba(221,214,254,0.42),transparent_25%),linear-gradient(135deg,#fffdf8_0%,#faf8ff_58%,#fff8fb_100%)]'
+      : 'bg-[linear-gradient(135deg,#fffdf8_0%,#fffaf4_52%,#fffdfb_100%)]'
+
+  return (
+    <section className={`d2c-shell relative overflow-hidden border-b border-stone-200/55 py-11 md:py-20 ${toneClass}`}>
+      <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[44px] border-white/40" />
+      <SectionHeading eyebrow={eyebrow} title={title} link={viewAll} />
+      <div className="relative z-10 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-5 lg:grid-cols-4 xl:grid-cols-6 xl:gap-6">
+        {loading
+          ? Array.from({ length: 6 }).map((_, index) => <SkeletonCard key={index} />)
+          : products.slice(0, 6).map((product, index) => <ProductCard key={product._id} product={product} priority={index < 3} />)}
+      </div>
+      {!loading && products.length === 0 && (
+        <div className="relative z-10 rounded-3xl border border-dashed border-stone-200 bg-white/80 py-14 text-center text-sm font-bold text-stone-400">Products will appear here when they are enabled from admin.</div>
+      )}
+      <Link to={viewAll} className="relative z-10 mx-auto mt-7 flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-xs font-black text-slate-700 shadow-sm md:hidden">View all <ArrowRight size={14} /></Link>
+    </section>
+  )
+}
 
 const HomePage: React.FC = () => {
   const { settings } = useSettingsStore()
@@ -326,7 +336,7 @@ const HomePage: React.FC = () => {
   ]
 
   return (
-    <div className="overflow-hidden bg-[#fffdf9]">
+    <div className="overflow-hidden bg-[#fbf8f3]">
       <Helmet>
         <title>{settings.siteName || 'Bafnadaily'} — Gifts, Accessories & Everyday Joy</title>
         <meta name="description" content={`${settings.siteName || 'Bafnadaily'} brings you trending accessories, thoughtful gifts and everyday finds with secure checkout and delivery across India.`} />
@@ -337,11 +347,11 @@ const HomePage: React.FC = () => {
       {sectionSettings.heroBanner !== false && <HeroLayout4 heroBanners={heroBanners} hangingBanners={hangingBanners} />}
 
       {sectionSettings.featuresBar !== false && (
-        <section className="border-b border-stone-100 bg-white">
-          <div className="d2c-shell grid grid-cols-2 gap-x-4 gap-y-5 py-5 md:grid-cols-4 md:py-6">
+        <section className="relative border-b border-stone-200/70 bg-[#fffdfa]">
+          <div className="d2c-shell grid grid-cols-2 gap-3 py-4 md:grid-cols-4 md:gap-4 md:py-5">
             {trustItems.map(({ icon: Icon, title, text }) => (
-              <div key={title} className="flex items-center gap-3">
-                <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-2xl bg-rose-50 text-primary"><Icon size={19} /></div>
+              <div key={title} className="flex items-center gap-3 rounded-2xl border border-stone-200/70 bg-white/75 px-3 py-3 shadow-[0_7px_24px_rgba(48,32,36,0.045)] backdrop-blur md:px-4">
+                <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-[0.9rem] bg-gradient-to-br from-rose-50 to-pink-100 text-primary ring-1 ring-primary/10"><Icon size={18} /></div>
                 <div><p className="text-[11px] font-black text-slate-900 md:text-xs">{title}</p><p className="mt-0.5 hidden text-[10px] text-stone-400 sm:block">{text}</p></div>
               </div>
             ))}
@@ -350,19 +360,19 @@ const HomePage: React.FC = () => {
       )}
 
       {sectionSettings.categories !== false && (
-        <section className="border-b border-rose-100 bg-white">
-          <div className="d2c-shell py-8 md:py-11">
+        <section className="relative border-b border-rose-100/70 bg-[radial-gradient(circle_at_90%_0%,rgba(253,215,226,0.5),transparent_26%),linear-gradient(180deg,#fff_0%,#fffaf8_100%)]">
+          <div className="d2c-shell py-10 md:py-16">
             <div className="mb-6 flex items-end justify-between">
-              <div><p className="mb-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-primary">{content.categoryEyebrow}</p><h2 className="font-heading text-2xl font-black tracking-[-0.035em] text-slate-950 md:text-3xl">{content.categoryTitle}</h2></div>
-              <Link to="/products" className="hidden items-center gap-1.5 text-xs font-black text-primary sm:flex">View all <ArrowRight size={13} /></Link>
+              <div><div className="mb-2 flex items-center gap-2.5"><span className="h-px w-7 bg-primary/55" /><p className="text-[10px] font-black uppercase tracking-[0.28em] text-primary">{content.categoryEyebrow}</p></div><h2 className="font-heading text-[1.7rem] font-black tracking-[-0.045em] text-[#15111b] md:text-[2.65rem]">{content.categoryTitle}</h2></div>
+              <Link to="/products" className="hidden items-center gap-2 rounded-full border border-stone-200 bg-white px-5 py-3 text-xs font-black text-primary shadow-[0_8px_28px_rgba(56,34,42,0.07)] transition hover:-translate-y-0.5 hover:border-primary/30 sm:flex">View all <ArrowRight size={13} /></Link>
             </div>
             <div className="scrollbar-hidden -mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-6 lg:gap-6">
               {loading ? Array.from({ length: 6 }).map((_, index) => <div key={index} className="w-[132px] flex-shrink-0 sm:w-auto"><div className="aspect-square rounded-t-full rounded-b-3xl skeleton" /><div className="mx-auto mt-3 h-3 w-24 rounded skeleton" /></div>) : categories.slice(0, 6).map((category, index) => (
                 <Link key={category._id} to={`/category/${category.slug}`} className="group w-[132px] flex-shrink-0 snap-start text-center sm:w-auto">
-                  <div className="relative aspect-square overflow-hidden rounded-t-[999px] rounded-b-[1.6rem] border border-rose-100 bg-[#fdebf1] shadow-[0_8px_24px_rgba(225,29,72,0.08)] transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/30 group-hover:shadow-[0_16px_36px_rgba(225,29,72,0.16)]">
+                  <div className="relative aspect-square overflow-hidden rounded-t-[999px] rounded-b-[1.8rem] border border-white bg-[#fdebf1] p-1.5 shadow-[0_14px_35px_rgba(78,42,54,0.11)] ring-1 ring-rose-100 transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_24px_48px_rgba(225,29,72,0.18)]">
                     {category.image ? <img src={ik.catCircle(category.image)} alt={category.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" /> : <div className={`grid h-full place-items-center text-5xl ${index % 2 ? 'bg-violet-100' : 'bg-rose-100'}`}>{category.icon || '🛍️'}</div>}
                   </div>
-                  <p className="mt-3 line-clamp-2 text-xs font-black leading-4 text-slate-800 transition-colors group-hover:text-primary md:text-sm">{category.name}</p>
+                  <p className="mx-auto mt-3 w-fit rounded-full bg-white/90 px-3 py-1.5 text-xs font-black leading-4 text-slate-800 shadow-sm ring-1 ring-stone-100 transition-all group-hover:text-primary md:text-sm">{category.name}</p>
                 </Link>
               ))}
             </div>
@@ -370,12 +380,12 @@ const HomePage: React.FC = () => {
         </section>
       )}
 
-      {sectionSettings.trendingProducts !== false && <ProductShelf eyebrow={content.trendingEyebrow} title={content.trendingTitle} products={trending} loading={loading} viewAll="/products" />}
+      {sectionSettings.trendingProducts !== false && <ProductShelf eyebrow={content.trendingEyebrow} title={content.trendingTitle} products={trending} loading={loading} viewAll="/products" tone="rose" />}
 
       {sectionSettings.promoBanners !== false && (
-        <section className="d2c-shell grid gap-4 py-8 md:grid-cols-2 md:gap-6 md:py-14">
+        <section className="d2c-shell grid gap-4 bg-[#fffdfa] py-10 md:grid-cols-2 md:gap-6 md:py-16">
           {sectionSettings.underPriceBanner !== false && (
-            <Link to={content.promoOneLink} className="group relative min-h-[300px] overflow-hidden rounded-[2rem] bg-[#f9d7df] p-7 md:min-h-[360px] md:p-10">
+            <Link to={content.promoOneLink} className="group relative min-h-[300px] overflow-hidden rounded-[2.25rem] border border-white/80 bg-[linear-gradient(135deg,#f8cfd9_0%,#fff1ee_100%)] p-7 shadow-[0_24px_60px_rgba(148,65,91,0.13)] transition duration-500 hover:-translate-y-1 md:min-h-[360px] md:p-10">
               <div className="absolute -bottom-20 -right-14 h-64 w-64 rounded-full bg-white/45" />
               <div className="absolute right-8 top-8 grid h-28 w-28 rotate-6 place-items-center rounded-[2rem] bg-white/65 text-5xl shadow-xl transition duration-500 group-hover:-rotate-3 group-hover:scale-105">💝</div>
               <div className="relative z-10 flex h-full max-w-[68%] flex-col justify-end">
@@ -387,7 +397,7 @@ const HomePage: React.FC = () => {
             </Link>
           )}
           {sectionSettings.giftComboBanner !== false && (
-            <Link to={content.promoTwoLink} className="group relative min-h-[300px] overflow-hidden rounded-[2rem] bg-[#dcd6ff] p-7 md:min-h-[360px] md:p-10">
+            <Link to={content.promoTwoLink} className="group relative min-h-[300px] overflow-hidden rounded-[2.25rem] border border-white/80 bg-[linear-gradient(135deg,#ded9ff_0%,#f6efff_100%)] p-7 shadow-[0_24px_60px_rgba(93,70,143,0.13)] transition duration-500 hover:-translate-y-1 md:min-h-[360px] md:p-10">
               <div className="absolute -right-12 -top-16 h-60 w-60 rounded-full bg-white/35" />
               <div className="absolute right-8 top-8 grid h-28 w-28 -rotate-6 place-items-center rounded-[2rem] bg-white/65 text-5xl shadow-xl transition duration-500 group-hover:rotate-3 group-hover:scale-105">🎁</div>
               <div className="relative z-10 flex h-full max-w-[68%] flex-col justify-end">
@@ -401,14 +411,14 @@ const HomePage: React.FC = () => {
         </section>
       )}
 
-      {sectionSettings.newArrivals !== false && <ProductShelf eyebrow={content.newArrivalsEyebrow} title={content.newArrivalsTitle} products={newArrivals} loading={loading} viewAll="/products?newArrival=true" />}
+      {sectionSettings.newArrivals !== false && <ProductShelf eyebrow={content.newArrivalsEyebrow} title={content.newArrivalsTitle} products={newArrivals} loading={loading} viewAll="/products?newArrival=true" tone="ivory" />}
 
       {sectionSettings.promoBanners !== false && <CampaignBanner banners={promoBanners} />}
 
-      {sectionSettings.featuredProducts !== false && <ProductShelf eyebrow={content.featuredEyebrow} title={content.featuredTitle} products={featured} loading={loading} viewAll="/products?featured=true" />}
+      {sectionSettings.featuredProducts !== false && <ProductShelf eyebrow={content.featuredEyebrow} title={content.featuredTitle} products={featured} loading={loading} viewAll="/products?featured=true" tone="pearl" />}
 
-      {sectionSettings.closingCta !== false && <section className="d2c-shell py-10 md:py-16">
-        <div className="relative overflow-hidden rounded-[2.2rem] bg-gradient-to-br from-primary via-[#dd315c] to-[#7c3aed] px-6 py-12 text-center text-white shadow-[0_30px_90px_rgba(225,29,72,0.24)] md:px-12 md:py-16">
+      {sectionSettings.closingCta !== false && <section className="d2c-shell bg-[#fffaf7] py-10 md:py-20">
+        <div className="relative overflow-hidden rounded-[2.5rem] border border-white/20 bg-[radial-gradient(circle_at_18%_10%,rgba(255,255,255,0.22),transparent_24%),linear-gradient(135deg,#be0b55_0%,#e12b65_48%,#6d36b5_100%)] px-6 py-14 text-center text-white shadow-[0_35px_95px_rgba(162,25,80,0.25)] md:px-12 md:py-20">
           <div className="absolute -left-16 -top-16 h-52 w-52 rounded-full border-[32px] border-white/10" />
           <div className="absolute -bottom-20 -right-10 h-64 w-64 rounded-full bg-white/10" />
           <div className="relative z-10 mx-auto max-w-2xl">
