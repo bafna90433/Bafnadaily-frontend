@@ -179,6 +179,56 @@ const HeroBannerCard: React.FC<{ banners: Banner[]; mobile?: boolean }> = ({ ban
   )
 }
 
+const CampaignBanner: React.FC<{ banners: Banner[] }> = ({ banners }) => {
+  const [active, setActive] = useState(0)
+
+  useEffect(() => {
+    if (banners.length <= 1) return
+    const timer = setInterval(() => setActive(index => (index + 1) % banners.length), 5000)
+    return () => clearInterval(timer)
+  }, [banners.length])
+
+  if (!banners.length) return null
+
+  return (
+    <section className="bg-white py-5 md:py-8">
+      <div className="d2c-shell">
+        <div className="relative overflow-hidden rounded-[1.5rem] bg-rose-100 shadow-[0_18px_55px_rgba(190,24,93,0.16)] md:aspect-[1920/532] md:rounded-[2rem]">
+          <div className="relative aspect-[16/7] md:absolute md:inset-0 md:aspect-auto">
+            {banners.map((banner, index) => (
+              <Link
+                key={banner._id}
+                to={banner.link || '/products'}
+                aria-label={banner.title || 'Shop Bafnadaily campaign'}
+                className={`absolute inset-0 transition-all duration-700 ${index === active ? 'scale-100 opacity-100' : 'pointer-events-none scale-[1.02] opacity-0'}`}
+              >
+                <img
+                  src={ik.banner(banner.image || '')}
+                  alt={banner.title || 'Bafnadaily campaign'}
+                  className="h-full w-full object-cover object-left md:object-contain"
+                  loading="lazy"
+                />
+              </Link>
+            ))}
+          </div>
+          {banners.length > 1 && (
+            <div className="absolute bottom-3 right-3 z-10 flex gap-1.5 rounded-full bg-slate-950/20 p-2 backdrop-blur md:bottom-5 md:right-5">
+              {banners.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActive(index)}
+                  aria-label={`Show campaign ${index + 1}`}
+                  className={`h-1.5 rounded-full transition-all ${active === index ? 'w-6 bg-white' : 'w-1.5 bg-white/55'}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 const HeroLayout4: React.FC<{ heroBanners: Banner[]; hangingBanners: Banner[] }> = ({ heroBanners, hangingBanners }) => (
   <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fff0f6 0%, #fdf2ff 40%, #fff8f0 70%, #fefffe 100%)' }}>
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -239,6 +289,7 @@ const HomePage: React.FC = () => {
   const [newArrivals, setNewArrivals] = useState<Product[]>([])
   const [featured, setFeatured] = useState<Product[]>([])
   const [heroBanners, setHeroBanners] = useState<Banner[]>([])
+  const [promoBanners, setPromoBanners] = useState<Banner[]>([])
   const [hangingBanners, setHangingBanners] = useState<Banner[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
@@ -259,7 +310,8 @@ const HomePage: React.FC = () => {
       const trendingProducts: Product[] = trendingResponse.data.products || []
       const arrivalProducts: Product[] = newResponse.data.products || []
       const featuredProducts: Product[] = featuredResponse.data.products || []
-      setHeroBanners(allBanners.filter(banner => banner.type !== 'hanging' && banner.isActive && banner.showOnWebsite !== false))
+      setHeroBanners(allBanners.filter(banner => banner.type === 'hero' && banner.isActive && banner.showOnWebsite !== false))
+      setPromoBanners(allBanners.filter(banner => banner.type === 'promo' && banner.isActive && banner.showOnWebsite !== false))
       setHangingBanners(allBanners.filter(banner => banner.type === 'hanging' && banner.isActive && banner.showOnWebsite !== false))
       setCategories(categoryResponse.data.categories || [])
       setTrending(trendingProducts.length ? trendingProducts : allProducts.slice(0, 8))
@@ -319,6 +371,8 @@ const HomePage: React.FC = () => {
           </div>
         </section>
       )}
+
+      {sectionSettings.promoBanners !== false && <CampaignBanner banners={promoBanners} />}
 
       {sectionSettings.trendingProducts !== false && <ProductShelf eyebrow={content.trendingEyebrow} title={content.trendingTitle} products={trending} loading={loading} viewAll="/products" />}
 
